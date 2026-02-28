@@ -49,18 +49,6 @@ Future<void> _initializeApp() async {
     FileLogger().info('RustLib initialized');
     // initApp();
 
-    // Linux 下检测是否为 root 权限
-    if (!kIsWeb && Platform.isLinux) {
-      final env = Platform.environment;
-      if (env['USER'] != 'root' &&
-          env['SUDO_USER'] == null &&
-          env['UID'] != '0') {
-        FileLogger().error('Linux requires sudo privileges');
-        print('请使用 sudo 运行本程序！');
-        exit(1);
-      }
-    }
-
     WidgetsFlutterBinding.ensureInitialized();
 
     if (Platform.isMacOS) {
