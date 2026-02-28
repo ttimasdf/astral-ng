@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
                           ServersHome(),
                           // UdpLog(),
                           AboutHome(),
-                          HitokotoCard(),
+                          // HitokotoCard(),
                           // 底部空白保护，使内容能滚动得更深
                           StaggeredGridTile.fit(
                             crossAxisCellCount: columnCount,
