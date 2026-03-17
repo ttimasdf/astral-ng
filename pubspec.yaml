@@ -74,6 +74,7 @@ flutter:
     # - assets/dlls/
     - assets/icon.ico
     - assets/logo.png
+    - assets/icon_tray.png
     - assets/dirt_base64
     - assets/packpng_base64
     - assets/translations/

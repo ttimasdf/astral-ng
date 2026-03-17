@@ -32,7 +32,7 @@ class _WindowControlsState extends State<WindowControls>
     } else if (Platform.isMacOS) {
       await trayManager.setIcon('assets/logo.png');
     } else {
-      await trayManager.setIcon('assets/logo.png');
+      await trayManager.setIcon('assets/icon_tray.png');
     }
 
     if (!Platform.isLinux) {
