@@ -176,8 +176,19 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
                             println!("{}", msg);
                             let _ = send_udp_to_localhost(&msg);
                         }
-                        GlobalCtxEvent::ConfigPatched(_instance_config_patch) => todo!(),
-                        GlobalCtxEvent::ProxyCidrsUpdated(_ipv4_cidrs, _ipv4_cidrs1) => todo!(),
+                        GlobalCtxEvent::ConfigPatched(patch) => {
+                            let msg = format!("配置已更新。补丁: {:?}", patch);
+                            println!("{}", msg);
+                            let _ = send_udp_to_localhost(&msg);
+                        }
+                        GlobalCtxEvent::ProxyCidrsUpdated(cidrs, cidrs1) => {
+                            let msg = format!(
+                                "代理 CIDR 已更新。CIDRs: {:?}, CIDRs1: {:?}",
+                                cidrs, cidrs1
+                            );
+                            println!("{}", msg);
+                            let _ = send_udp_to_localhost(&msg);
+                        }
                     }
                 }
                 Err(err) => {
