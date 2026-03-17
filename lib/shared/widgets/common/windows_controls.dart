@@ -1,6 +1,9 @@
-﻿import 'package:astral/core/services/service_manager.dart';
+﻿import 'package:astral/core/services/server_connection_manager.dart';
+import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/connection_state.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:signals_flutter/signals_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:tray_manager/tray_manager.dart';
 
@@ -15,6 +18,7 @@ class _WindowControlsState extends State<WindowControls>
     with TrayListener, WindowListener {
   bool _isMaximized = false;
   final TrayManager trayManager = TrayManager.instance;
+  EffectCleanup? _connectionStateCleanup;
 
   @override
   void initState() {
@@ -23,6 +27,10 @@ class _WindowControlsState extends State<WindowControls>
     _updateMaximizedStatus();
     // 桌面平台代码
     _initTray();
+    _connectionStateCleanup = effect(() {
+      ServiceManager().connectionState.connectionState.value;
+      _updateTrayMenu();
+    });
     super.initState();
   }
 
@@ -39,9 +47,33 @@ class _WindowControlsState extends State<WindowControls>
       await trayManager.setToolTip('Astral-ng');
     }
 
-    Menu trayMenu = Menu(
+    await _updateTrayMenu();
+  }
+
+  Future<void> _updateTrayMenu() async {
+    final state =
+        ServiceManager().connectionState.connectionState.value;
+    final isConnected = state == CoState.connected;
+    final isConnecting = state == CoState.connecting;
+
+    String connectLabel;
+    if (isConnecting) {
+      connectLabel = '连接中...';
+    } else if (isConnected) {
+      connectLabel = '断开连接';
+    } else {
+      connectLabel = '连接';
+    }
+
+    final Menu trayMenu = Menu(
       items: [
         MenuItem(key: 'show_window', label: '显示主界面'),
+        MenuItem.separator(),
+        MenuItem(
+          key: 'toggle_connection',
+          label: connectLabel,
+          disabled: isConnecting,
+        ),
         MenuItem.separator(),
         MenuItem(key: 'exit', label: '退出'),
       ],
@@ -65,6 +97,14 @@ class _WindowControlsState extends State<WindowControls>
     switch (menuItem.key) {
       case 'show_window':
         windowManager.show();
+      case 'toggle_connection':
+        final state =
+            ServiceManager().connectionState.connectionState.value;
+        if (state == CoState.idle) {
+          ServerConnectionManager.instance.connect();
+        } else if (state == CoState.connected) {
+          ServerConnectionManager.instance.disconnect();
+        }
       case 'exit':
         exit(0);
     }
@@ -72,6 +112,7 @@ class _WindowControlsState extends State<WindowControls>
 
   @override
   void dispose() {
+    _connectionStateCleanup?.call();
     trayManager.removeListener(this);
     windowManager.removeListener(this);
     super.dispose();
