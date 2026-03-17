@@ -27,7 +27,7 @@ class AboutPage extends BaseSettingsPage {
             ),
             const SizedBox(height: 16),
             Text(
-              'Astral',
+              'Astral-ng',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),

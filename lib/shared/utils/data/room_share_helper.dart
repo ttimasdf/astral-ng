@@ -70,7 +70,7 @@ class RoomShareHelper {
     }
 
     String shareText = '''
-🎮 Astral 房间分享
+🎮 Astral-ng 房间分享
 
 $roomSummary$shareOptions
 🔗 分享链接：$link
@@ -80,7 +80,7 @@ $roomSummary$shareOptions
       shareText += '''
 
 📖 使用说明：
-1. 确保已安装 Astral 应用
+1. 确保已安装 Astral-ng 应用
 2. 点击上方链接自动导入房间
 3. 或复制分享码在应用内手动导入
 

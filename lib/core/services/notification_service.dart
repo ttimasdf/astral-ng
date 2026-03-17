@@ -45,8 +45,8 @@ class NotificationService {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'astral_connection',
-          'Astral 连接状态',
-          channelDescription: '显示 Astral 连接状态和信息',
+          'astral-ng 连接状态',
+          channelDescription: '显示 astral-ng 连接状态和信息',
           importance: Importance.low,
           priority: Priority.low,
           ongoing: true,
@@ -61,7 +61,7 @@ class NotificationService {
 
     await _plugin!.show(
       _connectionNotificationId,
-      'Astral - $status',
+      'astral-ng - $status',
       'IP: $ip | 连接时间: $duration',
       details,
     );
