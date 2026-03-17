@@ -34,7 +34,7 @@ class VpnManager {
   Future<void> start({
     required String ipv4Addr,
     int mtu = 1300,
-    List<String> disallowedApplications = const ['com.kevin.astral'],
+    List<String> disallowedApplications = const ['pw.rabit.astralng'],
   }) async {
     if (_plugin == null) return;
     if (ipv4Addr.isEmpty || ipv4Addr == "") return;
