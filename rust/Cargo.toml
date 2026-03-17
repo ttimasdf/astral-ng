@@ -24,14 +24,13 @@ rand = "0.8"
 surge-ping = "0.8"
 uuid = { version = "1.0", features = ["v4"] }
 
-easytier = { path = "./easytier" }
+easytier = { path = "./easytier/easytier" }
 elevated-command = "1.1.2"
-# easytier = { git = "https://github.com/ldoubil/EasyTier", branch = "main" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.52.0", features = [
     "Win32_NetworkManagement_WindowsFirewall",
-    "Win32_System_Com", 
+    "Win32_System_Com",
     "Win32_NetworkManagement_IpHelper",
     "Win32_Networking_WinSock",
     "Win32_System_Memory",
@@ -49,11 +48,11 @@ windows = { version = "0.52.0", features = [
 ipnetwork = "0.20"
 widestring = { version = "1.0.2", default-features = false, features = ["alloc"] }
 winapi = { version = "0.3.9", features = [
-    "iphlpapi", 
-    "winerror", 
-    "errhandlingapi", 
-    "minwindef", 
-    "ws2def", 
+    "iphlpapi",
+    "winerror",
+    "errhandlingapi",
+    "minwindef",
+    "ws2def",
     "iptypes",
     "ipifcons",
     "heapapi",

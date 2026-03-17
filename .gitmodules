@@ -5,3 +5,6 @@
 [submodule "rust/bare-kit"]
 	path = rust/bare-kit
 	url = https://github.com/holepunchto/bare-kit.git
+[submodule "rust/easytier"]
+	path = rust/easytier
+	url = https://github.com/EasyTier/EasyTier.git

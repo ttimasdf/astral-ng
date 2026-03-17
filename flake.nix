@@ -34,6 +34,8 @@
               protobuf
               webkitgtk_4_1
               libayatana-appindicator
+              clang
+              libclang
             ];
 
             nativeBuildInputs = [ pkg-config ];
