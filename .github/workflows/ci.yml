@@ -23,6 +23,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -102,6 +104,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -181,6 +185,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -232,6 +238,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -335,6 +343,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -406,6 +416,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -477,6 +489,8 @@ jobs:
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "rust -> target"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
