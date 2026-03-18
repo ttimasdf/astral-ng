@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  validate-changelog:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      changelog: ${{ steps.extract.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse version from tag
+        id: parse
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Validate changelog exists
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "ERROR: CHANGELOG.md not found"
+            exit 1
+          fi
+
+      - name: Extract changelog for version
+        id: extract
+        run: |
+          VERSION="${{ steps.parse.outputs.version }}"
+          # Find the section between ## v$VERSION and the next ## or EOF
+          CHANGELOG=$(awk -v ver="v$VERSION" '
+            /^## / { in_section = 0 }
+            $0 ~ "^## " ver { in_section = 1; next }
+            in_section { print }
+          ' CHANGELOG.md | sed '/^$/d')
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  build:
+    needs: validate-changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Download all artifacts
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          path: artifacts
+          merge-multiple: true
+          if_no_artifact_found: warn
+
+      - name: List artifacts
+        run: ls -laR artifacts/
+
+  create-release:
+    needs: [validate-changelog, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          path: artifacts
+          merge-multiple: true
+          if_no_artifact_found: warn
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release v${{ needs.validate-changelog.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body: ${{ needs.validate-changelog.outputs.changelog }}
+          draft: false
+          files: |
+            artifacts/astral-linux-x64.tar.gz
+            artifacts/astral-linux-x64.deb
+            artifacts/astral-linux-x64.rpm
+            artifacts/astral-linux-arm64.tar.gz
+            artifacts/astral-linux-arm64.deb
+            artifacts/astral-linux-arm64.rpm
+            artifacts/astral-windows-x64.zip
+            artifacts/astral-windows-x64-setup.exe
+            artifacts/astral-android-arm64/app-release.apk
+            artifacts/astral-android-armv7/app-release.apk
+            artifacts/astral-android-universal/astral-android-universal.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

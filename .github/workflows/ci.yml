@@ -1,0 +1,480 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential ninja-build libgtk-3-dev clang cmake pkg-config \
+            libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev \
+            patchelf fuse libfuse2 ruby-dev
+          sudo gem install --no-document fpm
+
+      - name: Enable Linux desktop
+        run: |
+          flutter config --enable-linux-desktop
+          flutter create --platforms=linux .
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Package
+        run: |
+          set -e
+          mkdir -p release
+          BUNDLE=build/linux/x64/release/bundle
+          cd "$BUNDLE"
+          patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
+          tar -czf $GITHUB_WORKSPACE/release/astral-linux-x64.tar.gz *
+
+          STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
+          rm -rf "$STAGING"
+          mkdir -p "$STAGING/opt/astral"
+          cp -a "$BUNDLE/." "$STAGING/opt/astral/"
+          install -Dm755 linux/packaging/astral-cli.sh "$STAGING/usr/bin/astral"
+          install -Dm644 linux/packaging/astral.desktop "$STAGING/usr/share/applications/astral.desktop"
+          install -Dm644 assets/logo.png "$STAGING/usr/share/pixmaps/astral.png"
+
+          fpm -s dir -t deb -n astral -v 1.0.0 -a amd64 -C "$STAGING" .
+          mv *.deb $GITHUB_WORKSPACE/release/astral-linux-x64.deb
+
+          fpm -s dir -t rpm -n astral -v 1.0.0 -a x86_64 -C "$STAGING" .
+          mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-x64.rpm
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-linux-x64
+          path: release/*
+          retention-days: 30
+
+  linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential ninja-build libgtk-3-dev clang cmake pkg-config \
+            libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev \
+            patchelf fuse libfuse2 ruby-dev
+          sudo gem install --no-document fpm
+
+      - name: Enable Linux desktop
+        run: |
+          flutter config --enable-linux-desktop
+          flutter create --platforms=linux .
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Package
+        run: |
+          set -e
+          mkdir -p release
+          BUNDLE=build/linux/arm64/release/bundle
+          cd "$BUNDLE"
+          patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
+          tar -czf $GITHUB_WORKSPACE/release/astral-linux-arm64.tar.gz *
+
+          STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
+          rm -rf "$STAGING"
+          mkdir -p "$STAGING/opt/astral"
+          cp -a "$BUNDLE/." "$STAGING/opt/astral/"
+          install -Dm755 linux/packaging/astral-cli.sh "$STAGING/usr/bin/astral"
+          install -Dm644 linux/packaging/astral.desktop "$STAGING/usr/share/applications/astral.desktop"
+          install -Dm644 assets/logo.png "$STAGING/usr/share/pixmaps/astral.png"
+
+          fpm -s dir -t deb -n astral -v 1.0.0 -a arm64 -C "$STAGING" .
+          mv *.deb $GITHUB_WORKSPACE/release/astral-linux-arm64.deb
+
+          fpm -s dir -t rpm -n astral -v 1.0.0 -a aarch64 -C "$STAGING" .
+          mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-arm64.rpm
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-linux-arm64
+          path: release/*
+          retention-days: 30
+
+  windows-x64:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Copy DLLs
+        run: |
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
+
+      - name: Package
+        run: |
+          mkdir -p release
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-windows-x64
+          path: release/astral-windows-x64.zip
+          retention-days: 30
+
+  windows-x64-setup:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Copy DLLs
+        run: |
+          Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
+
+      - name: Create Inno Setup script
+        run: |
+          $version = (Select-String -Path "pubspec.yaml" -Pattern "version: (.*)").Matches[0].Groups[1].Value
+          @"
+          #define MyAppName "Astral"
+          #define MyAppVersion "$version"
+          #define MyAppPublisher "kevin"
+          #define MyAppURL "https://astral.fan/"
+          #define MyAppExeName "astral.exe"
+
+          [Setup]
+          AppId={{9A41EC10-FBE6-4B63-8B18-A466907374B5}
+          AppName={#MyAppName}
+          AppVersion={#MyAppVersion}
+          AppPublisher={#MyAppPublisher}
+          AppPublisherURL={#MyAppURL}
+          AppSupportURL={#MyAppURL}
+          AppUpdatesURL={#MyAppURL}
+          DefaultDirName={autopf}\{#MyAppName}
+          UninstallDisplayIcon={app}\{#MyAppExeName}
+          ArchitecturesAllowed=x64compatible
+          ArchitecturesInstallIn64BitMode=x64compatible
+          ChangesAssociations=yes
+          DisableProgramGroupPage=yes
+          OutputBaseFilename=astral-windows-x64-setup
+          SolidCompression=yes
+          WizardStyle=modern
+
+          [Languages]
+          Name: "chinese"; MessagesFile: "D:\ChineseSimplified.isl"
+
+          [Tasks]
+          Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+          [Files]
+          Source: "build\windows\x64\runner\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "build\windows\x64\runner\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+          Source: "build\windows\x64\runner\Release\data\*"; DestDir: "{app}\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+          Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+          "@ | Out-File -FilePath "setup.iss" -Encoding utf8
+
+          curl -o D:\ChineseSimplified.isl https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl
+
+      - name: Build installer
+        run: |
+          mkdir -p release
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
+          Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\" -Force
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-windows-x64-setup
+          path: release/astral-windows-x64-setup.exe
+          retention-days: 30
+
+  android-arm64:
+    runs-on: ubuntu-24.04
+    env:
+      JDK_VERSION: 17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '28.2.13676358'
+
+      - name: Setup Rust targets
+        run: |
+          rustup target add armv7-linux-androideabi
+          rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Setup signing
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build Android
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-android-arm64
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  android-armv7:
+    runs-on: ubuntu-24.04
+    env:
+      JDK_VERSION: 17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '28.2.13676358'
+
+      - name: Setup Rust targets
+        run: |
+          rustup target add armv7-linux-androideabi
+          rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Setup signing
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build Android
+        run: flutter build apk --release --target-platform android-arm
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-android-armv7
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  android-universal:
+    runs-on: ubuntu-24.04
+    env:
+      JDK_VERSION: 17
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      - name: Setup Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '28.2.13676358'
+
+      - name: Setup Rust targets
+        run: |
+          rustup target add armv7-linux-androideabi
+          rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Setup signing
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+
+      - name: Build Android
+        run: flutter build apk --release --target-platform android-arm64,android-arm
+
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-universal.apk
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-android-universal
+          path: build/app/outputs/flutter-apk/astral-android-universal.apk
+          retention-days: 30
