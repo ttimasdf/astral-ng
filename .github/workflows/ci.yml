@@ -171,60 +171,7 @@ jobs:
           path: release/*
           retention-days: 30
 
-  windows-x64:
-    runs-on: windows-2022
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: true
-
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
-
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rust -> target"
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Restore pub cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Build Windows
-        run: flutter build windows --release
-
-      - name: Copy DLLs
-        run: |
-          Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
-
-      - name: Package
-        run: |
-          mkdir -p release
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: astral-windows-x64
-          path: release/astral-windows-x64.zip
-          retention-days: 30
-
-  windows-x64-setup:
+  windows:
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -267,6 +214,18 @@ jobs:
       - name: Copy DLLs
         run: |
           Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
+
+      - name: Package zip
+        run: |
+          mkdir -p release
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral-windows-x64-zip
+          path: release/astral-windows-x64.zip
+          retention-days: 30
 
       - name: Create Inno Setup script
         run: |
@@ -320,14 +279,14 @@ jobs:
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
           Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\" -Force
 
-      - name: Upload artifacts
+      - name: Upload setup artifact
         uses: actions/upload-artifact@v4
         with:
           name: astral-windows-x64-setup
           path: release/astral-windows-x64-setup.exe
           retention-days: 30
 
-  android-arm64:
+  android:
     runs-on: ubuntu-24.04
     env:
       JDK_VERSION: 17
@@ -390,159 +349,36 @@ jobs:
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
 
-      - name: Build Android
-        run: flutter build apk --release --target-platform android-arm64
+      - name: Build arm64
+        run: |
+          flutter build apk --release --target-platform android-arm64
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-arm64.apk
 
-      - name: Upload artifacts
+      - name: Upload arm64 artifact
         uses: actions/upload-artifact@v4
         with:
           name: astral-android-arm64
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/astral-android-arm64.apk
           retention-days: 30
 
-  android-armv7:
-    runs-on: ubuntu-24.04
-    env:
-      JDK_VERSION: 17
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: true
-
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
-
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rust -> target"
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Restore pub cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: '28.2.13676358'
-
-      - name: Setup Rust targets
+      - name: Build armv7
         run: |
-          rustup target add armv7-linux-androideabi
-          rustup target add aarch64-linux-android
+          flutter build apk --release --target-platform android-arm
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-armv7.apk
 
-      - name: Install cargo-ndk
-        run: cargo install cargo-ndk
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Setup signing
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-
-      - name: Build Android
-        run: flutter build apk --release --target-platform android-arm
-
-      - name: Upload artifacts
+      - name: Upload armv7 artifact
         uses: actions/upload-artifact@v4
         with:
           name: astral-android-armv7
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/astral-android-armv7.apk
           retention-days: 30
 
-  android-universal:
-    runs-on: ubuntu-24.04
-    env:
-      JDK_VERSION: 17
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: true
-
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
-
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rust -> target"
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Restore pub cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: '28.2.13676358'
-
-      - name: Setup Rust targets
+      - name: Build universal
         run: |
-          rustup target add armv7-linux-androideabi
-          rustup target add aarch64-linux-android
+          flutter build apk --release --target-platform android-arm64,android-arm
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-universal.apk
 
-      - name: Install cargo-ndk
-        run: cargo install cargo-ndk
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Setup signing
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-
-      - name: Build Android
-        run: flutter build apk --release --target-platform android-arm64,android-arm
-
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-universal.apk
-
-      - name: Upload artifacts
+      - name: Upload universal artifact
         uses: actions/upload-artifact@v4
         with:
           name: astral-android-universal
