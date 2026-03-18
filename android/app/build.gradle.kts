@@ -19,8 +19,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "pw.rabit.astralng"
     compileSdk = flutter.compileSdkVersion
-    // ndkVersion = flutter.ndkVersion
-    ndkVersion = "28.2.13676358"
+    ndkVersion = flutter.ndkVersion
+    // ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -46,7 +46,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        
+
         // 添加对多窗口模式的配置
         manifestPlaceholders["isResizeableActivity"] = "true"
     }
@@ -76,7 +76,7 @@ dependencies {
     // 添加对窗口模式的支持
     implementation("androidx.window:window:1.2.0-beta05")
     implementation("androidx.window:window-java:1.2.0-beta05")
-    
+
     // add the Firebase SDK for Google Analytics
     implementation("com.google.firebase:firebase-analytics:17.4.1")
     // add SDKs for any other desired Firebase products
