@@ -28,7 +28,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Install Linux deps
         run: |
@@ -99,7 +107,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Install Linux deps
         run: |
@@ -170,7 +186,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Get dependencies
         run: flutter pub get
@@ -213,7 +237,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Install Inno Setup
         run: choco install innosetup -y
@@ -308,7 +340,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -371,7 +411,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -434,7 +482,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: pubspec.yaml
+
+      - name: Restore pub cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Setup Java
         uses: actions/setup-java@v3
