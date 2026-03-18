@@ -9,8 +9,12 @@ on:
       - main
 
 jobs:
-  linux-x64:
+  linux:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [x64, arm64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,6 +53,12 @@ jobs:
             patchelf fuse libfuse2 ruby-dev
           sudo gem install --no-document fpm
 
+      - name: Install cross-compile toolchain
+        if: matrix.type == 'arm64'
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+
       - name: Enable Linux desktop
         run: |
           flutter config --enable-linux-desktop
@@ -57,10 +67,16 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Linux
+      - name: Build Linux x64
+        if: matrix.type == 'x64'
         run: flutter build linux --release
 
-      - name: Package
+      - name: Build Linux arm64
+        if: matrix.type == 'arm64'
+        run: flutter build linux --release --target-platform linux-arm64
+
+      - name: Package x64
+        if: matrix.type == 'x64'
         run: |
           set -e
           mkdir -p release
@@ -83,65 +99,8 @@ jobs:
           fpm -s dir -t rpm -n astral -v 1.0.0 -a x86_64 -C "$STAGING" .
           mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-x64.rpm
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: astral-linux-x64
-          path: release/*
-          retention-days: 30
-
-  linux-arm64:
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          lfs: true
-
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
-
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "rust -> target"
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Restore pub cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
-
-      - name: Install Linux deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential ninja-build libgtk-3-dev clang cmake pkg-config \
-            libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev \
-            patchelf fuse libfuse2 ruby-dev
-          sudo gem install --no-document fpm
-
-      - name: Enable Linux desktop
-        run: |
-          flutter config --enable-linux-desktop
-          flutter create --platforms=linux .
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Build Linux
-        run: flutter build linux --release
-
-      - name: Package
+      - name: Package arm64
+        if: matrix.type == 'arm64'
         run: |
           set -e
           mkdir -p release
@@ -167,7 +126,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: astral-linux-arm64
+          name: astral-linux-${{ matrix.type }}
           path: release/*
           retention-days: 30
 
