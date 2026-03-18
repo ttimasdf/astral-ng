@@ -36,6 +36,7 @@
               libayatana-appindicator
               clang
               libclang
+              act
             ];
 
             nativeBuildInputs = [ pkg-config ];
@@ -43,6 +44,7 @@
             env = {
               RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";
               LIBCLANG_PATH = "${libclang.lib}/lib";
+              ACT_DISABLE_VERSION_CHECK = 1;
             };
           };
       }
