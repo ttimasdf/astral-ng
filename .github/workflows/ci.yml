@@ -11,10 +11,6 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        type: [x64, arm64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,12 +43,6 @@ jobs:
             patchelf fuse libfuse2 ruby-dev
           sudo gem install --no-document fpm
 
-      - name: Install cross-compile toolchain
-        if: matrix.type == 'arm64'
-        run: |
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          rustup target add aarch64-unknown-linux-gnu
-
       - name: Enable Linux desktop
         run: |
           flutter config --enable-linux-desktop
@@ -61,16 +51,10 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Linux x64
-        if: matrix.type == 'x64'
+      - name: Build Linux
         run: flutter build linux --release
 
-      - name: Build Linux arm64
-        if: matrix.type == 'arm64'
-        run: flutter build linux --release --target-platform linux-arm64
-
-      - name: Package x64
-        if: matrix.type == 'x64'
+      - name: Package
         run: |
           set -e
           mkdir -p release
@@ -94,35 +78,10 @@ jobs:
           fpm -s dir -t rpm -n astral -v 1.0.0 -a x86_64 -C "$STAGING" .
           mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-x64.rpm
 
-      - name: Package arm64
-        if: matrix.type == 'arm64'
-        run: |
-          set -e
-          mkdir -p release
-          BUNDLE=$GITHUB_WORKSPACE/build/linux/arm64/release/bundle
-          pushd "$BUNDLE"
-          patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
-          tar -czf $GITHUB_WORKSPACE/release/astral-linux-arm64.tar.gz *
-          popd
-
-          STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
-          rm -rf "$STAGING"
-          mkdir -p "$STAGING/opt/astral"
-          cp -a "$BUNDLE/." "$STAGING/opt/astral/"
-          install -Dm755 linux/packaging/astral-cli.sh "$STAGING/usr/bin/astral"
-          install -Dm644 linux/packaging/astral.desktop "$STAGING/usr/share/applications/astral.desktop"
-          install -Dm644 assets/logo.png "$STAGING/usr/share/pixmaps/astral.png"
-
-          fpm -s dir -t deb -n astral -v 1.0.0 -a arm64 -C "$STAGING" .
-          mv *.deb $GITHUB_WORKSPACE/release/astral-linux-arm64.deb
-
-          fpm -s dir -t rpm -n astral -v 1.0.0 -a aarch64 -C "$STAGING" .
-          mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-arm64.rpm
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: astral-linux-${{ matrix.type }}
+          name: astral-linux-x64
           path: release/*
           retention-days: 30
 
