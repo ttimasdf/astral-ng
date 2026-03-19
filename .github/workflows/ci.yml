@@ -113,6 +113,9 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
 
+      - name: Create third_party symlink
+        run: New-Item -ItemType SymbolicLink -Path "rust/easytier/third_party" -Target "rust/easytier/easytier/third_party"
+
       - name: Get dependencies
         run: flutter pub get
 
