@@ -80,10 +80,11 @@ jobs:
         run: |
           set -e
           mkdir -p release
-          BUNDLE=build/linux/x64/release/bundle
-          cd "$BUNDLE"
+          BUNDLE=$GITHUB_WORKSPACE/build/linux/x64/release/bundle
+          pushd "$BUNDLE"
           patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
           tar -czf $GITHUB_WORKSPACE/release/astral-linux-x64.tar.gz *
+          popd
 
           STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
           rm -rf "$STAGING"
@@ -104,10 +105,11 @@ jobs:
         run: |
           set -e
           mkdir -p release
-          BUNDLE=build/linux/arm64/release/bundle
-          cd "$BUNDLE"
+          BUNDLE=$GITHUB_WORKSPACE/build/linux/arm64/release/bundle
+          pushd "$BUNDLE"
           patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
           tar -czf $GITHUB_WORKSPACE/release/astral-linux-arm64.tar.gz *
+          popd
 
           STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
           rm -rf "$STAGING"
