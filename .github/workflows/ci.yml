@@ -232,6 +232,16 @@ jobs:
         with:
           ndk-version: '28.2.13676358'
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libc6-dev
+          sudo apt-get install -y libc6-dev-armhf-cross gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          sudo apt-get install -y clang llvm libclang-dev
+          sudo apt-get install -y libc-dev
+          sudo apt-get install -y libc6-dev-i386 gcc-multilib g++-multilib
+          sudo apt-get install -y protobuf-compiler
+
       - name: Setup Rust targets
         run: |
           rustup target add armv7-linux-androideabi
