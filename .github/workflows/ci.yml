@@ -125,7 +125,7 @@ jobs:
 
       - name: Package zip
         run: |
-          mkdir -p release
+          New-Item -ItemType Directory -Path "release" -Force
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
 
       - name: Upload zip artifact
@@ -183,7 +183,7 @@ jobs:
 
       - name: Build installer
         run: |
-          mkdir -p release
+          New-Item -ItemType Directory -Path "release" -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
           Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\" -Force
 
