@@ -6,8 +6,6 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    // Add this line
-    id("com.google.gms.google-services")
 }
 
 val keystoreProperties = Properties()
@@ -76,11 +74,6 @@ dependencies {
     // 添加对窗口模式的支持
     implementation("androidx.window:window:1.2.0-beta05")
     implementation("androidx.window:window-java:1.2.0-beta05")
-
-    // add the Firebase SDK for Google Analytics
-    implementation("com.google.firebase:firebase-analytics:17.4.1")
-    // add SDKs for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
 }
 
 flutter {
