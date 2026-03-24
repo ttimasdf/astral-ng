@@ -139,10 +139,10 @@ jobs:
         run: |
           $version = (Select-String -Path "pubspec.yaml" -Pattern "version: (.*)").Matches[0].Groups[1].Value
           @"
-          #define MyAppName "Astral"
+          #define MyAppName "Astral-ng"
           #define MyAppVersion "$version"
-          #define MyAppPublisher "kevin"
-          #define MyAppURL "https://astral.fan/"
+          #define MyAppPublisher "KnownRabbit"
+          #define MyAppURL "https://github.com/ttimasdf/astral-ng"
           #define MyAppExeName "astral.exe"
 
           [Setup]
