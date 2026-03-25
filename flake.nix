@@ -1,5 +1,7 @@
 {
   inputs = {
+    self.submodules = true;
+
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay = {
@@ -22,11 +24,17 @@
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
         };
+        astral-ng = pkgs.callPackage ./package.nix {};
       in
       {
+        packages = {
+          inherit astral-ng;
+          default = astral-ng;
+        };
         devShells.default =
           with pkgs;
           mkShell {
+            name = "astral-dev";
             buildInputs = [
               rust-bin.beta.latest.default
               flutter
@@ -46,6 +54,9 @@
               LIBCLANG_PATH = "${libclang.lib}/lib";
               ACT_DISABLE_VERSION_CHECK = 1;
             };
+            shellHook = ''
+              export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
+            '';
           };
       }
 
