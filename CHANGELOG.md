@@ -47,18 +47,44 @@
   - Server connection manager error handling improvements
   - Windows faketcp fixes
 
-## v2.7.3 (2025-xx-xx)
+## v2.7.3 (2026-03-01)
 
-*No changelog available for v2.7.3. See git history for details.*
+### Features
+- Add TLS 1.2 support for wss connections ([ldoubil/astral#209](https://github.com/ldoubil/astral/pull/209))
 
-## v2.7.2 (2025-xx-xx)
+### Bug Fixes
+- Fix Windows faketcp connection failure ([ldoubil/astral#208](https://github.com/ldoubil/astral/pull/208))
+- Improve Windows faketcp fallback filter parameters and error messages
+- Use interface name in faketcp fallback
 
-*No changelog available for v2.7.2. See git history for details.*
+### Changes
+- Lower Linux build platform to support Ubuntu 22 x86 ([ldoubil/astral#203](https://github.com/ldoubil/astral/pull/203))
+- Untrack build artifacts (1 and 1.iss) ([ldoubil/astral#205](https://github.com/ldoubil/astral/pull/205))
+- Merge upstream changes from ldoubil/astral
 
-## v2.7.1 (2025-xx-xx)
+## v2.7.2 (2026-03-01)
 
-*No changelog available for v2.7.1. See git history for details.*
+*No significant fork-specific changes. See upstream ldoubil/astral changelog.*
 
-## v2.7.0 (2025-xx-xx)
+## v2.7.1 (2026-02-12)
 
-*No changelog available for v2.7.0. See git history for details.*
+### Features
+- Set up Nix flake for reproducible development environment ([ldoubil/astral#204](https://github.com/ldoubil/astral/pull/204))
+
+### Changes
+- Lower Linux build platform to support Ubuntu 22 x86
+- Untrack build artifacts (1 and 1.iss)
+
+## v2.7.0 (2026-02-08)
+
+### Features
+- Network topology visualization and connection management
+- Add TCP and UDP port whitelist configuration
+- Add TCP hole punching configuration options
+- Enhance network topology with layout, legend, and dense mode options
+
+### Changes
+- Update Isar library to version 3.3.0
+- Update multiple dependency packages for stability and performance
+- Remove network configuration flag from room model, optimize share link generation
+- Use untracked instead of WidgetsBinding to optimize signal state updates
