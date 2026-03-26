@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -296,3 +298,72 @@ jobs:
           name: astral-android-universal
           path: build/app/outputs/flutter-apk/astral-android-universal.apk
           retention-days: 30
+
+  create-release:
+    needs: [linux, windows, android]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse version from tag
+        id: parse-tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract changelog for version
+        id: extract-changelog
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "ERROR: CHANGELOG.md not found"
+            exit 1
+          fi
+          VERSION="${{ steps.parse-tag.outputs.version }}"
+          CHANGELOG=$(awk -v ver="v$VERSION" '
+            /^## / { in_section = 0 }
+            $0 ~ "^## " ver { in_section = 1; next }
+            in_section { print }
+          ' CHANGELOG.md | sed '/^$/d')
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Validate changelog entry is present
+        run: |
+          if [ -z "${{ steps.extract-changelog.outputs.changelog }}" ]; then
+            echo "ERROR: No changelog entry found for ${{ steps.parse-tag.outputs.tag }}"
+            exit 1
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -laR artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.parse-tag.outputs.tag }}
+          tag_name: ${{ steps.parse-tag.outputs.tag }}
+          body: ${{ steps.extract-changelog.outputs.changelog }}
+          draft: false
+          files: |
+            artifacts/astral-linux-x64.tar.gz
+            artifacts/astral-linux-x64.deb
+            artifacts/astral-linux-x64.rpm
+            artifacts/astral-windows-x64.zip
+            artifacts/astral-windows-x64-setup.exe
+            artifacts/astral-android-arm64.apk
+            artifacts/astral-android-armv7.apk
+            artifacts/astral-android-universal.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
