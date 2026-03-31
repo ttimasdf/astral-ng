@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.8.1 (2026-03-31)
+
+### Features
+- Add Android Home Screen Widgets (small, medium, large sizes) for quick connection status and toggle
+- Add connection notification toggle setting to enable/disable connection status notifications
+- Magic Wall: sync rules before starting engine for proper initialization
+- Magic Wall: clear all firewall rules on stop to prevent leftover rules
+
+### Bug Fixes
+- Magic Wall: ensure RULE_STORE is cleared on engine stop
+
+### Changes
+- Merge upstream changes from ldoubil/astral (v2.7.3 → v2.7.8)
+
 ## v2.8.0 (2026-03-25)
 
 ### Features
