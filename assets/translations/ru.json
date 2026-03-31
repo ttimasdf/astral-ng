@@ -206,5 +206,7 @@
   "android_settings": "Настройки Android",
   "android_settings_desc": "Настройки, специфичные для Android",
   "permission_description": "Описание разрешений",
-  "permission_description_desc": "Разрешение на установку используется для автоматических обновлений приложения"
+  "permission_description_desc": "Разрешение на установку используется для автоматических обновлений приложения",
+  "enable_connection_notification": "Уведомление о подключении",
+  "enable_connection_notification_desc": "Показывать уведомление при подключении"
 }

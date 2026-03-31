@@ -90,6 +90,13 @@ class AppSettingsRepository {
   Future<void> setAutoSetMTU(bool value) =>
       _db.AllSettings.setAutoSetMTU(value);
 
+  // ========== 连接通知设置 ==========
+
+  Future<bool> getEnableConnectionNotification() =>
+      _db.AllSettings.getEnableConnectionNotification();
+  Future<void> setEnableConnectionNotification(bool value) =>
+      _db.AllSettings.setEnableConnectionNotification(value);
+
   // ========== 批量操作 ==========
 
   Future<AppSettings> loadAll() async {
@@ -112,6 +119,7 @@ class AppSettingsRepository {
       closeMinimize: await getCloseMinimize(),
       customVpn: await getCustomVpn(),
       autoSetMTU: await getAutoSetMTU(),
+      enableConnectionNotification: await getEnableConnectionNotification(),
     );
   }
 }
@@ -136,6 +144,7 @@ class AppSettings {
   final bool closeMinimize;
   final List<String> customVpn;
   final bool autoSetMTU;
+  final bool enableConnectionNotification;
 
   AppSettings({
     required this.playerName,
@@ -156,5 +165,6 @@ class AppSettings {
     required this.closeMinimize,
     required this.customVpn,
     required this.autoSetMTU,
+    required this.enableConnectionNotification,
   });
 }

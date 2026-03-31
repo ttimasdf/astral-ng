@@ -68,4 +68,7 @@ class AllSettings {
 
   /// 是否已显示轮播图首次提示
   bool hasShownBannerTip = false;
+
+  /// 启用连接状态通知
+  bool enableConnectionNotification = true;
 }

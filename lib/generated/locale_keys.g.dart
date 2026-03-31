@@ -217,4 +217,6 @@ abstract class LocaleKeys {
   static const android_settings_desc = 'android_settings_desc';
   static const permission_description = 'permission_description';
   static const permission_description_desc = 'permission_description_desc';
+  static const enable_connection_notification = 'enable_connection_notification';
+  static const enable_connection_notification_desc = 'enable_connection_notification_desc';
 }

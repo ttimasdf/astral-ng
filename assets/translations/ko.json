@@ -206,5 +206,7 @@
   "android_settings": "Android 설정",
   "android_settings_desc": "Android 특정 설정",
   "permission_description": "권한 설명",
-  "permission_description_desc": "설치 권한은 자동 앱 업데이트에 사용됩니다"
+  "permission_description_desc": "설치 권한은 자동 앱 업데이트에 사용됩니다",
+  "enable_connection_notification": "연결 알림",
+  "enable_connection_notification_desc": "연결 시 알림 표시"
 }

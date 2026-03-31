@@ -179,6 +179,18 @@ class _SoftwareSettingsPageState
                   subtitle: Text(LocaleKeys.permission_description_desc.tr()),
                   leading: const Icon(Icons.info_outline),
                 ),
+                buildDivider(),
+                SwitchListTile(
+                  title: Text(LocaleKeys.enable_connection_notification.tr()),
+                  subtitle: Text(LocaleKeys.enable_connection_notification_desc.tr()),
+                  value: ServiceManager()
+                      .notificationState
+                      .enableConnectionNotification
+                      .value,
+                  onChanged: (value) {
+                    ServiceManager().appSettings.setEnableConnectionNotification(value);
+                  },
+                ),
               ],
             ),
         ],

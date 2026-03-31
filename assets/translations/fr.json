@@ -206,5 +206,7 @@
   "android_settings": "Paramètres Android",
   "android_settings_desc": "Paramètres spécifiques à Android",
   "permission_description": "Description des permissions",
-  "permission_description_desc": "La permission d'installation est utilisée pour les mises à jour automatiques de l'application"
+  "permission_description_desc": "La permission d'installation est utilisée pour les mises à jour automatiques de l'application",
+  "enable_connection_notification": "Notification de connexion",
+  "enable_connection_notification_desc": "Afficher une notification lors de la connexion"
 }

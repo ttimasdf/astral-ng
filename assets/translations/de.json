@@ -206,5 +206,7 @@
   "android_settings": "Android-Einstellungen",
   "android_settings_desc": "Android-spezifische Einstellungen",
   "permission_description": "Berechtigungsbeschreibung",
-  "permission_description_desc": "Installationsberechtigung wird für automatische App-Updates verwendet"
+  "permission_description_desc": "Installationsberechtigung wird für automatische App-Updates verwendet",
+  "enable_connection_notification": "Verbindungsbenachrichtigung",
+  "enable_connection_notification_desc": "Benachrichtigung bei Verbindung anzeigen"
 }

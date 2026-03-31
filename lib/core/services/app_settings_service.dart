@@ -63,6 +63,7 @@ class AppSettingsService {
 
     appSettingsState.updateEnableBannerCarousel(settings.enableBannerCarousel);
     notificationState.setHasShownBannerTip(settings.hasShownBannerTip);
+    notificationState.setEnableConnectionNotification(settings.enableConnectionNotification);
 
     windowState.setCloseMinimize(settings.closeMinimize);
 
@@ -170,6 +171,11 @@ class AppSettingsService {
   Future<void> updateHasShownBannerTip(bool hasShown) async {
     notificationState.setHasShownBannerTip(hasShown);
     await _repository.setHasShownBannerTip(hasShown);
+  }
+
+  Future<void> setEnableConnectionNotification(bool value) async {
+    notificationState.setEnableConnectionNotification(value);
+    await _repository.setEnableConnectionNotification(value);
   }
 
   // ========== 窗口设置 ==========

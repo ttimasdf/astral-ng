@@ -206,5 +206,7 @@
   "android_settings": "Configuración de Android",
   "android_settings_desc": "Configuración específica de Android",
   "permission_description": "Descripción de permisos",
-  "permission_description_desc": "El permiso de instalación se usa para actualizaciones automáticas de la aplicación"
+  "permission_description_desc": "El permiso de instalación se usa para actualizaciones automáticas de la aplicación",
+  "enable_connection_notification": "Notificación de conexión",
+  "enable_connection_notification_desc": "Mostrar notificación cuando esté conectado"
 }

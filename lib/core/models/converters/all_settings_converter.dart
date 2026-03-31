@@ -80,6 +80,23 @@ class AllSettingsCz {
     return settings?.hasShownBannerTip ?? false;
   }
 
+  /// 设置连接通知开关
+  Future<void> setEnableConnectionNotification(bool enable) async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    if (settings != null) {
+      settings.enableConnectionNotification = enable;
+      await _isar.writeTxn(() async {
+        await _isar.allSettings.put(settings);
+      });
+    }
+  }
+
+  /// 获取连接通知开关
+  Future<bool> getEnableConnectionNotification() async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    return settings?.enableConnectionNotification ?? true;
+  }
+
   /// 设置用户简约模式
   /// @param isMinimal 是否启用简约模式
   /// 将新的简约模式设置保存到数据库中

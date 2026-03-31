@@ -171,7 +171,8 @@ class ServerConnectionManager {
     });
 
     // 显示通知（Android）
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid &&
+        ServiceManager().notificationState.enableConnectionNotification.value) {
       await NotificationService.instance.showConnectionNotification(
         status: '连接中',
         ip: '正在获取...',
@@ -256,11 +257,13 @@ class ServerConnectionManager {
         mtu: ServiceManager().networkConfigState.mtu.value,
       );
 
-      await NotificationService.instance.showConnectionNotification(
-        status: '已连接',
-        ip: _notificationDisplayIp(),
-        duration: NotificationService.formatDuration(_connectionDuration),
-      );
+      if (ServiceManager().notificationState.enableConnectionNotification.value) {
+        await NotificationService.instance.showConnectionNotification(
+          status: '已连接',
+          ip: _notificationDisplayIp(),
+          duration: NotificationService.formatDuration(_connectionDuration),
+        );
+      }
     }
 
     if (Platform.isWindows) {
@@ -308,7 +311,8 @@ class ServerConnectionManager {
 
       if (Platform.isAndroid &&
           ServiceManager().connectionState.connectionState.value ==
-              CoState.connected) {
+              CoState.connected &&
+          ServiceManager().notificationState.enableConnectionNotification.value) {
         await NotificationService.instance.showConnectionNotification(
           status: '已连接',
           ip: _notificationDisplayIp(),
