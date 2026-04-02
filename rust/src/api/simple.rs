@@ -189,6 +189,11 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
                             println!("{}", msg);
                             let _ = send_udp_to_localhost(&msg);
                         }
+                        GlobalCtxEvent::CredentialChanged => {
+                            let msg = "credential changed";
+                            println!("{}", msg);
+                            let _ = send_udp_to_localhost(msg);
+                        }
                     }
                 }
                 Err(err) => {
@@ -334,7 +339,11 @@ pub async fn get_ips() -> Vec<String> {
 pub async fn set_tun_fd(fd: i32) -> Result<(), String> {
     let mut instance = INSTANCE.write().await;
     if let Some(instance) = instance.as_mut() {
-        instance.set_tun_fd(fd);
+        let sender = instance.get_tun_fd_sender()
+            .ok_or_else(|| "tun fd sender not found".to_string())?;
+        sender
+            .try_send(Some(fd))
+            .map_err(|e| format!("failed to send tun fd: {}", e))?;
         Ok(())
     } else {
         Err("No instance available".to_string())
@@ -430,7 +439,7 @@ pub fn create_server(
         cfg.set_hostname(Some(username));
         cfg.set_dhcp(enable_dhcp);
         for c in cidrs {
-            cfg.add_proxy_cidr(c.parse().unwrap(), None);
+            let _ = cfg.add_proxy_cidr(c.parse().unwrap(), None);
         }
         let mut old = cfg.get_port_forwards();
 
@@ -506,7 +515,7 @@ pub fn create_server(
         let mut peer_configs = Vec::new();
         for url in severurl {
             match url.parse() {
-                Ok(uri) => peer_configs.push(PeerConfig { uri }),
+                Ok(uri) => peer_configs.push(PeerConfig { uri, peer_public_key: None }),
                 Err(e) => return Err(format!("Invalid server URL: {}, error: {}", url, e)),
             }
         }

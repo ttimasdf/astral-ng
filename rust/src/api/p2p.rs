@@ -177,6 +177,11 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
                     }
                     GlobalCtxEvent::ConfigPatched(_) => {}
                     GlobalCtxEvent::ProxyCidrsUpdated(_, _) => {}
+                    GlobalCtxEvent::CredentialChanged => {
+                        let msg = "credential changed";
+                        println!("{}", msg);
+                        let _ = send_udp_to_localhost(msg);
+                    }
                 },
                 Err(err) => {
                     eprintln!("event receive error: {:?}", err);
@@ -380,7 +385,7 @@ pub fn create_server_with_flags(
         cfg.set_hostname(Some(username));
         cfg.set_dhcp(enable_dhcp);
         for c in cidrs {
-            cfg.add_proxy_cidr(c.parse().unwrap(), None);
+            let _ = cfg.add_proxy_cidr(c.parse().unwrap(), None);
         }
         let mut old = cfg.get_port_forwards();
 
@@ -445,7 +450,7 @@ pub fn create_server_with_flags(
         let mut peer_configs = Vec::new();
         for url in severurl {
             match url.parse() {
-                Ok(uri) => peer_configs.push(PeerConfig { uri }),
+                Ok(uri) => peer_configs.push(PeerConfig { uri, peer_public_key: None }),
                 Err(e) => return Err(format!("invalid server url: {}, error: {}", url, e)),
             }
         }
