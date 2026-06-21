@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/database/app_data.dart';
+import 'package:astral/core/database/app_data.dart';
 
 /// 应用通用设置的数据持久化
 class AppSettingsRepository {
@@ -66,6 +66,10 @@ class AppSettingsRepository {
       _db.AllSettings.getEnableBannerCarousel();
   Future<void> setEnableBannerCarousel(bool value) =>
       _db.AllSettings.setEnableBannerCarousel(value);
+  Future<bool> getEnableConnectionNotification() =>
+      _db.AllSettings.getEnableConnectionNotification();
+  Future<void> setEnableConnectionNotification(bool value) =>
+      _db.AllSettings.setEnableConnectionNotification(value);
   Future<bool> getHasShownBannerTip() => _db.AllSettings.getHasShownBannerTip();
   Future<void> setHasShownBannerTip(bool value) =>
       _db.AllSettings.setHasShownBannerTip(value);
@@ -90,13 +94,6 @@ class AppSettingsRepository {
   Future<void> setAutoSetMTU(bool value) =>
       _db.AllSettings.setAutoSetMTU(value);
 
-  // ========== 连接通知设置 ==========
-
-  Future<bool> getEnableConnectionNotification() =>
-      _db.AllSettings.getEnableConnectionNotification();
-  Future<void> setEnableConnectionNotification(bool value) =>
-      _db.AllSettings.setEnableConnectionNotification(value);
-
   // ========== 批量操作 ==========
 
   Future<AppSettings> loadAll() async {
@@ -115,11 +112,11 @@ class AppSettingsRepository {
       downloadAccelerate: await getDownloadAccelerate(),
       latestVersion: await getLatestVersion(),
       enableBannerCarousel: await getEnableBannerCarousel(),
+      enableConnectionNotification: await getEnableConnectionNotification(),
       hasShownBannerTip: await getHasShownBannerTip(),
       closeMinimize: await getCloseMinimize(),
       customVpn: await getCustomVpn(),
       autoSetMTU: await getAutoSetMTU(),
-      enableConnectionNotification: await getEnableConnectionNotification(),
     );
   }
 }
@@ -140,11 +137,11 @@ class AppSettings {
   final String downloadAccelerate;
   final String? latestVersion;
   final bool enableBannerCarousel;
+  final bool enableConnectionNotification;
   final bool hasShownBannerTip;
   final bool closeMinimize;
   final List<String> customVpn;
   final bool autoSetMTU;
-  final bool enableConnectionNotification;
 
   AppSettings({
     required this.playerName,
@@ -161,10 +158,10 @@ class AppSettings {
     required this.downloadAccelerate,
     required this.latestVersion,
     required this.enableBannerCarousel,
+    required this.enableConnectionNotification,
     required this.hasShownBannerTip,
     required this.closeMinimize,
     required this.customVpn,
     required this.autoSetMTU,
-    required this.enableConnectionNotification,
   });
 }

@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
-class AstralWidgetProvider : HomeWidgetProvider() {
+open class AstralWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -14,31 +14,33 @@ class AstralWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences
     ) {
         for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.widget_layout_small).apply {
-                val isConnected = widgetData.getBoolean("is_connected", false)
-                val statusText = if (isConnected) "Connected" else "Disconnected"
-                setTextViewText(R.id.widget_status, statusText)
+            val layoutId = appWidgetManager.getAppWidgetInfo(appWidgetId)?.initialLayout
+                ?: R.layout.widget_layout_small
+            
+            val views = RemoteViews(context.packageName, layoutId)
 
-                val ipText = widgetData.getString("ip_address", "No IP")
-                setTextViewText(R.id.widget_ip, ipText)
-
-                // Set click listener to toggle connection
-                val pendingIntent = getLaunchIntent(context)
-                if (pendingIntent != null) {
-                    setOnClickPendingIntent(R.id.widget_container, pendingIntent)
-                }
+            val status = widgetData.getString("status_text", "未连接") ?: "未连接"
+            if (layoutId == R.layout.widget_layout_small || 
+                layoutId == R.layout.widget_layout_medium || 
+                layoutId == R.layout.widget_layout_large) {
+                views.setTextViewText(R.id.widget_status, status)
             }
+
+            if (layoutId == R.layout.widget_layout_medium || layoutId == R.layout.widget_layout_large) {
+                val ip = widgetData.getString("ip_text", "--") ?: "--"
+                val room = widgetData.getString("room_name", "未选择") ?: "未选择"
+                views.setTextViewText(R.id.widget_ip, if (ip == "--") "--" else "IP: $ip")
+                views.setTextViewText(R.id.widget_room, room)
+            }
+
+            if (layoutId == R.layout.widget_layout_large) {
+                val duration = widgetData.getString("duration_text", "00:00:00") ?: "00:00:00"
+                views.setTextViewText(R.id.widget_duration, duration)
+                val ip = widgetData.getString("ip_text", "--") ?: "--"
+                views.setTextViewText(R.id.widget_ip, ip)
+            }
+
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
-    }
-
-    private fun getLaunchIntent(context: Context): android.app.PendingIntent? {
-        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-        return android.app.PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-        )
     }
 }

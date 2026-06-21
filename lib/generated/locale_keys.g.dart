@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class LocaleKeys {
+abstract class  LocaleKeys {
   static const firewall = 'firewall';
   static const virtual_ip = 'virtual_ip';
   static const status_disconnected = 'status_disconnected';
@@ -54,8 +54,7 @@ abstract class LocaleKeys {
   static const nav_settings = 'nav_settings';
   static const permission_install_success = 'permission_install_success';
   static const permission_install_failed = 'permission_install_failed';
-  static const permission_install_request_failed =
-      'permission_install_request_failed';
+  static const permission_install_request_failed = 'permission_install_request_failed';
   static const permission_denied = 'permission_denied';
   static const permission_denied_message = 'permission_denied_message';
   static const cancel = 'cancel';
@@ -121,8 +120,7 @@ abstract class LocaleKeys {
   static const relay_peer_rpc = 'relay_peer_rpc';
   static const relay_peer_rpc_desc = 'relay_peer_rpc_desc';
   static const disable_udp_hole_punching = 'disable_udp_hole_punching';
-  static const disable_udp_hole_punching_desc =
-      'disable_udp_hole_punching_desc';
+  static const disable_udp_hole_punching_desc = 'disable_udp_hole_punching_desc';
   static const enable_multi_thread = 'enable_multi_thread';
   static const enable_multi_thread_desc = 'enable_multi_thread_desc';
   static const compression_algorithm = 'compression_algorithm';
@@ -146,8 +144,7 @@ abstract class LocaleKeys {
   static const software_settings = 'software_settings';
   static const get_install_permission = 'get_install_permission';
   static const install_permission_granted = 'install_permission_granted';
-  static const install_permission_not_granted =
-      'install_permission_not_granted';
+  static const install_permission_not_granted = 'install_permission_not_granted';
   static const minimize = 'minimize';
   static const minimize_desc = 'minimize_desc';
   static const player_list_card = 'player_list_card';
@@ -193,16 +190,13 @@ abstract class LocaleKeys {
   static const auto_update_title = 'auto_update_title';
   static const auto_update_info_desc = 'auto_update_info_desc';
   static const download_acceleration_title = 'download_acceleration_title';
-  static const download_acceleration_info_desc =
-      'download_acceleration_info_desc';
+  static const download_acceleration_info_desc = 'download_acceleration_info_desc';
   static const current_version = 'current_version';
   static const update_channel = 'update_channel';
   static const advanced_network_settings = 'advanced_network_settings';
-  static const advanced_network_settings_desc =
-      'advanced_network_settings_desc';
+  static const advanced_network_settings_desc = 'advanced_network_settings_desc';
   static const disable_sym_hole_punching = 'disable_sym_hole_punching';
-  static const disable_sym_hole_punching_desc =
-      'disable_sym_hole_punching_desc';
+  static const disable_sym_hole_punching_desc = 'disable_sym_hole_punching_desc';
   static const startup_behavior_desc = 'startup_behavior_desc';
   static const startup_description = 'startup_description';
   static const startup_description_desc = 'startup_description_desc';
@@ -219,4 +213,26 @@ abstract class LocaleKeys {
   static const permission_description_desc = 'permission_description_desc';
   static const enable_connection_notification = 'enable_connection_notification';
   static const enable_connection_notification_desc = 'enable_connection_notification_desc';
+  static const get_notification_permission = 'get_notification_permission';
+  static const notification_permission_granted = 'notification_permission_granted';
+  static const notification_permission_not_granted = 'notification_permission_not_granted';
+  static const permission_notification_success = 'permission_notification_success';
+  static const permission_notification_failed = 'permission_notification_failed';
+  static const permission_notification_request_failed = 'permission_notification_request_failed';
+  static const permission_notification_denied_message = 'permission_notification_denied_message';
+  static const data_management = 'data_management';
+  static const export_database = 'export_database';
+  static const export_database_desc = 'export_database_desc';
+  static const import_database = 'import_database';
+  static const import_database_desc = 'import_database_desc';
+  static const export_success = 'export_success';
+  static const export_failed = 'export_failed';
+  static const import_success = 'import_success';
+  static const import_failed = 'import_failed';
+  static const import_confirm_title = 'import_confirm_title';
+  static const import_confirm_message = 'import_confirm_message';
+  static const confirm = 'confirm';
+  static const select_export_path = 'select_export_path';
+  static const select_import_file = 'select_import_file';
+
 }

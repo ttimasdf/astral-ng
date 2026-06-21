@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
 import 'package:astral/core/database/app_data.dart';
@@ -497,8 +497,7 @@ class _MagicWallPageState extends State<MagicWallPage> {
 
     if (!_isRunning.value) {
       try {
-        await rust_api.startMagicWall();
-        _isRunning.value = true;
+        await _startEngineAndSyncRules();
         await _recordEvent(
           targetType: 'engine',
           targetId: 'engine',

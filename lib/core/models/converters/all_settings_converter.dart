@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:astral/core/models/all_settings.dart';
 import 'package:astral/core/models/room.dart';
@@ -63,6 +63,23 @@ class AllSettingsCz {
     return settings?.enableBannerCarousel ?? true;
   }
 
+  /// 设置连接状态通知开关
+  Future<void> setEnableConnectionNotification(bool enable) async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    if (settings != null) {
+      settings.enableConnectionNotification = enable;
+      await _isar.writeTxn(() async {
+        await _isar.allSettings.put(settings);
+      });
+    }
+  }
+
+  /// 获取连接状态通知开关
+  Future<bool> getEnableConnectionNotification() async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    return settings?.enableConnectionNotification ?? true;
+  }
+
   /// 设置是否已显示轮播图提示
   Future<void> setHasShownBannerTip(bool hasShown) async {
     AllSettings? settings = await _isar.allSettings.get(1);
@@ -78,23 +95,6 @@ class AllSettingsCz {
   Future<bool> getHasShownBannerTip() async {
     AllSettings? settings = await _isar.allSettings.get(1);
     return settings?.hasShownBannerTip ?? false;
-  }
-
-  /// 设置连接通知开关
-  Future<void> setEnableConnectionNotification(bool enable) async {
-    AllSettings? settings = await _isar.allSettings.get(1);
-    if (settings != null) {
-      settings.enableConnectionNotification = enable;
-      await _isar.writeTxn(() async {
-        await _isar.allSettings.put(settings);
-      });
-    }
-  }
-
-  /// 获取连接通知开关
-  Future<bool> getEnableConnectionNotification() async {
-    AllSettings? settings = await _isar.allSettings.get(1);
-    return settings?.enableConnectionNotification ?? true;
   }
 
   /// 设置用户简约模式

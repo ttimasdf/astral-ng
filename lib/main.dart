@@ -72,11 +72,9 @@ Future<void> _initializeApp() async {
     await services.init();
     FileLogger().info('ServiceManager initialized');
 
-    // 初始化Widget服务 (Android)
-    if (Platform.isAndroid) {
-      await WidgetService.instance.initialize();
-      FileLogger().info('WidgetService initialized');
-    }
+    // 初始化贴片服务
+    WidgetService.instance.initialize();
+    FileLogger().info('WidgetService initialized');
 
     try {
       await AppInfoUtil.init().timeout(const Duration(seconds: 3));
