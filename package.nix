@@ -21,8 +21,7 @@ let
     inherit pname version;
     src = "${src}/rust";
 
-    useFetchCargoVendor = true;
-    cargoHash = "sha256-FaqxEsu/+9TjnebWNNShcSbX5l4ebBQljz0jjrV+nUw=";
+    cargoHash = "sha256-Y+iiz3UFGNpOpwxwnpf8tXfwAl+eAFvJYkPzTf2CztQ=";
 
     nativeBuildInputs = [
       protobuf
