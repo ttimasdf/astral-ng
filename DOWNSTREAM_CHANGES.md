@@ -362,35 +362,4 @@ development guidance.
 
 ---
 
-## [merge-upstream-v2.7.3-to-v2.7.8]: Forward-port upstream v2.7.3 → v2.7.8 features
-
-- **Scope**: `android/app/src/main/`, `lib/core/models/`, `lib/core/services/`, `assets/translations/`
-- **Type**: patch
-- **Status**: active
-- **Introduced**: `73ff014`
-- **Superseded by upstream**: N/A
-
-### What this changes
-
-Manually merges selected features from upstream's v2.7.3 → v2.7.8 range into
-the fork (rather than taking all of v2.7.8 wholesale): Android home screen
-widgets (small/medium/large), a connection notification toggle setting, a
-Magic Wall refactor that syncs rules before starting the engine and clears
-`RULE_STORE` on stop, and updated translations for the new notification
-setting. This is an intermediate forward-port; the next `/upstream-sync` run
-should reconcile it against the actual v2.7.8+ upstream tags.
-
-### Files affected
-
-- `android/app/src/main/AndroidManifest.xml`: widget declarations
-- `android/app/src/main/kotlin/.../AstralWidgetProvider{,Medium,Large}.kt`: widget providers
-- `android/app/src/main/res/{drawable,layout,xml}/widget_*`: widget resources
-- `lib/core/models/all_settings.dart`, `all_settings.g.dart`: notification setting
-- `lib/core/models/converters/all_settings_converter.dart`: converter
-- `lib/core/repositories/app_settings_repository.dart`, `lib/core/services/app_settings_service.dart`: setting persistence
-- `lib/core/services/server_connection_manager.dart`, `lib/core/services/widget_service.dart`: widget + connection hooks
-- `assets/translations/*.json`: notification-setting strings
-
----
-
 <!-- Add new entries below using the format described in AGENTS.md. -->

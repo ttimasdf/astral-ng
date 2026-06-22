@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+- Initialize fork maintenance infrastructure: add `.upstream-version`, `DOWNSTREAM_CHANGES.md` ledger (15 entries pre-populated from fork history), and `AGENTS.md` Fork Maintenance section. Paired with `/upstream-sync` for ongoing upstream release tracking.
+- **Upstream merge**: properly merge upstream tag `v2.7.8` into the fork as a real git merge commit, superseding the previous partial forward-port in commit `73ff014`. `v2.7.8` is now a true ancestor of HEAD.
+  - Complete the Android Home Screen Widgets implementation (background updates, multi-size layout awareness, tap-to-toggle connection callback, locale-driven strings) — the previous cherry-pick was a simplified English-only reimplementation.
+  - Add `HomeWidgetBackgroundReceiver` and a properly-permissioned `HomeWidgetBackgroundService` to `AndroidManifest.xml` (required for background widget updates).
+  - Call `WidgetService.updateDuration()` on every connection tick so widget clocks update in real time.
+  - Consolidate `enableConnectionNotification` into `appSettingsState` (was duplicated in `notificationState` after the partial cherry-pick).
+  - Add ~22 new locale keys (all 9 languages) for notification permission flow and data management import/export UI.
+  - Keep fork's `_startEngineAndSyncRules` in Magic Wall (proper superset with try/catch, bool return, user-facing error UX, event recording).
+  - Preserve all active downstream entries: Linux root-check removal, README rewrite, app identifier `pw.rabit.astralng`, rebrand, GPL-3.0 license, no Google services.
+- **Build**: update Nix flake inputs (nixpkgs, rust-overlay) and fix cargo vendor setup — remove `useFetchCargoVendor` flag and update `cargoHash` to match the new vendor contents.
+- **CI**: loosen `push` trigger to run on all branches (`branches: ['**']`) instead of only `main`, so feature branches like `merge/*` validate via CI before landing.
+
 ## v2.8.1 (2026-03-31)
 
 ### Features
