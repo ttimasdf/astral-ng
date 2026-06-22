@@ -113,6 +113,12 @@ jobs:
       - name: Install Inno Setup
         run: choco install innosetup -y
 
+      - name: Install Protobuf compiler
+        run: |
+          choco install protoc -y
+          protoc --version
+        shell: pwsh
+
       - name: Get dependencies
         run: flutter pub get
 
