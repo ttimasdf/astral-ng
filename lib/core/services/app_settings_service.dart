@@ -11,6 +11,7 @@ import 'package:astral/core/states/firewall_state.dart';
 import 'package:astral/core/states/app_settings_state.dart';
 import 'package:astral/core/repositories/app_settings_repository.dart';
 import 'package:astral/core/services/notification_service.dart';
+import 'package:astral/shared/utils/helpers/regex_patterns.dart';
 import 'package:astral/src/rust/api/hops.dart';
 
 /// 应用设置服务：协调多个State和AppSettingsRepository
@@ -66,6 +67,9 @@ class AppSettingsService {
 
     appSettingsState.updateEnableBannerCarousel(settings.enableBannerCarousel);
     appSettingsState.updateEnableConnectionNotification(settings.enableConnectionNotification);
+    appSettingsState.updateReduceAnimationUpdates(settings.reduceAnimationUpdates);
+    appSettingsState.updateAutoRetryOnFailure(settings.autoRetryOnFailure);
+    appSettingsState.updateMaxRetryCount(settings.maxRetryCount);
     notificationState.setHasShownBannerTip(settings.hasShownBannerTip);
     notificationState.setEnableConnectionNotification(settings.enableConnectionNotification);
 
@@ -131,6 +135,7 @@ class AppSettingsService {
   Future<void> setStartup(bool value) async {
     startupState.setStartup(value);
     await _repository.setStartup(value);
+    await handleStartupSetting(value);
   }
 
   Future<void> setStartupMinimize(bool value) async {
@@ -180,6 +185,21 @@ class AppSettingsService {
     if (!enable && Platform.isAndroid) {
       await NotificationService.instance.cancelConnectionNotification();
     }
+  }
+
+  Future<void> updateReduceAnimationUpdates(bool enable) async {
+    appSettingsState.updateReduceAnimationUpdates(enable);
+    await _repository.setReduceAnimationUpdates(enable);
+  }
+
+  Future<void> updateAutoRetryOnFailure(bool enable) async {
+    appSettingsState.updateAutoRetryOnFailure(enable);
+    await _repository.setAutoRetryOnFailure(enable);
+  }
+
+  Future<void> updateMaxRetryCount(int count) async {
+    appSettingsState.updateMaxRetryCount(count);
+    await _repository.setMaxRetryCount(count);
   }
 
   Future<void> updateHasShownBannerTip(bool hasShown) async {

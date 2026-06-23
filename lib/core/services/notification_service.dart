@@ -19,7 +19,8 @@ class NotificationService {
 
   /// 初始化通知服务
   Future<void> initialize() async {
-    if (_plugin == null) return;
+    final plugin = _plugin;
+    if (plugin == null) return;
 
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -28,7 +29,7 @@ class NotificationService {
       android: androidSettings,
     );
 
-    await _plugin!.initialize(settings);
+    await plugin.initialize(settings);
   }
 
   /// 显示或更新连接状态通知
@@ -41,7 +42,8 @@ class NotificationService {
     required String ip,
     required String duration,
   }) async {
-    if (_plugin == null) return;
+    final plugin = _plugin;
+    if (plugin == null) return;
     if (!ServiceManager().appSettingsState.enableConnectionNotification.value) {
       await cancelConnectionNotification();
       return;
@@ -64,7 +66,7 @@ class NotificationService {
       android: androidDetails,
     );
 
-    await _plugin!.show(
+    await plugin.show(
       _connectionNotificationId,
       'astral-ng - $status',
       'IP: $ip | 连接时间: $duration',
@@ -74,8 +76,9 @@ class NotificationService {
 
   /// 取消连接状态通知
   Future<void> cancelConnectionNotification() async {
-    if (_plugin == null) return;
-    await _plugin!.cancel(_connectionNotificationId);
+    final plugin = _plugin;
+    if (plugin == null) return;
+    await plugin.cancel(_connectionNotificationId);
   }
 
   /// 格式化连接时长

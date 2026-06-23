@@ -1,6 +1,7 @@
 ﻿import 'dart:convert';
 import 'package:astral/core/models/room.dart';
 import 'dart:io' show gzip;
+import 'package:astral/core/app_s/file_logger.dart';
 import 'package:flutter/foundation.dart';
 
 const String encryptionSecret = '这就是密钥';
@@ -69,9 +70,7 @@ Room? decryptRoomFromJWT(String token) {
 
     // 解析网络配置（如果有）
     String networkConfigJson = '';
-    bool hasNetworkConfig = false;
     if (roomData.containsKey('net') && roomData['net'] != null) {
-      hasNetworkConfig = true;
       networkConfigJson = jsonEncode(roomData['net']);
       debugPrint('【房间导入】包含网络配置: $networkConfigJson');
     }
@@ -90,7 +89,7 @@ Room? decryptRoomFromJWT(String token) {
       networkConfigJson: networkConfigJson,
     );
   } catch (e) {
-    print('解密房间信息失败: $e');
+    FileLogger().warning('解密房间信息失败: $e');
     return null;
   }
 }
@@ -136,7 +135,7 @@ Room? decryptRoom(String encryptedString) {
       messageKey: roomMap['mk'] ?? '',
     );
   } catch (e) {
-    print('解密房间信息失败: $e');
+    FileLogger().warning('解密房间信息失败: $e');
     return null;
   }
 }

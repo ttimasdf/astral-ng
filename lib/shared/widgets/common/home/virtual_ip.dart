@@ -55,7 +55,7 @@ class VirtualIpBox extends StatelessWidget {
                   onChanged: (bool value) {
                     ServiceManager().firewall.setFirewall(value);
                   },
-                  activeColor: colorScheme.primary,
+                  activeThumbColor: colorScheme.primary,
                 ),
               ],
             ),

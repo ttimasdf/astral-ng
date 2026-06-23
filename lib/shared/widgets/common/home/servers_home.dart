@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/server_status_state.dart';
 import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:astral/shared/widgets/common/home_box.dart';
@@ -103,12 +103,12 @@ class _ServersHomeState extends State<ServersHome> {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withOpacity(
+                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 
                           0.3,
                         ),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: colorScheme.outlineVariant.withOpacity(0.3),
+                          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -147,7 +147,7 @@ class _ServersHomeState extends State<ServersHome> {
                                       Icons.language,
                                       size: 12,
                                       color: colorScheme.onSurfaceVariant
-                                          .withOpacity(0.7),
+                                          .withValues(alpha: 0.7),
                                     ),
                                     const SizedBox(width: 4),
                                     Expanded(

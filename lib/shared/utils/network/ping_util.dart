@@ -26,8 +26,7 @@ class PingUtil {
       } finally {
         socket?.destroy();
       }
-    } catch (e, stackTrace) {
-      // 记录错误日志
+    } catch (e) {
       return null;
     }
   }

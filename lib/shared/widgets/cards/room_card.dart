@@ -1,7 +1,6 @@
-﻿// 修改RoomCard类，接收 Room 对象和分类名称列表
+// 修改RoomCard类，接收 Room 对象和分类名称列表
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/models/room.dart';
-import 'package:astral/shared/widgets/common/home/connect_button.dart';
 import 'package:flutter/material.dart';
 
 class RoomCard extends StatefulWidget {
@@ -189,7 +188,7 @@ class _RoomCardState extends State<RoomCard> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.2),
+                          color: colorScheme.primary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

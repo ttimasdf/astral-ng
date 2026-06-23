@@ -1,4 +1,3 @@
-
 use easytier::common::config::{ConfigFileControl, PortForwardConfig};
 pub use easytier::common::config::{ConfigLoader, NetworkIdentity, PeerConfig, TomlConfigLoader};
 pub use easytier::common::global_ctx::{EventBusSubscriber, GlobalCtxEvent};
@@ -89,8 +88,7 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
                         let _ = send_udp_to_localhost(&msg);
                     }
                     GlobalCtxEvent::ListenerAcceptFailed(p, msg) => {
-                        let msg =
-                            format!("listener accept failed. listener: {}, msg: {}", p, msg);
+                        let msg = format!("listener accept failed. listener: {}, msg: {}", p, msg);
                         println!("{}", msg);
                         let _ = send_udp_to_localhost(&msg);
                     }
@@ -182,6 +180,7 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
                         println!("{}", msg);
                         let _ = send_udp_to_localhost(msg);
                     }
+                    _ => {}
                 },
                 Err(err) => {
                     eprintln!("event receive error: {:?}", err);
@@ -215,43 +214,7 @@ pub async fn is_easytier_running(instance_id: String) -> bool {
     MANAGER.list_network_instance_ids().contains(&id)
 }
 
-pub struct NodeHopStats {
-    pub peer_id: u32,
-    pub target_ip: String,
-    pub latency_ms: f64,
-    pub packet_loss: f32,
-    pub node_name: String,
-}
-
-pub struct KVNodeConnectionStats {
-    pub conn_type: String,
-    pub rx_bytes: u64,
-    pub tx_bytes: u64,
-    pub rx_packets: u64,
-    pub tx_packets: u64,
-}
-
-pub struct KVNodeInfo {
-    pub peer_id: u32,
-    pub hostname: String,
-    pub ipv4: String,
-    pub latency_ms: f64,
-    pub nat: String,
-    pub hops: Vec<NodeHopStats>,
-    pub loss_rate: f32,
-    pub connections: Vec<KVNodeConnectionStats>,
-    pub tunnel_proto: String,
-    pub conn_type: String,
-    pub rx_bytes: u64,
-    pub tx_bytes: u64,
-    pub version: String,
-    pub cost: i32,
-}
-
-pub struct KVNetworkStatus {
-    pub total_nodes: usize,
-    pub nodes: Vec<KVNodeInfo>,
-}
+pub use super::simple::{KVNetworkStatus, KVNodeConnectionStats, KVNodeInfo, NodeHopStats};
 
 pub async fn get_ips(instance_id: String) -> Vec<String> {
     let info = match get_instance_info(&instance_id).await {
@@ -308,42 +271,7 @@ pub async fn get_running_info(instance_id: String) -> String {
     .unwrap_or_else(|_| "null".to_string())
 }
 
-pub struct FlagsC {
-    pub default_protocol: String,
-    pub dev_name: String,
-    pub enable_encryption: bool,
-    pub enable_ipv6: bool,
-    pub mtu: u32,
-    pub latency_first: bool,
-    pub enable_exit_node: bool,
-    pub no_tun: bool,
-    pub use_smoltcp: bool,
-    pub relay_network_whitelist: String,
-    pub disable_p2p: bool,
-    pub relay_all_peer_rpc: bool,
-    pub disable_udp_hole_punching: bool,
-    pub disable_tcp_hole_punching: bool,
-    pub multi_thread: bool,
-    pub data_compress_algo: i32,
-    pub bind_device: bool,
-    pub enable_kcp_proxy: bool,
-    pub disable_kcp_input: bool,
-    pub disable_relay_kcp: bool,
-    pub proxy_forward_by_system: bool,
-    pub accept_dns: bool,
-    pub private_mode: bool,
-    pub enable_quic_proxy: bool,
-    pub disable_quic_input: bool,
-    pub disable_sym_hole_punching: bool,
-    pub tcp_whitelist: String,
-    pub udp_whitelist: String,
-}
-
-pub struct Forward {
-    pub bind_addr: String,
-    pub dst_addr: String,
-    pub proto: String,
-}
+pub use super::simple::{FlagsC, Forward};
 pub fn create_server(config_toml: String, watch_event: bool) -> JoinHandle<Result<String, String>> {
     RT.spawn(async move {
         let cfg = TomlConfigLoader::new_from_str(&config_toml)
@@ -411,6 +339,7 @@ pub fn create_server_with_flags(
         flags.use_smoltcp = flag.use_smoltcp;
         flags.relay_network_whitelist = flag.relay_network_whitelist;
         flags.disable_p2p = flag.disable_p2p;
+        flags.enable_udp_broadcast_relay = flag.enable_udp_broadcast_relay;
         flags.relay_all_peer_rpc = flag.relay_all_peer_rpc;
         flags.disable_udp_hole_punching = flag.disable_udp_hole_punching;
         flags.disable_tcp_hole_punching = flag.disable_tcp_hole_punching;
@@ -450,7 +379,10 @@ pub fn create_server_with_flags(
         let mut peer_configs = Vec::new();
         for url in severurl {
             match url.parse() {
-                Ok(uri) => peer_configs.push(PeerConfig { uri, peer_public_key: None }),
+                Ok(uri) => peer_configs.push(PeerConfig {
+                    uri,
+                    peer_public_key: None,
+                }),
                 Err(e) => return Err(format!("invalid server url: {}, error: {}", url, e)),
             }
         }
@@ -461,7 +393,10 @@ pub fn create_server_with_flags(
             match ip_str.parse() {
                 Ok(ip) => cfg.set_ipv4(Some(ip)),
                 Err(e) => {
-                    return Err(format!("invalid ip address: {}, error: {}", specified_ip, e))
+                    return Err(format!(
+                        "invalid ip address: {}, error: {}",
+                        specified_ip, e
+                    ))
                 }
             }
         }
@@ -513,6 +448,8 @@ pub async fn get_peer_route_pairs(instance_id: String) -> Result<Vec<PeerRoutePa
             next_hop_peer_id_latency_first: None,
             cost_latency_first: None,
             path_latency_latency_first: None,
+            public_ipv6_addr: None,
+            ipv6_public_addr_prefix: None,
         };
 
         let my_peer_info = info.peers.iter().find(|p| p.peer_id == my_peer_id).cloned();
@@ -529,7 +466,9 @@ pub async fn get_peer_route_pairs(instance_id: String) -> Result<Vec<PeerRoutePa
 }
 
 pub async fn get_network_status(instance_id: String) -> KVNetworkStatus {
-    let pairs = get_peer_route_pairs(instance_id.clone()).await.unwrap_or_default();
+    let pairs = get_peer_route_pairs(instance_id.clone())
+        .await
+        .unwrap_or_default();
 
     let running_info = get_instance_info(&instance_id).await.ok();
     let local_peer_id = running_info
@@ -603,7 +542,8 @@ pub async fn get_network_status(instance_id: String) -> KVNetworkStatus {
                                         .iter()
                                         .filter_map(|c| c.stats.as_ref().map(|s| s.latency_us))
                                         .min()
-                                        .unwrap_or(0) as f64
+                                        .unwrap_or(0)
+                                        as f64
                                         / 1000.0;
 
                                     let avg_loss = p.conns.iter().map(|c| c.loss_rate).sum::<f32>()
@@ -698,12 +638,11 @@ pub async fn get_network_status(instance_id: String) -> KVNetworkStatus {
                                                     .conns
                                                     .iter()
                                                     .filter_map(|c| {
-                                                        c.stats
-                                                            .as_ref()
-                                                            .map(|s| s.latency_us)
+                                                        c.stats.as_ref().map(|s| s.latency_us)
                                                     })
                                                     .min()
-                                                    .unwrap_or(0) as f64
+                                                    .unwrap_or(0)
+                                                    as f64
                                                     / 1000.0;
 
                                                 let avg_loss = p
@@ -736,7 +675,8 @@ pub async fn get_network_status(instance_id: String) -> KVNetworkStatus {
                                         .iter()
                                         .filter_map(|c| c.stats.as_ref().map(|s| s.latency_us))
                                         .min()
-                                        .unwrap_or(0) as f64
+                                        .unwrap_or(0)
+                                        as f64
                                         / 1000.0;
 
                                     let avg_loss = p.conns.iter().map(|c| c.loss_rate).sum::<f32>()

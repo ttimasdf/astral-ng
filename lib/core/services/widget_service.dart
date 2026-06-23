@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:home_widget/home_widget.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/services/server_connection_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +14,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     
     final state = ServiceManager().connectionState.connectionState.value;
     if (state == CoState.idle) {
-      await ServerConnectionManager.instance.connect();
+      await ServerConnectionManager.instance.connect(isManual: false); // 自动连接
     } else if (state == CoState.connected) {
       await ServerConnectionManager.instance.disconnect();
     }
@@ -42,14 +41,14 @@ class WidgetService {
     if (!Platform.isAndroid) return;
 
     // 注册后台回调
-    HomeWidget.registerBackgroundCallback(backgroundCallback);
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
 
     // 监听前台点击
     HomeWidget.widgetClicked.listen((Uri? uri) {
       if (uri != null && uri.scheme == 'astral' && uri.host == 'toggle_connection') {
         final state = ServiceManager().connectionState.connectionState.value;
         if (state == CoState.idle) {
-          ServerConnectionManager.instance.connect();
+          ServerConnectionManager.instance.connect(isManual: false); // 自动连接
         } else if (state == CoState.connected) {
           ServerConnectionManager.instance.disconnect();
         }

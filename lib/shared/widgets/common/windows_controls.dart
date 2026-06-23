@@ -89,6 +89,7 @@ class _WindowControlsState extends State<WindowControls>
 
   @override
   void onTrayIconMouseDown() {
+    ServiceManager().uiState.setBackground(false);
     windowManager.show();
   }
 
@@ -96,6 +97,7 @@ class _WindowControlsState extends State<WindowControls>
   void onTrayMenuItemClick(MenuItem menuItem) {
     switch (menuItem.key) {
       case 'show_window':
+        ServiceManager().uiState.setBackground(false);
         windowManager.show();
       case 'toggle_connection':
         final state =
@@ -144,10 +146,9 @@ class _WindowControlsState extends State<WindowControls>
         IconButton(
           icon: const Icon(Icons.remove),
           onPressed: () async {
-            
-              print('Minimize button was pressed!');
+            ServiceManager().uiState.setBackground(true);
             await windowManager.minimize();
-            
+             
           },
           tooltip: '最小化',
           iconSize: 20,
@@ -168,6 +169,7 @@ class _WindowControlsState extends State<WindowControls>
           icon: const Icon(Icons.close),
           onPressed: () async {
             if (ServiceManager().windowState.closeMinimize.value) {
+              ServiceManager().uiState.setBackground(true);
               await windowManager.hide();
             } else {
               await windowManager.close();
