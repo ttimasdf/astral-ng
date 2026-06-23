@@ -1,33 +1,61 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
+const _startupRunKey =
+    'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+const _startupValueName = 'Astral';
+
+Future<void> _removeLegacyStartupShortcut() async {
+  if (!Platform.isWindows) return;
+
+  try {
+    final startupFolder =
+        '${Platform.environment['APPDATA']}\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
+    final shortcutPath = '$startupFolder\\Astral.lnk';
+    final shortcut = File(shortcutPath);
+    if (await shortcut.exists()) {
+      await shortcut.delete();
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('Failed to remove legacy startup shortcut: $e');
+    }
+  }
+}
+
 Future<void> handleStartupSetting(bool enable) async {
+  if (!Platform.isWindows) return;
+
   final executablePath = Platform.resolvedExecutable;
-  final startupFolder =
-      '${Platform.environment['APPDATA']}\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
-  final shortcutPath = '$startupFolder\\Astral.lnk';
+  final command = '"$executablePath" --autostart';
+
+  await _removeLegacyStartupShortcut();
 
   if (enable) {
-    // 检查快捷方式是否存在
-    if (await File(shortcutPath).exists()) {
-      // 如果存在，先删除旧的快捷方式
-      await File(shortcutPath).delete();
+    final result = await Process.run('reg', [
+      'add',
+      _startupRunKey,
+      '/v',
+      _startupValueName,
+      '/t',
+      'REG_SZ',
+      '/d',
+      command,
+      '/f',
+    ]);
+    if (result.exitCode != 0 && kDebugMode) {
+      debugPrint('Failed to register startup: ${result.stderr}');
     }
-
-    // 创建新的快捷方式
-    final shell = 'powershell';
-    final args = [
-      '-Command',
-      '\$WshShell = New-Object -ComObject WScript.Shell; '
-          '\$Shortcut = \$WshShell.CreateShortcut("$shortcutPath"); '
-          '\$Shortcut.TargetPath = "$executablePath"; '
-          '\$Shortcut.Save()',
-    ];
-    await Process.run(shell, args);
   } else {
-    // 删除快捷方式
-    if (await File(shortcutPath).exists()) {
-      await File(shortcutPath).delete();
+    final result = await Process.run('reg', [
+      'delete',
+      _startupRunKey,
+      '/v',
+      _startupValueName,
+      '/f',
+    ]);
+    if (result.exitCode != 0 && kDebugMode) {
+      debugPrint('Failed to unregister startup: ${result.stderr}');
     }
   }
 }

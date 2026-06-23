@@ -14,6 +14,9 @@ import 'package:astral/core/services/widget_service.dart';
 import 'package:astral/services/app_links/app_link_registry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
+    show ExternalLibrary;
+import 'package:path/path.dart' as p;
 import 'package:astral/src/rust/frb_generated.dart';
 import 'package:astral/app.dart';
 
@@ -28,13 +31,6 @@ void main() async {
       await _initializeApp();
     },
     (error, stack) {
-      // 输出到控制台
-      print('\n=== 未捕获的错误 ===');
-      print('错误: $error');
-      print('堆栈跟踪:\n$stack');
-      print('==================\n');
-
-      // 记录到日志文件
       GlobalErrorHandler.logError(
         'Uncaught error in main zone',
         error: error,
@@ -44,9 +40,32 @@ void main() async {
   );
 }
 
+/// 初始化 FRB 动态库。
+///
+/// 生成代码里 `kDefaultExternalLibraryLoaderConfig` 会优先从
+/// `rust/target/release/` 加载；若本机曾单独 `cargo build --release`，
+/// 会一直误用那份旧 dll（与当前 Dart 绑定 content hash 不一致）。
+/// Flutter Windows 会把 cargokit 编好的 `rust_lib_astral.dll` 放在 exe 同目录，
+/// 因此桌面端优先从该路径显式加载。
+Future<void> _initRustLib() async {
+  if (!kIsWeb && Platform.isWindows) {
+    final bundledPath = p.join(
+      File(Platform.resolvedExecutable).parent.path,
+      'rust_lib_astral.dll',
+    );
+    if (File(bundledPath).existsSync()) {
+      await RustLib.init(
+        externalLibrary: ExternalLibrary.open(bundledPath),
+      );
+      return;
+    }
+  }
+  await RustLib.init();
+}
+
 Future<void> _initializeApp() async {
   try {
-    await RustLib.init();
+    await _initRustLib();
     FileLogger().info('RustLib initialized');
     // initApp();
 
@@ -99,13 +118,6 @@ Future<void> _initializeApp() async {
 
     _runApp();
   } catch (e, stack) {
-    // 输出到控制台
-    print('\n=== 应用初始化失败 ===');
-    print('错误: $e');
-    print('堆栈跟踪:\n$stack');
-    print('=====================\n');
-
-    // 记录到日志文件
     GlobalErrorHandler.logError(
       'Failed to initialize app',
       error: e,
@@ -143,10 +155,7 @@ Future<void> _initAppLinks() async {
     await registry.initialize();
     FileLogger().info('App links initialized');
   } catch (e, stack) {
-    // 输出到控制台
-    print('警告: App links 初始化失败 - $e');
-
-    // 记录到日志文件
+    FileLogger().warning('App links 初始化失败: $e');
     GlobalErrorHandler.logError(
       'Failed to initialize app links',
       error: e,

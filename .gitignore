@@ -365,3 +365,6 @@ hs_err_pid*
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/dart,flatpak,flutter,intellij,androidstudio,visualstudiocode,direnv
+# Npcap SDK (downloaded in CI or placed locally for Windows link; do not commit)
+third_party/npcap-sdk/
+
