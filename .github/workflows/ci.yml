@@ -208,7 +208,7 @@ jobs:
           Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
           "@ | Out-File -FilePath "setup.iss" -Encoding utf8
 
-          curl -o D:\ChineseSimplified.isl https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl
+          curl.exe -fL -o D:\ChineseSimplified.isl https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl
 
       - name: Build installer
         run: |
