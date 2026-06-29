@@ -32,12 +32,7 @@ fn npcap_link_search() {
     }
 
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    let candidates = [
-        manifest.join("../third_party/npcap-sdk/Lib/x64"),
-        manifest.join("easytier/easytier/third_party/x86_64"),
-        manifest.join("easytier/easytier/third_party/i686"),
-        manifest.join("easytier/easytier/third_party/arm64"),
-    ];
+    let candidates = [manifest.join("../third_party/npcap-sdk/Lib/x64")];
 
     for candidate in candidates {
         if emit_if_packet_lib(&candidate) {
@@ -46,6 +41,6 @@ fn npcap_link_search() {
     }
 
     println!(
-        "cargo:warning=Npcap SDK not found (need Packet.lib). Set NPCAP_SDK_LIB to the SDK Lib\\x64 directory, extract npcap-sdk under third_party/npcap-sdk/Lib/x64, or initialize the EasyTier submodule third_party files."
+        "cargo:warning=Npcap SDK not found (need Packet.lib). Set NPCAP_SDK_LIB to the SDK Lib\\x64 directory or extract npcap-sdk under third_party/npcap-sdk/Lib/x64."
     );
 }
