@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:astral/core/app_s/file_logger.dart';
 import 'package:astral/core/services/service_manager.dart';
 
 /// 轮播图标签
@@ -88,7 +89,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
           .get(Uri.parse('https://astral.fan/banner.json'))
           .timeout(const Duration(seconds: 10));
 
-      print('Banner response status: ${response.statusCode}');
+      FileLogger().debug('Banner response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         // 清理JSON中的尾随逗号
@@ -98,7 +99,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
 
         final List<dynamic> jsonList = json.decode(jsonString);
 
-        print('Parsed banner count: ${jsonList.length}');
+        FileLogger().debug('Parsed banner count: ${jsonList.length}');
 
         final banners =
             jsonList
@@ -119,7 +120,9 @@ class _BannerCarouselState extends State<BannerCarousel> {
           });
         }
       } else {
-        print('Banner load failed with status: ${response.statusCode}');
+        FileLogger().warning(
+          'Banner load failed with status: ${response.statusCode}',
+        );
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -128,8 +131,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
         }
       }
     } catch (e, stackTrace) {
-      print('Banner load error: $e');
-      print('Stack trace: $stackTrace');
+      FileLogger().error('Banner load error: $e', stackTrace: stackTrace);
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -272,7 +274,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                             color:
                                 _currentPage % _banners.length == index
                                     ? Theme.of(context).colorScheme.primary
-                                    : Colors.white.withOpacity(0.5),
+                                    : Colors.white.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -343,7 +345,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -405,7 +407,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                   stops: const [0.6, 1.0],
                 ),
               ),
@@ -473,7 +475,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                         Text(
                           banner.subtitle!,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                           ),
@@ -500,7 +502,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
                                 borderRadius: BorderRadius.circular(4),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 2,
                                     offset: const Offset(0, 1),
                                   ),

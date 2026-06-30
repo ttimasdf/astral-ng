@@ -69,6 +69,15 @@ class AllSettings {
   /// 启用连接状态栏通知
   bool enableConnectionNotification = true;
 
+  /// 减少动画与拓扑更新频率
+  bool reduceAnimationUpdates = false;
+
   /// 是否已显示轮播图首次提示
   bool hasShownBannerTip = false;
+
+  /// 连接失败自动重试
+  bool autoRetryOnFailure = true;
+
+  /// 最大重试次数
+  int maxRetryCount = 3;
 }

@@ -1,7 +1,6 @@
 ﻿import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/shared/utils/helpers/platform_version_parser.dart';
-import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -188,7 +187,7 @@ class _AllUserCardState extends State<AllUserCard> {
           Center(
             child: Text(
               '无连接数据',
-              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+              style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
           )
         else
@@ -351,7 +350,7 @@ class _AllUserCardState extends State<AllUserCard> {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ), // Subdued label color
             ),
             Text(
@@ -547,8 +546,7 @@ class _AllUserCardState extends State<AllUserCard> {
       return '服务器';
     }
     // 如果是本机IP，返回direct
-    if (thisip != null && ip == thisip) {
-      // 检查 thisip 是否为 null
+    if (thisip.isNotEmpty && ip == thisip) {
       return '本机';
     }
     // 根据连接成本判断连接类型
@@ -631,8 +629,8 @@ class _AllUserCardState extends State<AllUserCard> {
                 ),
               );
             },
-            splashColor: widget.colorScheme.primary.withOpacity(0.3),
-            highlightColor: widget.colorScheme.primary.withOpacity(0.1),
+            splashColor: widget.colorScheme.primary.withValues(alpha: 0.3),
+            highlightColor: widget.colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: EdgeInsets.all(12),
@@ -645,7 +643,7 @@ class _AllUserCardState extends State<AllUserCard> {
                   _mapConnectionType(
                     widget.player.cost,
                     widget.player.ipv4,
-                    localIPv4 ?? "",
+                    localIPv4,
                   ),
                 ),
               ),

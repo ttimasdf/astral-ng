@@ -80,6 +80,23 @@ class AllSettingsCz {
     return settings?.enableConnectionNotification ?? true;
   }
 
+  /// 设置减少动画更新开关
+  Future<void> setReduceAnimationUpdates(bool enable) async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    if (settings != null) {
+      settings.reduceAnimationUpdates = enable;
+      await _isar.writeTxn(() async {
+        await _isar.allSettings.put(settings);
+      });
+    }
+  }
+
+  /// 获取减少动画更新开关
+  Future<bool> getReduceAnimationUpdates() async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    return settings?.reduceAnimationUpdates ?? false;
+  }
+
   /// 设置是否已显示轮播图提示
   Future<void> setHasShownBannerTip(bool hasShown) async {
     AllSettings? settings = await _isar.allSettings.get(1);
@@ -540,6 +557,40 @@ class AllSettingsCz {
       return config.displayMode;
     }
     return 0;
+  }
+
+  /// 设置连接失败自动重试
+  Future<void> setAutoRetryOnFailure(bool enable) async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    if (settings != null) {
+      settings.autoRetryOnFailure = enable;
+      await _isar.writeTxn(() async {
+        await _isar.allSettings.put(settings);
+      });
+    }
+  }
+
+  /// 获取连接失败自动重试状态
+  Future<bool> getAutoRetryOnFailure() async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    return settings?.autoRetryOnFailure ?? true;
+  }
+
+  /// 设置最大重试次数
+  Future<void> setMaxRetryCount(int count) async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    if (settings != null) {
+      settings.maxRetryCount = count;
+      await _isar.writeTxn(() async {
+        await _isar.allSettings.put(settings);
+      });
+    }
+  }
+
+  /// 获取最大重试次数
+  Future<int> getMaxRetryCount() async {
+    AllSettings? settings = await _isar.allSettings.get(1);
+    return settings?.maxRetryCount ?? 3;
   }
 
   Future<String> _getDeviceName() async {

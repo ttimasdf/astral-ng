@@ -1,10 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 // 房间设置弹窗组件
 class RoomSettingsSheet extends StatefulWidget {
-  const RoomSettingsSheet({Key? key}) : super(key: key);
+  const RoomSettingsSheet({super.key});
 
   @override
   State<RoomSettingsSheet> createState() => _RoomSettingsSheetState();
@@ -232,7 +232,7 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             backgroundColor:
-                isSelected ? colorScheme.primary : colorScheme.surfaceVariant,
+                isSelected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
             foregroundColor:
                 isSelected
                     ? colorScheme.onPrimary

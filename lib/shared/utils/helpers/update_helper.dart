@@ -525,7 +525,9 @@ class UpdateChecker {
         includePrereleases: ServiceManager().updateState.beta.value,
       );
 
-      if (releaseInfo == null || !context.mounted) {
+      if (!context.mounted) return;
+
+      if (releaseInfo == null) {
         _showUpdateDialog(
           context,
           '获取更新信息失败',

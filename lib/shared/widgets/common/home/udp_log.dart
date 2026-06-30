@@ -47,10 +47,7 @@ class _UdpLogState extends State<UdpLog> {
               } catch (_) {
                 // 都失败则显示为十六进制
                 msg =
-                    '【编码解析错误】' +
-                    datagram.data
-                        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-                        .join(' ');
+                    '【编码解析错误】${datagram.data.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}';
               }
             }
           }

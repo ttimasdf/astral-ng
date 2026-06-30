@@ -44,7 +44,8 @@ class StartupState {
   }) {
     if (startup != null) this.startup.value = startup;
     if (startupMinimize != null) this.startupMinimize.value = startupMinimize;
-    if (startupAutoConnect != null)
+    if (startupAutoConnect != null) {
       this.startupAutoConnect.value = startupAutoConnect;
+    }
   }
 }

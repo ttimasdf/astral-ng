@@ -8,7 +8,7 @@ import 'package:astral/features/settings/pages/network/network_settings_page.dar
 import 'package:astral/features/settings/pages/general/startup_page.dart';
 import 'package:astral/features/settings/pages/general/software_settings_page.dart';
 import 'package:astral/features/settings/pages/general/update_settings_page.dart';
-import 'package:astral/screens/logs_page.dart';
+import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/features/settings/pages/server_settings_page.dart';
 
 class SettingsMainPage extends StatelessWidget {
