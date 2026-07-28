@@ -215,9 +215,9 @@ label updates reactively based on connection state: idle → "连接", connectin
 
 - **Scope**: `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`
 - **Type**: patch
-- **Status**: active
+- **Status**: superseded
 - **Introduced**: `6e20130`, `fab9e20`
-- **Superseded by upstream**: N/A
+- **Superseded by upstream**: `v2.8.7`
 
 ### What this changes
 
@@ -321,9 +321,9 @@ rather than by elevating the whole GUI).
 
 - **Scope**: `lib/shared/widgets/common/home/connect_button.dart`
 - **Type**: patch
-- **Status**: active
+- **Status**: superseded
 - **Introduced**: `6483a91`
-- **Superseded by upstream**: N/A
+- **Superseded by upstream**: `v2.8.7`
 
 ### What this changes
 
