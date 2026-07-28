@@ -1,6 +1,5 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:astral/core/models/room.dart';
 import 'package:astral/core/models/network_config_share.dart';
 import 'package:astral/shared/utils/data/room_crypto.dart';
@@ -258,6 +257,8 @@ $roomSummary$shareOptions
           return urls;
         }).toList();
 
+    if (!context.mounted) return;
+
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -336,11 +337,6 @@ $roomSummary$shareOptions
                   hasNetworkConfig ? networkConfig!.toJsonString() : '',
             );
 
-            final shareLink = generateShareLink(
-              roomToShare,
-              includeDeepLink: true,
-            );
-
             final colorScheme = Theme.of(context).colorScheme;
 
             return Dialog(
@@ -416,7 +412,7 @@ $roomSummary$shareOptions
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: colorScheme.surfaceVariant.withOpacity(
+                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 
                                   0.3,
                                 ),
                                 borderRadius: BorderRadius.circular(16),
@@ -512,7 +508,7 @@ $roomSummary$shareOptions
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: colorScheme.secondaryContainer
-                                      .withOpacity(0.3),
+                                      .withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: colorScheme.outline,
@@ -597,6 +593,8 @@ $roomSummary$shareOptions
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       final clipboardText = clipboardData?.text?.trim() ?? '';
 
+      if (!context.mounted) return false;
+
       if (clipboardText.isEmpty) {
         _showError(context, '剪贴板为空', '请先复制房间分享码或链接');
         return false;
@@ -604,6 +602,7 @@ $roomSummary$shareOptions
 
       return await importRoom(context, clipboardText);
     } catch (e) {
+      if (!context.mounted) return false;
       _showError(context, '读取剪贴板失败', e.toString());
       return false;
     }
@@ -702,12 +701,12 @@ $roomSummary$shareOptions
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.surfaceVariant.withOpacity(0.5),
+                              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.outline.withOpacity(0.3),
+                                ).colorScheme.outline.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Column(
@@ -812,7 +811,8 @@ $roomSummary$shareOptions
       // 添加房间
       await ServiceManager().room.addRoom(cleanedRoom);
 
-      // 安全地跳转到房间页面并选中房间
+      if (!context.mounted) return false;
+
       await navigateToRoomPage(cleanedRoom, context: context);
 
       if (context.mounted) {
@@ -859,7 +859,9 @@ $roomSummary$shareOptions
 
       return true;
     } catch (e) {
-      _showError(context, '导入失败', e.toString());
+      if (context.mounted) {
+        _showError(context, '导入失败', e.toString());
+      }
       return false;
     }
   }
@@ -894,36 +896,6 @@ $roomSummary$shareOptions
     );
   }
 
-  /// 显示信息提示
-  static void _showInfo(BuildContext context, String title, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.info_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(message, style: const TextStyle(fontSize: 12)),
-                ],
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.blue[700],
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   /// 安全地跳转到房间页面并选中房间
   ///
   /// [room] 要选中的房间
@@ -949,7 +921,7 @@ $roomSummary$shareOptions
       debugPrint('已跳转到房间页面并选中房间: ${room.name}');
     } catch (e) {
       debugPrint('跳转到房间页面失败: $e');
-      if (context != null) {
+      if (context != null && context.mounted) {
         _showError(context, '跳转失败', '无法跳转到房间页面: $e');
       }
     }
@@ -988,7 +960,7 @@ $roomSummary$shareOptions
         side: BorderSide(color: colorScheme.outlineVariant),
       ),
       backgroundColor: colorScheme.surface,
-      collapsedBackgroundColor: colorScheme.surfaceVariant.withOpacity(0.2),
+      collapsedBackgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

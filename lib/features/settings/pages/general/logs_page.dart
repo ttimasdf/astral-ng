@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:astral/core/services/service_manager.dart';
 
@@ -26,7 +26,7 @@ class _LogsPageState extends State<LogsPage> {
       );
       return;
     }
-    
+
     final allLogsText = logs.join('\n');
     Clipboard.setData(ClipboardData(text: allLogsText));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -34,9 +34,7 @@ class _LogsPageState extends State<LogsPage> {
         content: Text('已复制 ${logs.length} 条日志到剪贴板'),
         action: SnackBarAction(
           label: '撤销',
-          onPressed: () {
-            // 可以添加撤销功能
-          },
+          onPressed: () {},
         ),
       ),
     );
@@ -57,7 +55,7 @@ class _LogsPageState extends State<LogsPage> {
     return Scaffold(
       appBar: AppBar(
         leading: Hero(
-          tag: "logs_hero",
+          tag: 'logs_hero',
           child: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -104,7 +102,7 @@ class _LogsPageState extends State<LogsPage> {
       body: Builder(
         builder: (context) {
           final logs = ServiceManager().appSettingsState.logs.value;
-          
+
           if (logs.isEmpty) {
             return const Center(
               child: Column(
@@ -127,31 +125,34 @@ class _LogsPageState extends State<LogsPage> {
               ),
             );
           }
-          
+
           return ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.all(8.0),
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index];
-              final isError = log.toLowerCase().contains('error') || 
-                             log.toLowerCase().contains('错误');
-              final isWarning = log.toLowerCase().contains('warning') || 
-                               log.toLowerCase().contains('警告');
-              
+              final isError =
+                  log.toLowerCase().contains('error') ||
+                  log.toLowerCase().contains('错误');
+              final isWarning =
+                  log.toLowerCase().contains('warning') ||
+                  log.toLowerCase().contains('警告');
+
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 2.0),
                 child: ListTile(
                   dense: true,
                   leading: Icon(
-                    isError 
+                    isError
                         ? Icons.error_outline
-                        : isWarning 
-                            ? Icons.warning_amber_outlined
-                            : Icons.info_outline,
-                    color: isError 
-                        ? Colors.red
-                        : isWarning 
+                        : isWarning
+                        ? Icons.warning_amber_outlined
+                        : Icons.info_outline,
+                    color:
+                        isError
+                            ? Colors.red
+                            : isWarning
                             ? Colors.orange
                             : Colors.blue,
                     size: 20,
@@ -161,15 +162,16 @@ class _LogsPageState extends State<LogsPage> {
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: 'monospace',
-                      color: isError 
-                          ? Colors.red
-                          : isWarning 
+                      color:
+                          isError
+                              ? Colors.red
+                              : isWarning
                               ? Colors.orange
                               : null,
                     ),
                   ),
                   subtitle: Text(
-                    '${DateTime.now().toString().substring(0, 19)}',
+                    DateTime.now().toString().substring(0, 19),
                     style: const TextStyle(fontSize: 10),
                   ),
                   trailing: IconButton(
@@ -194,7 +196,7 @@ class _LogsPageState extends State<LogsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _scrollToBottom,
         tooltip: '滚动到底部',
-        heroTag: "logs_fab", // 使用唯一标识
+        heroTag: 'logs_fab',
         child: const Icon(Icons.keyboard_arrow_down),
       ),
     );

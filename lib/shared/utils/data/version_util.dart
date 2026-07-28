@@ -38,8 +38,12 @@ class VersionUtil {
 
     // 确保两个版本号长度相同，不足的部分用 0 补齐
     int maxLength = math.max(v1Parts.length, v2Parts.length);
-    while (v1Parts.length < maxLength) v1Parts.add('0');
-    while (v2Parts.length < maxLength) v2Parts.add('0');
+    while (v1Parts.length < maxLength) {
+      v1Parts.add('0');
+    }
+    while (v2Parts.length < maxLength) {
+      v2Parts.add('0');
+    }
 
     // 逐个比较版本号的每个部分
     for (int i = 0; i < maxLength; i++) {

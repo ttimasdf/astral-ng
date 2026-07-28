@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:astral/shared/widgets/common/home_box.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -105,7 +105,7 @@ class _HitokotoCardState extends State<HitokotoCard> {
                 Text(
                   '加载中...',
                   style: TextStyle(
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 14,
                   ),
                 ),
@@ -129,7 +129,7 @@ class _HitokotoCardState extends State<HitokotoCard> {
                     '—— $hitokotoFrom',
                     style: TextStyle(
                       fontSize: 12,
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
                       fontStyle: FontStyle.italic,
                     ),
                   ),

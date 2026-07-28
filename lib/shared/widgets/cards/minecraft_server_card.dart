@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:astral/core/app_s/file_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -71,7 +72,9 @@ class _MinecraftServerCardState extends State<MinecraftServerCard> {
   }
 
   Future<void> _fetchServerInfo() async {
-    print('Fetching server info ${_serverInfo.host}:${_serverInfo.port}');
+    FileLogger().debug(
+      'Fetching server info ${_serverInfo.host}:${_serverInfo.port}',
+    );
 
     try {
       final status = await _queryServerStatus(
@@ -91,7 +94,7 @@ class _MinecraftServerCardState extends State<MinecraftServerCard> {
         _serverInfo.maxPlayers = status.maxPlayers;
         _serverInfo.serverIcon = status.serverIcon;
         _serverInfo.errorMessage = null;
-        print('Server info loaded ${_serverInfo.motd}');
+        FileLogger().debug('Server info loaded ${_serverInfo.motd}');
       });
     } catch (e) {
       if (!mounted) return;
@@ -328,7 +331,9 @@ class _MinecraftServerCardState extends State<MinecraftServerCard> {
                   widget.isConnected
                       ? FilledButton.tonalIcon(
                         onPressed: () {
-                          print('尝试断开服务�? ${widget.host}:${widget.port}');
+                          FileLogger().debug(
+                            '断开服务器: ${widget.host}:${widget.port}',
+                          );
                           widget.onToggleConnection?.call(_serverInfo.motd);
                         },
                         icon: const Icon(Icons.stop, size: 20),
@@ -346,7 +351,9 @@ class _MinecraftServerCardState extends State<MinecraftServerCard> {
                       )
                       : FilledButton.icon(
                         onPressed: () {
-                          print('尝试连接到服务器: ${widget.host}:${widget.port}');
+                          FileLogger().debug(
+                            '连接服务器: ${widget.host}:${widget.port}',
+                          );
                           widget.onToggleConnection?.call(_serverInfo.motd);
                         },
                         icon: const Icon(Icons.play_arrow, size: 20),
@@ -436,16 +443,14 @@ class _McStatusResult {
 }
 
 class _SocketReader {
-  final Socket _socket;
   final List<int> _buffer = [];
   final StreamSubscription<List<int>> _subscription;
   Completer<void>? _dataWaiter;
   Object? _error;
-  StackTrace? _stackTrace;
   bool _isDone = false;
 
-  _SocketReader(this._socket)
-    : _subscription = _socket.listen(
+  _SocketReader(Socket socket)
+    : _subscription = socket.listen(
         null,
         onError: null,
         onDone: null,
@@ -458,7 +463,6 @@ class _SocketReader {
     });
     _subscription.onError((error, stackTrace) {
       _error = error;
-      _stackTrace = stackTrace;
       _dataWaiter?.complete();
       _dataWaiter = null;
     });

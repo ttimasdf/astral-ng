@@ -70,6 +70,10 @@ class AppSettingsRepository {
       _db.AllSettings.getEnableConnectionNotification();
   Future<void> setEnableConnectionNotification(bool value) =>
       _db.AllSettings.setEnableConnectionNotification(value);
+  Future<bool> getReduceAnimationUpdates() =>
+      _db.AllSettings.getReduceAnimationUpdates();
+  Future<void> setReduceAnimationUpdates(bool value) =>
+      _db.AllSettings.setReduceAnimationUpdates(value);
   Future<bool> getHasShownBannerTip() => _db.AllSettings.getHasShownBannerTip();
   Future<void> setHasShownBannerTip(bool value) =>
       _db.AllSettings.setHasShownBannerTip(value);
@@ -94,6 +98,15 @@ class AppSettingsRepository {
   Future<void> setAutoSetMTU(bool value) =>
       _db.AllSettings.setAutoSetMTU(value);
 
+  // ========== 连接重试设置 ==========
+
+  Future<bool> getAutoRetryOnFailure() => _db.AllSettings.getAutoRetryOnFailure();
+  Future<void> setAutoRetryOnFailure(bool value) =>
+      _db.AllSettings.setAutoRetryOnFailure(value);
+  Future<int> getMaxRetryCount() => _db.AllSettings.getMaxRetryCount();
+  Future<void> setMaxRetryCount(int value) =>
+      _db.AllSettings.setMaxRetryCount(value);
+
   // ========== 批量操作 ==========
 
   Future<AppSettings> loadAll() async {
@@ -113,10 +126,13 @@ class AppSettingsRepository {
       latestVersion: await getLatestVersion(),
       enableBannerCarousel: await getEnableBannerCarousel(),
       enableConnectionNotification: await getEnableConnectionNotification(),
+      reduceAnimationUpdates: await getReduceAnimationUpdates(),
       hasShownBannerTip: await getHasShownBannerTip(),
       closeMinimize: await getCloseMinimize(),
       customVpn: await getCustomVpn(),
       autoSetMTU: await getAutoSetMTU(),
+      autoRetryOnFailure: await getAutoRetryOnFailure(),
+      maxRetryCount: await getMaxRetryCount(),
     );
   }
 }
@@ -138,10 +154,13 @@ class AppSettings {
   final String? latestVersion;
   final bool enableBannerCarousel;
   final bool enableConnectionNotification;
+  final bool reduceAnimationUpdates;
   final bool hasShownBannerTip;
   final bool closeMinimize;
   final List<String> customVpn;
   final bool autoSetMTU;
+  final bool autoRetryOnFailure;
+  final int maxRetryCount;
 
   AppSettings({
     required this.playerName,
@@ -159,9 +178,12 @@ class AppSettings {
     required this.latestVersion,
     required this.enableBannerCarousel,
     required this.enableConnectionNotification,
+    required this.reduceAnimationUpdates,
     required this.hasShownBannerTip,
     required this.closeMinimize,
     required this.customVpn,
     required this.autoSetMTU,
+    required this.autoRetryOnFailure,
+    required this.maxRetryCount,
   });
 }

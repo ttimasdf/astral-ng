@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:astral/core/models/room.dart';
 
@@ -175,10 +175,10 @@ class _CanvasDialogState extends State<_CanvasDialog> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               color: _currentHoveredRoomName == room.name
-                                  ? colorScheme.primaryContainer.withOpacity(0.12)
+                                  ? colorScheme.primaryContainer.withValues(alpha: 0.12)
                                   : (Theme.of(context).brightness == Brightness.light)
-                                    ? colorScheme.surfaceVariant.withOpacity(0.95) 
-                                    : colorScheme.surfaceVariant.withOpacity(0.15),
+                                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.95) 
+                                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
                               // 添加边框效果
                               border: Border.all(
                                 color: _currentHoveredRoomName == room.name

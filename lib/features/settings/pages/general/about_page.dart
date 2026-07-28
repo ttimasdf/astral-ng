@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/screens/logs_page.dart';
+import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/shared/utils/helpers/update_helper.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 

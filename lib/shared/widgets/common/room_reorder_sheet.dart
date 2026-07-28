@@ -1,4 +1,3 @@
-﻿import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:astral/core/models/room.dart';
@@ -6,7 +5,7 @@ import 'package:astral/core/services/service_manager.dart';
 
 // 添加DragHandle定义
 class DragHandle extends StatelessWidget {
-  const DragHandle({Key? key}) : super(key: key);
+  const DragHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +25,10 @@ class RoomReorderSheet extends StatefulWidget {
   final Function(List<Room>) onReorder;
 
   const RoomReorderSheet({
-    Key? key,
+    super.key,
     required this.rooms,
     required this.onReorder,
-  }) : super(key: key);
+  });
 
   @override
   State<RoomReorderSheet> createState() => _RoomReorderSheetState();
@@ -43,7 +42,7 @@ class RoomReorderSheet extends StatefulWidget {
         context: context,
         builder:
             (context) => Dialog(
-              child: Container(
+              child: SizedBox(
                 width: 400,
                 height: 600,
                 child: RoomReorderSheet(
@@ -91,7 +90,6 @@ class RoomReorderSheet extends StatefulWidget {
 
 class _RoomReorderSheetState extends State<RoomReorderSheet> {
   late List<Room> _rooms;
-  String _currentHoveredRoomName = ''; // 新增悬停状态变量
 
   @override
   void initState() {
@@ -219,8 +217,7 @@ class _RoomReorderItem extends StatefulWidget {
   final Room room;
   final int index;
 
-  const _RoomReorderItem({Key? key, required this.room, required this.index})
-    : super(key: key);
+  const _RoomReorderItem({required this.room, required this.index});
 
   @override
   _RoomReorderItemState createState() => _RoomReorderItemState();
@@ -253,8 +250,8 @@ class _RoomReorderItemState extends State<_RoomReorderItem> {
             // 保持原有背景色，仅通过边框变化表示悬停状态
             color:
                 (theme.brightness == Brightness.light)
-                    ? colorScheme.surfaceVariant.withOpacity(1.0)
-                    : colorScheme.surfaceVariant.withOpacity(1.0),
+                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 1.0)
+                    : colorScheme.surfaceContainerHighest.withValues(alpha: 1.0),
             border: Border.all(
               // 仅在悬停时显示边框
               color: _isHovered ? colorScheme.primary : Colors.transparent,

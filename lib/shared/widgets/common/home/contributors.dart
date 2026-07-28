@@ -1,4 +1,4 @@
-﻿import 'package:astral/shared/widgets/common/home_box.dart';
+import 'package:astral/shared/widgets/common/home_box.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -221,15 +221,15 @@ class _ContributorsState extends State<Contributors> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isAuthor 
-                  ? colorScheme.primary.withOpacity(0.5)
-                  : colorScheme.outline.withOpacity(0.2),
+                  ? colorScheme.primary.withValues(alpha: 0.5)
+                  : colorScheme.outline.withValues(alpha: 0.2),
               width: isAuthor ? 2 : 1,
             ),
             gradient: isAuthor
                 ? LinearGradient(
                     colors: [
-                      colorScheme.primary.withOpacity(0.05),
-                      colorScheme.primary.withOpacity(0.02),
+                      colorScheme.primary.withValues(alpha: 0.05),
+                      colorScheme.primary.withValues(alpha: 0.02),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -243,7 +243,7 @@ class _ContributorsState extends State<Contributors> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: colorScheme.primary.withOpacity(0.1),
+                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                     backgroundImage: contributor['avatar'].isNotEmpty 
                         ? NetworkImage(contributor['avatar']!) 
                         : null,
@@ -315,7 +315,7 @@ class _ContributorsState extends State<Contributors> {
                             contributor['role']!,
                             style: TextStyle(
                               color: isAuthor 
-                                  ? colorScheme.primary.withOpacity(0.8)
+                                  ? colorScheme.primary.withValues(alpha: 0.8)
                                   : colorScheme.secondary,
                               fontSize: 12,
                               fontWeight: isAuthor ? FontWeight.w600 : FontWeight.normal,
@@ -338,7 +338,7 @@ class _ContributorsState extends State<Contributors> {
               // GitHub 图标
               Icon(
                 Icons.code,
-                color: isAuthor ? colorScheme.primary : colorScheme.primary.withOpacity(0.7),
+                color: isAuthor ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.7),
                 size: isAuthor ? 20 : 18,
               ),
             ],

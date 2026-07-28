@@ -1,7 +1,6 @@
 ﻿import 'package:astral/shared/utils/data/room_crypto.dart';
 import 'package:astral/shared/utils/data/room_share_helper.dart';
 import 'package:astral/core/services/service_manager.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -62,20 +61,29 @@ class LinkHandlers {
 
       if (duplicateRoom != null) {
         debugPrint('房间已存在: ${duplicateRoom.name}');
-        _showInfo(context, '房间已存在', '房间"${duplicateRoom.name}"已在您的房间列表中');
+        if (context != null && context.mounted) {
+          _showInfo(
+            context,
+            '房间已存在',
+            '房间"${duplicateRoom.name}"已在您的房间列表中',
+          );
+        }
         return;
-      } // 添加房间到数据库
+      }
       await _services.room.addRoom(room);
       debugPrint('成功添加分享房间: ${room.name}');
 
-      // 安全地跳转到房间页面并选中房间
-      await RoomShareHelper.navigateToRoomPage(room, context: context);
-
-      // 显示成功提示
-      _showSuccess(context, '房间添加成功', '已成功添加并选中房间"${room.name}"');
+      if (context != null && context.mounted) {
+        await RoomShareHelper.navigateToRoomPage(room, context: context);
+        if (context.mounted) {
+          _showSuccess(context, '房间添加成功', '已成功添加并选中房间"${room.name}"');
+        }
+      }
     } catch (e) {
       debugPrint('处理房间分享链接失败: $e');
-      _showError(context, '处理分享链接失败', '发生未知错误：${e.toString()}');
+      if (context != null && context.mounted) {
+        _showError(context, '处理分享链接失败', '发生未知错误：${e.toString()}');
+      }
     }
   }
 

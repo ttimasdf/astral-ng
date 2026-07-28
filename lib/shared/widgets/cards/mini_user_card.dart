@@ -1,6 +1,5 @@
 ﻿import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/shared/utils/helpers/platform_version_parser.dart';
-import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:astral/core/services/service_manager.dart';
@@ -41,7 +40,7 @@ class _MiniUserCardState extends State<MiniUserCard> {
       final connectionType = _mapConnectionType(
         player.cost,
         player.ipv4,
-        localIPv4 ?? "",
+        localIPv4,
       );
       final connectionTypeColor = _getConnectionTypeColor(
         connectionType,
@@ -49,6 +48,9 @@ class _MiniUserCardState extends State<MiniUserCard> {
       );
       final latencyColor = _getLatencyColor(player.latencyMs);
       final lossColor = _getPacketLossColor(player.lossRate);
+      final natDifficulty = _mapNatType(player.nat);
+      final natDifficultyColor = _getNatTypeColor(natDifficulty);
+      final natDifficultyIcon = _getNatTypeIcon(natDifficulty);
 
       return MouseRegion(
         onEnter: (_) => setState(() => isHovered = true),
@@ -185,6 +187,22 @@ class _MiniUserCardState extends State<MiniUserCard> {
                           fontSize: 13,
                         ),
                       ),
+                      if (connectionType != '本机' && player.nat.isNotEmpty) ...[
+                        const SizedBox(width: 10),
+                        Icon(
+                          natDifficultyIcon,
+                          size: 16,
+                          color: natDifficultyColor,
+                        ),
+                        Text(
+                          natDifficulty,
+                          style: TextStyle(
+                            color: natDifficultyColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                       if (player.tunnelProto != '') ...[
                         const SizedBox(width: 10),
                         Icon(
@@ -315,8 +333,7 @@ String _mapConnectionType(int connType, String ip, String thisip) {
     return '服务器';
   }
   // 如果是本机IP，返回direct
-  if (thisip != null && ip == thisip) {
-    // 检查 thisip 是否为 null
+  if (thisip.isNotEmpty && ip == thisip) {
     return '本机';
   }
   // 根据连接成本判断连接类型

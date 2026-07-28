@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/models/server_mod.dart';
 import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:flutter/material.dart';
@@ -39,8 +39,8 @@ class _ServerCardState extends State<ServerCard> {
           side: BorderSide(
             color:
                 isHovered
-                    ? colorScheme.primary.withOpacity(0.5)
-                    : colorScheme.outlineVariant.withOpacity(0.3),
+                    ? colorScheme.primary.withValues(alpha: 0.5)
+                    : colorScheme.outlineVariant.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -76,7 +76,7 @@ class _ServerCardState extends State<ServerCard> {
                           Icon(
                             Icons.language,
                             size: 14,
-                            color: colorScheme.onSurfaceVariant.withOpacity(
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 
                               0.7,
                             ),
                           ),

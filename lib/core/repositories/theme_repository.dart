@@ -25,7 +25,7 @@ class ThemeRepository {
   }
 
   Future<void> saveThemeColor(Color color) async {
-    await _db.themeSettings.updateThemeColor(color.value);
+    await _db.themeSettings.updateThemeColor(color.toARGB32());
   }
 
   // ========== 批量操作 ==========
@@ -39,7 +39,7 @@ class ThemeRepository {
 
   Future<void> saveAll(ThemeConfig config) async {
     await _db.themeSettings.updateThemeMode(config.mode);
-    await _db.themeSettings.updateThemeColor(config.color.value);
+    await _db.themeSettings.updateThemeColor(config.color.toARGB32());
   }
 }
 

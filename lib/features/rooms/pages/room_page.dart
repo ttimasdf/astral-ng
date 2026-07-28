@@ -23,8 +23,6 @@ class RoomPage extends StatefulWidget {
 class _RoomPageState extends State<RoomPage> {
   final _services = ServiceManager();
   bool isHovered = false;
-  bool _isReorderMode = false; // 添加重排序模式标志
-
   // 根据宽度计算列数
   int _getColumnCount(double width) {
     if (width >= 1200) {
@@ -102,42 +100,6 @@ class _RoomPageState extends State<RoomPage> {
       final rooms = _services.roomState.rooms.watch(context);
       final selectedRoom = _services.roomState.selectedRoom.watch(context);
 
-      // 如果是重排序模式，使用ReorderableListView
-      if (_isReorderMode) {
-        return ReorderableListView.builder(
-          padding: const EdgeInsets.all(12.0),
-          itemCount: rooms.length,
-          onReorder: (oldIndex, newIndex) {
-            if (newIndex > oldIndex) {
-              newIndex -= 1;
-            }
-            final List<Room> reorderedRooms = List.from(rooms);
-            final Room item = reorderedRooms.removeAt(oldIndex);
-            reorderedRooms.insert(newIndex, item);
-            _services.room.reorderRooms(reorderedRooms);
-          },
-          itemBuilder: (context, index) {
-            final room = rooms[index];
-            return Card(
-              key: ValueKey(room.id),
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ListTile(
-                leading: const Icon(Icons.drag_handle),
-                title: Text(room.name),
-                subtitle: Text('排序: ${room.sortOrder}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    showEditRoomDialog(context, room: room);
-                  },
-                ),
-              ),
-            );
-          },
-        );
-      }
-
-      // 正常的网格视图
       return CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [

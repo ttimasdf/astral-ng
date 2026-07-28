@@ -140,7 +140,7 @@ Future<void> editConnectionManager(
                                   SizedBox(
                                     width: 80,
                                     child: DropdownButtonFormField<String>(
-                                      value: controllers['proto'] as String,
+                                      initialValue: controllers['proto'] as String,
                                       decoration: const InputDecoration(
                                         labelText: '协议',
                                         isDense: true,

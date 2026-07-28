@@ -22,8 +22,9 @@ class VpnManager {
 
   /// 准备VPN服务（请求权限）
   Future<void> prepare() async {
-    if (_plugin == null) return;
-    await _plugin!.prepareVpn();
+    final plugin = _plugin;
+    if (plugin == null) return;
+    await plugin.prepareVpn();
   }
 
   /// 启动VPN服务
@@ -36,7 +37,8 @@ class VpnManager {
     int mtu = 1300,
     List<String> disallowedApplications = const ['pw.rabit.astralng'],
   }) async {
-    if (_plugin == null) return;
+    final plugin = _plugin;
+    if (plugin == null) return;
     if (ipv4Addr.isEmpty || ipv4Addr == "") return;
 
     // 确保IP地址格式为"IP/掩码"
@@ -51,7 +53,7 @@ class VpnManager {
             .where((route) => isValidCIDR(route))
             .toList();
 
-    await _plugin!.startVpn(
+    await plugin.startVpn(
       ipv4Addr: finalIpv4,
       mtu: mtu,
       routes: routes,
@@ -61,8 +63,9 @@ class VpnManager {
 
   /// 停止VPN服务
   Future<void> stop() async {
-    if (_plugin == null) return;
-    await _plugin!.stopVpn();
+    final plugin = _plugin;
+    if (plugin == null) return;
+    await plugin.stopVpn();
   }
 
   /// 设置TUN文件描述符

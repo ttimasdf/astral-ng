@@ -22,9 +22,8 @@ class StartupPage extends BaseSettingsPage {
               title: Text(LocaleKeys.startup_on_boot.tr()),
               subtitle: Text(LocaleKeys.startup_on_boot_desc.tr()),
               value: ServiceManager().startupState.startup.value,
-              onChanged: (value) {
-                ServiceManager().appSettings.setStartup(value);
-                // TODO: Implement startup setting handler
+              onChanged: (value) async {
+                await ServiceManager().appSettings.setStartup(value);
               },
             ),
             SwitchListTile(

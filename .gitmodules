@@ -1,3 +1,0 @@
-[submodule "rust/easytier"]
-	path = rust/easytier
-	url = https://github.com/EasyTier/EasyTier.git
