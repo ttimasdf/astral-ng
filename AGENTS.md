@@ -7,8 +7,10 @@ developer documentation, see `CLAUDE.md`.
 
 ## Fork Maintenance
 
-This repository is a **soft fork** of an upstream project. It tracks upstream
-tagged releases and carries a small number of intentional downstream changes.
+This repository is a **soft fork** of an upstream project. It periodically
+merges upstream tagged releases and carries a small number of intentional
+downstream changes. Upstream tags are synchronization points only; they do not
+determine this fork's release versions.
 
 ### Maintenance files
 
@@ -59,8 +61,23 @@ changing a default, overriding behavior — you **must** add or update an entry 
 no way to know which changes to preserve during upstream merges, and downstream
 modifications will be silently overwritten.
 
+Routine maintenance changes that do not alter downstream behavior are exempt.
+In particular, do **not** add or update ledger entries solely for dependency or
+fixed-output hash refreshes (such as `cargoHash`) or for project/package version
+bumps. If such a change also introduces or modifies fork-specific behavior,
+record that behavioral change normally.
+
 When `/upstream-sync` detects that an upstream release implements the same
 feature or fix as a downstream change, it will update the entry's status to
 `superseded` and note the upstream version.
+
+### Versioning
+
+Astral-ng uses its own release cycle and version sequence, independently of
+upstream. An upstream tag recorded in `.upstream-version` identifies the last
+merged upstream baseline; it is not the Astral-ng application or package
+version. Upstream synchronization must not copy, derive, or bump the downstream
+version from the upstream tag unless explicitly requested as part of a separate
+downstream release.
 
 <!-- IMPORTANT: This section must remain at the end of AGENTS.md. Do not move it or add content after it. -->
