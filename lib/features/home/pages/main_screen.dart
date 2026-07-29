@@ -1,17 +1,19 @@
 import 'dart:io';
 
-import 'package:astral/shared/utils/helpers/update_helper.dart';
+import 'package:astral/core/services/update_service.dart';
+import 'package:astral/shared/widgets/common/update_check_ui.dart';
 import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/constants/small_window_adapter.dart';
+import 'package:astral/core/platform/small_window_adapter.dart';
 import 'package:astral/features/home/pages/home_page.dart';
 import 'package:astral/features/rooms/pages/room_page.dart';
-import 'package:astral/features/explore/pages/explore_page.dart';
+import 'package:astral/features/tools/pages/tools_page.dart';
+import 'package:astral/features/servers/pages/server_page.dart';
 import 'package:astral/features/settings/pages/settings_main_page.dart';
 import 'package:astral/shared/widgets/navigation/bottom_nav.dart';
 import 'package:astral/shared/widgets/navigation/left_nav.dart';
 import 'package:astral/shared/widgets/common/status_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:astral/core/navigation.dart';
+import 'package:astral/core/ui/navigation.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -45,12 +47,13 @@ class _MainScreenState extends State<MainScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ServiceManager().updateState.autoCheckUpdate.value ||
           ServiceManager().updateState.beta.value) {
-        final updateChecker = UpdateChecker(owner: 'ldoubil', repo: 'astral');
+        final checker = UpdateChecker(owner: 'ldoubil', repo: 'astral');
         if (mounted) {
           Future.delayed(const Duration(milliseconds: 1000), () {
             if (mounted) {
-              updateChecker.checkForUpdates(
+              UpdateCheckUi.checkAndPresent(
                 context,
+                checker,
                 showNoUpdateMessage: false,
                 showFailureMessage: false,
               );
@@ -127,6 +130,27 @@ class _MainScreenState extends State<MainScreen>
     _setAppBackground(false);
   }
 
+  @override
+  void onWindowClose() async {
+    // setPreventClose(true) 时才会拦截；二次 close 时直接放行，避免死循环
+    final isPreventClose = await windowManager.isPreventClose();
+    if (!isPreventClose) return;
+
+    final services = ServiceManager();
+    // 隐藏托盘后，或开启「关闭时最小化」：只隐藏窗口
+    if (services.uiState.trayHidden.value ||
+        services.windowState.closeMinimize.value) {
+      _setAppBackground(true);
+      await windowManager.hide();
+      return;
+    }
+
+    // 真正退出：不要用 destroy()，Windows 上会卡死数秒甚至无响应
+    // 见 https://github.com/leanflutter/window_manager/issues/478
+    await windowManager.setPreventClose(false);
+    await windowManager.close();
+  }
+
   List<NavigationItem> get navigationItems => [
     NavigationItem(
       icon: Icons.home_outlined,
@@ -141,10 +165,16 @@ class _MainScreenState extends State<MainScreen>
       page: const RoomPage(),
     ),
     NavigationItem(
-      icon: Icons.explore_outlined,
-      activeIcon: Icons.explore,
-      label: '探索',
-      page: const ExplorePage(),
+      icon: Icons.build_outlined,
+      activeIcon: Icons.build,
+      label: '工具',
+      page: const ToolsPage(),
+    ),
+    NavigationItem(
+      icon: Icons.dns_outlined,
+      activeIcon: Icons.dns,
+      label: LocaleKeys.nav_server.tr(),
+      page: const ServersPage(),
     ),
     NavigationItem(
       icon: Icons.settings_outlined,

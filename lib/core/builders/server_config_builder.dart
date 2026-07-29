@@ -1,9 +1,8 @@
 import 'package:astral/core/models/server_mod.dart';
 import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/models/forwarding.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/shared/utils/network/ip_utils.dart';
 import 'package:astral/src/rust/api/simple.dart';
-import 'package:flutter/foundation.dart';
 
 /// 服务器配置构建器
 ///
@@ -11,7 +10,6 @@ import 'package:flutter/foundation.dart';
 /// 1. 默认配置为底层
 /// 2. 通过链式调用逐层修改
 /// 3. 房间配置可临时覆盖默认配置（不修改持久化）
-/// 4. 每步都有日志记录
 class ServerConfigBuilder {
   final ServiceManager _services;
   final List<String> _logs = [];
@@ -25,18 +23,15 @@ class ServerConfigBuilder {
   List<String> _serverUrls = [];
   List<String> _listenerUrls = [];
   List<String> _cidrs = [];
-  List<Forward> _forwards = [];
+  final List<Forward> _forwards = [];
   FlagsC? _flags;
 
   // 房间配置（临时覆盖）
   NetworkConfigShare? _roomConfig;
 
-  ServerConfigBuilder(this._services) {
-    _log('📦 初始化服务器配置构建器');
-  }
+  ServerConfigBuilder(this._services);
 
   void _log(String message) {
-    debugPrint('🔧 $message');
     _logs.add(message);
   }
 
@@ -48,7 +43,7 @@ class ServerConfigBuilder {
     bool forceDhcp =
         currentIp.isEmpty ||
         currentIp == "0.0.0.0" ||
-        !_isValidIpAddress(currentIp);
+        !isValidIpAddress(currentIp, excludeLoopback: false);
 
     if (forceDhcp) {
       _enableDhcp = true;
@@ -157,51 +152,9 @@ class ServerConfigBuilder {
     return this;
   }
 
-  /// 构建端口转发规则
-  ServerConfigBuilder withForwards(List<ForwardingConnection> groups) {
-    final forwards = <Forward>[];
-
-    for (var group in groups.where((g) => g.enabled)) {
-      for (var conn in group.connections) {
-        if (conn.proto == 'all') {
-          // ALL协议展开为TCP和UDP
-          forwards.add(
-            Forward(
-              bindAddr: conn.bindAddr,
-              dstAddr: conn.dstAddr,
-              proto: 'tcp',
-            ),
-          );
-          forwards.add(
-            Forward(
-              bindAddr: conn.bindAddr,
-              dstAddr: conn.dstAddr,
-              proto: 'udp',
-            ),
-          );
-        } else {
-          forwards.add(
-            Forward(
-              bindAddr: conn.bindAddr,
-              dstAddr: conn.dstAddr,
-              proto: conn.proto,
-            ),
-          );
-        }
-      }
-    }
-
-    _forwards = forwards;
-    if (forwards.isNotEmpty) {
-      _log('🔀 端口转发 (${forwards.length} 条规则)');
-    }
-    return this;
-  }
-
   /// 构建运行时标志（支持房间配置覆盖）
   ServerConfigBuilder withFlags() {
     final nc = _services.networkConfigState;
-    final vpn = _services.vpnState;
     final rc = _roomConfig; // 房间配置
 
     // 应用房间配置的DHCP覆盖
@@ -217,7 +170,7 @@ class ServerConfigBuilder {
       devName: nc.devName.value,
       enableEncryption: enableEncryption,
       enableIpv6: nc.enableIpv6.value,
-      mtu: enableEncryption ? 1360 : 1380,
+      mtu: nc.mtu.value,
       multiThread: nc.multiThread.value,
       latencyFirst: rc?.latencyFirst ?? nc.latencyFirst.value,
       enableExitNode: nc.enableExitNode.value,
@@ -226,28 +179,29 @@ class ServerConfigBuilder {
       relayNetworkWhitelist: '*',
       disableP2P: rc?.disableP2p ?? nc.disableP2p.value,
       enableUdpBroadcastRelay: nc.enableUdpBroadcastRelay.value,
-      relayAllPeerRpc: true,
+      relayAllPeerRpc: nc.relayAllPeerRpc.value,
       disableUdpHolePunching:
           rc?.disableUdpHolePunching ?? nc.disableUdpHolePunching.value,
       disableTcpHolePunching:
           rc?.disableTcpHolePunching ?? nc.disableTcpHolePunching.value,
       dataCompressAlgo: rc?.dataCompressAlgo ?? nc.dataCompressAlgo.value,
-      bindDevice: (rc?.bindDevice == true) ? nc.bindDevice.value : false,
+      bindDevice: rc?.bindDevice ?? nc.bindDevice.value,
       enableKcpProxy: rc?.enableKcpProxy ?? nc.enableKcpProxy.value,
       disableKcpInput: nc.disableKcpInput.value,
-      disableRelayKcp: false,
-      proxyForwardBySystem: vpn.proxyForwardBySystem.value,
-      acceptDns: vpn.acceptDns.value,
-      privateMode: vpn.privateMode.value,
+      disableRelayKcp: nc.disableRelayKcp.value,
+      proxyForwardBySystem: nc.proxyForwardBySystem.value,
+      acceptDns: nc.acceptDns.value,
+      privateMode: nc.privateMode.value,
       enableQuicProxy: nc.enableQuicProxy.value,
       disableQuicInput: nc.disableQuicInput.value,
       disableSymHolePunching:
           rc?.disableSymHolePunching ?? nc.disableSymHolePunching.value,
       tcpWhitelist: nc.tcpWhitelist.value,
       udpWhitelist: nc.udpWhitelist.value,
+      socks5Port: nc.enableSocks5.value ? nc.socks5Port.value : 0,
     );
 
-    _log('⚙️  运行标志配置完成 (加密: $enableEncryption)');
+    _log('⚙️  运行标志配置完成 (加密: $enableEncryption, SOCKS5: ${_flags!.socks5Port})');
     return this;
   }
 
@@ -286,11 +240,4 @@ class ServerConfigBuilder {
     );
   }
 
-  bool _isValidIpAddress(String ip) {
-    if (ip.isEmpty) return false;
-    final RegExp ipRegex = RegExp(
-      r"^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-    );
-    return ipRegex.hasMatch(ip) && ip != "0.0.0.0" && ip != "255.255.255.255";
-  }
 }

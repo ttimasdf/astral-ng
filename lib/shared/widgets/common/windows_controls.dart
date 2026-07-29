@@ -1,11 +1,13 @@
-﻿import 'package:astral/core/services/server_connection_manager.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/services/server_connection_manager.dart';
 import 'package:astral/core/states/connection_state.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:signals_flutter/signals_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class WindowControls extends StatefulWidget {
   const WindowControls({super.key});
@@ -25,22 +27,23 @@ class _WindowControlsState extends State<WindowControls>
     trayManager.addListener(this);
     windowManager.addListener(this);
     _updateMaximizedStatus();
-    // 桌面平台代码
-    _initTray();
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initTray());
     _connectionStateCleanup = effect(() {
       ServiceManager().connectionState.connectionState.value;
       _updateTrayMenu();
     });
-    super.initState();
   }
 
   Future<void> _initTray() async {
+    if (!mounted || ServiceManager().uiState.trayHidden.value) return;
+
     if (Platform.isWindows) {
       await trayManager.setIcon('assets/icon.ico');
     } else if (Platform.isMacOS) {
       await trayManager.setIcon('assets/logo.png');
     } else {
-      await trayManager.setIcon('assets/icon_tray.png');
+      await trayManager.setIcon('assets/logo.png');
     }
 
     if (!Platform.isLinux) {
@@ -51,23 +54,21 @@ class _WindowControlsState extends State<WindowControls>
   }
 
   Future<void> _updateTrayMenu() async {
-    final state =
-        ServiceManager().connectionState.connectionState.value;
+    if (ServiceManager().uiState.trayHidden.value) return;
+
+    final state = ServiceManager().connectionState.connectionState.value;
     final isConnected = state == CoState.connected;
     final isConnecting = state == CoState.connecting;
+    final connectLabel =
+        isConnecting
+            ? '连接中...'
+            : isConnected
+            ? '断开连接'
+            : '连接';
 
-    String connectLabel;
-    if (isConnecting) {
-      connectLabel = '连接中...';
-    } else if (isConnected) {
-      connectLabel = '断开连接';
-    } else {
-      connectLabel = '连接';
-    }
-
-    final Menu trayMenu = Menu(
+    final trayMenu = Menu(
       items: [
-        MenuItem(key: 'show_window', label: '显示主界面'),
+        MenuItem(key: 'show_window', label: LocaleKeys.tray_show_window.tr()),
         MenuItem.separator(),
         MenuItem(
           key: 'toggle_connection',
@@ -75,20 +76,63 @@ class _WindowControlsState extends State<WindowControls>
           disabled: isConnecting,
         ),
         MenuItem.separator(),
-        MenuItem(key: 'exit', label: '退出'),
+        MenuItem(key: 'hide_tray', label: LocaleKeys.tray_hide.tr()),
+        MenuItem.separator(),
+        MenuItem(key: 'exit', label: LocaleKeys.tray_exit.tr()),
       ],
     );
 
     await trayManager.setContextMenu(trayMenu);
   }
 
+  Future<void> _confirmHideTray() async {
+    await windowManager.show();
+    await windowManager.focus();
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: Text(LocaleKeys.tray_hide_title.tr()),
+            content: Text(LocaleKeys.tray_hide_message.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(LocaleKeys.cancel.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(LocaleKeys.tray_hide_confirm.tr()),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await _hideTray();
+    }
+  }
+
+  Future<void> _hideTray() async {
+    if (ServiceManager().uiState.trayHidden.value) return;
+
+    ServiceManager().uiState.setTrayHidden(true);
+    await trayManager.destroy();
+    ServiceManager().uiState.setBackground(true);
+    await windowManager.hide();
+  }
+
   @override
   void onTrayIconRightMouseDown() {
+    if (ServiceManager().uiState.trayHidden.value) return;
     trayManager.popUpContextMenu();
   }
 
   @override
   void onTrayIconMouseDown() {
+    if (ServiceManager().uiState.trayHidden.value) return;
     ServiceManager().uiState.setBackground(false);
     windowManager.show();
   }
@@ -100,13 +144,14 @@ class _WindowControlsState extends State<WindowControls>
         ServiceManager().uiState.setBackground(false);
         windowManager.show();
       case 'toggle_connection':
-        final state =
-            ServiceManager().connectionState.connectionState.value;
+        final state = ServiceManager().connectionState.connectionState.value;
         if (state == CoState.idle) {
           ServerConnectionManager.instance.connect();
         } else if (state == CoState.connected) {
           ServerConnectionManager.instance.disconnect();
         }
+      case 'hide_tray':
+        _confirmHideTray();
       case 'exit':
         exit(0);
     }
@@ -132,7 +177,9 @@ class _WindowControlsState extends State<WindowControls>
 
   Future<void> _updateMaximizedStatus() async {
     final maximized = await windowManager.isMaximized();
-    setState(() => _isMaximized = maximized);
+    if (mounted) {
+      setState(() => _isMaximized = maximized);
+    }
   }
 
   @override
@@ -148,7 +195,6 @@ class _WindowControlsState extends State<WindowControls>
           onPressed: () async {
             ServiceManager().uiState.setBackground(true);
             await windowManager.minimize();
-             
           },
           tooltip: '最小化',
           iconSize: 20,
@@ -167,13 +213,9 @@ class _WindowControlsState extends State<WindowControls>
         ),
         IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () async {
-            if (ServiceManager().windowState.closeMinimize.value) {
-              ServiceManager().uiState.setBackground(true);
-              await windowManager.hide();
-            } else {
-              await windowManager.close();
-            }
+          // 不要 await：close 会触发 onWindowClose，真正退出时不应卡住标题栏按钮
+          onPressed: () {
+            windowManager.close();
           },
           tooltip: '关闭',
           iconSize: 20,

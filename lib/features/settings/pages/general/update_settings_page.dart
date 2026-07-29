@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/shared/utils/helpers/update_helper.dart';
-import 'package:astral/features/settings/pages/general/history_versions_page.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
+import 'package:astral/features/settings/widgets/update_settings_actions.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class UpdateSettingsPage extends BaseSettingsPage {
@@ -18,7 +17,7 @@ class UpdateSettingsPage extends BaseSettingsPage {
     return [
       IconButton(
         icon: const Icon(Icons.refresh),
-        onPressed: () => _checkForUpdates(context),
+        onPressed: () => checkForUpdates(context),
         tooltip: LocaleKeys.check_update.tr(),
       ),
     ];
@@ -26,233 +25,110 @@ class UpdateSettingsPage extends BaseSettingsPage {
 
   @override
   Widget buildContent(BuildContext context) {
-    return Watch((context) {
-      return ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                title: Text(LocaleKeys.update_settings.tr()),
-                subtitle: Text(LocaleKeys.update_behavior_desc.tr()),
-                leading: const Icon(Icons.system_update),
-              ),
-              buildDivider(),
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              title: Text(LocaleKeys.update_settings.tr()),
+              subtitle: Text(LocaleKeys.update_behavior_desc.tr()),
+              leading: const Icon(Icons.system_update),
+            ),
+            buildDivider(),
+            SwitchListTile(
+              title: Text(LocaleKeys.join_beta.tr()),
+              subtitle: Text(LocaleKeys.join_beta_desc.tr()),
+              value: ServiceManager().updateState.beta.watch(context),
+              onChanged: (value) {
+                ServiceManager().appSettings.setBeta(value);
+              },
+            ),
+            if (!ServiceManager().updateState.beta.watch(context))
               SwitchListTile(
-                title: Text(LocaleKeys.join_beta.tr()),
-                subtitle: Text(LocaleKeys.join_beta_desc.tr()),
-                value: ServiceManager().updateState.beta.value,
+                title: Text(LocaleKeys.auto_update.tr()),
+                subtitle: Text(LocaleKeys.auto_update_desc.tr()),
+                value: ServiceManager().updateState.autoCheckUpdate.watch(
+                  context,
+                ),
                 onChanged: (value) {
-                  ServiceManager().appSettings.setBeta(value);
+                  ServiceManager().appSettings.setAutoCheckUpdate(value);
                 },
               ),
-              if (!ServiceManager().updateState.beta.value)
-                SwitchListTile(
-                  title: Text(LocaleKeys.auto_update.tr()),
-                  subtitle: Text(LocaleKeys.auto_update_desc.tr()),
-                  value: ServiceManager().updateState.autoCheckUpdate.value,
-                  onChanged: (value) {
-                    ServiceManager().appSettings.setAutoCheckUpdate(value);
-                  },
-                ),
-              buildDivider(),
-              ListTile(
-                leading: const Icon(Icons.bolt),
-                title: const Text('下载加速前缀'),
-                subtitle: Text(
-                  ServiceManager().updateState.downloadAccelerate.value.isEmpty
-                      ? '未启用（直连 GitHub）'
-                      : ServiceManager().updateState.downloadAccelerate.value,
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _editDownloadAccelerate(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                title: Text(LocaleKeys.update_operations.tr()),
-                subtitle: Text(LocaleKeys.update_operations_desc.tr()),
-                leading: const Icon(Icons.update),
-              ),
-              buildDivider(),
-              ListTile(
-                leading: const Icon(Icons.refresh),
-                title: Text(LocaleKeys.check_update.tr()),
-                subtitle: Text(LocaleKeys.check_update_available.tr()),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _checkForUpdates(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: Text(LocaleKeys.version_info.tr()),
-                subtitle: Text(LocaleKeys.version_info_desc.tr()),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _showVersionInfo(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.history),
-                title: Text(LocaleKeys.history_versions.tr()),
-                subtitle: Text(LocaleKeys.history_versions_desc.tr()),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _navigateToHistoryVersions(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.cloud_download),
-                title: const Text('重新下载'),
-                subtitle: const Text('如果出现问题可以尝试重新下载！'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _redownload(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                title: Text(LocaleKeys.update_description.tr()),
-                subtitle: Text(LocaleKeys.update_description_desc.tr()),
-                leading: const Icon(Icons.help_outline),
-              ),
-              buildDivider(),
-              ListTile(
-                title: Text(LocaleKeys.beta_version.tr()),
-                subtitle: Text(LocaleKeys.beta_version_desc.tr()),
-                leading: const Icon(Icons.science),
-              ),
-              ListTile(
-                title: Text(LocaleKeys.auto_update_title.tr()),
-                subtitle: Text(LocaleKeys.auto_update_info_desc.tr()),
-                leading: const Icon(Icons.auto_awesome),
-              ),
-            ],
-          ),
-        ],
-      );
-    });
-  }
-
-  void _checkForUpdates(BuildContext context) {
-    final updateChecker = UpdateChecker(owner: 'ldoubil', repo: 'astral');
-    if (context.mounted) {
-      updateChecker.checkForUpdates(context);
-    }
-  }
-
-  void _navigateToHistoryVersions(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder:
-            (context, animation, secondaryAnimation) =>
-                const HistoryVersionsPage(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.ease;
-
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
-  void _redownload(BuildContext context) {
-    final updateChecker = UpdateChecker(owner: 'ldoubil', repo: 'astral');
-    if (context.mounted) {
-      updateChecker.checkForUpdates(context, forceShowDownload: true);
-    }
-  }
-
-  void _showVersionInfo(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(LocaleKeys.version_info.tr()),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${LocaleKeys.current_version.tr()}: ${AppInfoUtil.getVersion()}',
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${LocaleKeys.update_channel.tr()}: ${ServiceManager().updateState.beta.value ? "Beta" : "Stable"}',
-                ),
-              ],
+            buildDivider(),
+            ListTile(
+              leading: const Icon(Icons.bolt),
+              title: Text(LocaleKeys.download_acceleration.tr()),
+              subtitle: Text(downloadAccelerateDescription()),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => editDownloadAccelerate(context),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(LocaleKeys.close.tr()),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _editDownloadAccelerate(BuildContext context) {
-    final current = ServiceManager().updateState.downloadAccelerate.value;
-    final controller = TextEditingController(text: current);
-
-    showDialog(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('设置下载加速前缀'),
-            content: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: '例如: https://gh.xmly.dev/',
-                border: OutlineInputBorder(),
-              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              title: Text(LocaleKeys.update_operations.tr()),
+              subtitle: Text(LocaleKeys.update_operations_desc.tr()),
+              leading: const Icon(Icons.update),
             ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  await ServiceManager().appSettings.setDownloadAccelerate('');
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-                child: const Text('关闭加速'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(LocaleKeys.cancel.tr()),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final value = controller.text.trim();
-                  final normalized =
-                      value.isEmpty
-                          ? ''
-                          : (value.endsWith('/') ? value : '$value/');
-                  await ServiceManager().appSettings.setDownloadAccelerate(
-                    normalized,
-                  );
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-                child: Text(LocaleKeys.save.tr()),
-              ),
-            ],
-          ),
-    ).then((_) => controller.dispose());
+            buildDivider(),
+            ListTile(
+              leading: const Icon(Icons.refresh),
+              title: Text(LocaleKeys.check_update.tr()),
+              subtitle: Text(LocaleKeys.check_update_available.tr()),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => checkForUpdates(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text(LocaleKeys.version_info.tr()),
+              subtitle: Text(LocaleKeys.version_info_desc.tr()),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => showVersionInfo(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: Text(LocaleKeys.history_versions.tr()),
+              subtitle: Text(LocaleKeys.history_versions_desc.tr()),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => navigateToHistoryVersions(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cloud_download),
+              title: const Text('重新下载'),
+              subtitle: const Text('如果出现问题可以尝试重新下载！'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => redownloadUpdate(context),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              title: Text(LocaleKeys.update_description.tr()),
+              subtitle: Text(LocaleKeys.update_description_desc.tr()),
+              leading: const Icon(Icons.help_outline),
+            ),
+            buildDivider(),
+            ListTile(
+              title: Text(LocaleKeys.beta_version.tr()),
+              subtitle: Text(LocaleKeys.beta_version_desc.tr()),
+              leading: const Icon(Icons.science),
+            ),
+            ListTile(
+              title: Text(LocaleKeys.auto_update_title.tr()),
+              subtitle: Text(LocaleKeys.auto_update_info_desc.tr()),
+              leading: const Icon(Icons.auto_awesome),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

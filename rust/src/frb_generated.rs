@@ -2808,6 +2808,7 @@ impl SseDecode for crate::api::simple::FlagsC {
         let mut var_disableSymHolePunching = <bool>::sse_decode(deserializer);
         let mut var_tcpWhitelist = <String>::sse_decode(deserializer);
         let mut var_udpWhitelist = <String>::sse_decode(deserializer);
+        let mut var_socks5Port = <u16>::sse_decode(deserializer);
         return crate::api::simple::FlagsC {
             default_protocol: var_defaultProtocol,
             dev_name: var_devName,
@@ -2838,6 +2839,7 @@ impl SseDecode for crate::api::simple::FlagsC {
             disable_sym_hole_punching: var_disableSymHolePunching,
             tcp_whitelist: var_tcpWhitelist,
             udp_whitelist: var_udpWhitelist,
+            socks5_port: var_socks5Port,
         };
     }
 }
@@ -2918,6 +2920,7 @@ impl SseDecode for crate::api::simple::KVNodeInfo {
         let mut var_txBytes = <u64>::sse_decode(deserializer);
         let mut var_version = <String>::sse_decode(deserializer);
         let mut var_cost = <i32>::sse_decode(deserializer);
+        let mut var_proxyCidrs = <Vec<String>>::sse_decode(deserializer);
         return crate::api::simple::KVNodeInfo {
             peer_id: var_peerId,
             hostname: var_hostname,
@@ -2933,6 +2936,7 @@ impl SseDecode for crate::api::simple::KVNodeInfo {
             tx_bytes: var_txBytes,
             version: var_version,
             cost: var_cost,
+            proxy_cidrs: var_proxyCidrs,
         };
     }
 }
@@ -3637,6 +3641,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::simple::FlagsC {
             self.disable_sym_hole_punching.into_into_dart().into_dart(),
             self.tcp_whitelist.into_into_dart().into_dart(),
             self.udp_whitelist.into_into_dart().into_dart(),
+            self.socks5_port.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -3729,6 +3734,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::simple::KVNodeInfo {
             self.tx_bytes.into_into_dart().into_dart(),
             self.version.into_into_dart().into_dart(),
             self.cost.into_into_dart().into_dart(),
+            self.proxy_cidrs.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -4097,6 +4103,7 @@ impl SseEncode for crate::api::simple::FlagsC {
         <bool>::sse_encode(self.disable_sym_hole_punching, serializer);
         <String>::sse_encode(self.tcp_whitelist, serializer);
         <String>::sse_encode(self.udp_whitelist, serializer);
+        <u16>::sse_encode(self.socks5_port, serializer);
     }
 }
 
@@ -4159,6 +4166,7 @@ impl SseEncode for crate::api::simple::KVNodeInfo {
         <u64>::sse_encode(self.tx_bytes, serializer);
         <String>::sse_encode(self.version, serializer);
         <i32>::sse_encode(self.cost, serializer);
+        <Vec<String>>::sse_encode(self.proxy_cidrs, serializer);
     }
 }
 

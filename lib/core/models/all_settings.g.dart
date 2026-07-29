@@ -99,30 +99,35 @@ const AllSettingsSchema = CollectionSchema(
       name: r'serverSortField',
       type: IsarType.string,
     ),
-    r'sortOption': PropertySchema(
+    r'settingsSchemaVersion': PropertySchema(
       id: 18,
+      name: r'settingsSchemaVersion',
+      type: IsarType.long,
+    ),
+    r'sortOption': PropertySchema(
+      id: 19,
       name: r'sortOption',
       type: IsarType.long,
     ),
     r'sortOrder': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'sortOrder',
       type: IsarType.long,
     ),
-    r'startup': PropertySchema(id: 20, name: r'startup', type: IsarType.bool),
+    r'startup': PropertySchema(id: 21, name: r'startup', type: IsarType.bool),
     r'startupAutoConnect': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'startupAutoConnect',
       type: IsarType.bool,
     ),
     r'startupMinimize': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'startupMinimize',
       type: IsarType.bool,
     ),
-    r'userId': PropertySchema(id: 23, name: r'userId', type: IsarType.string),
+    r'userId': PropertySchema(id: 24, name: r'userId', type: IsarType.string),
     r'userListSimple': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'userListSimple',
       type: IsarType.bool,
     ),
@@ -215,13 +220,14 @@ void _allSettingsSerialize(
   writer.writeBool(offsets[15], object.reduceAnimationUpdates);
   writer.writeLong(offsets[16], object.room);
   writer.writeString(offsets[17], object.serverSortField);
-  writer.writeLong(offsets[18], object.sortOption);
-  writer.writeLong(offsets[19], object.sortOrder);
-  writer.writeBool(offsets[20], object.startup);
-  writer.writeBool(offsets[21], object.startupAutoConnect);
-  writer.writeBool(offsets[22], object.startupMinimize);
-  writer.writeString(offsets[23], object.userId);
-  writer.writeBool(offsets[24], object.userListSimple);
+  writer.writeLong(offsets[18], object.settingsSchemaVersion);
+  writer.writeLong(offsets[19], object.sortOption);
+  writer.writeLong(offsets[20], object.sortOrder);
+  writer.writeBool(offsets[21], object.startup);
+  writer.writeBool(offsets[22], object.startupAutoConnect);
+  writer.writeBool(offsets[23], object.startupMinimize);
+  writer.writeString(offsets[24], object.userId);
+  writer.writeBool(offsets[25], object.userListSimple);
 }
 
 AllSettings _allSettingsDeserialize(
@@ -250,13 +256,14 @@ AllSettings _allSettingsDeserialize(
   object.reduceAnimationUpdates = reader.readBool(offsets[15]);
   object.room = reader.readLongOrNull(offsets[16]);
   object.serverSortField = reader.readString(offsets[17]);
-  object.sortOption = reader.readLong(offsets[18]);
-  object.sortOrder = reader.readLong(offsets[19]);
-  object.startup = reader.readBool(offsets[20]);
-  object.startupAutoConnect = reader.readBool(offsets[21]);
-  object.startupMinimize = reader.readBool(offsets[22]);
-  object.userId = reader.readStringOrNull(offsets[23]);
-  object.userListSimple = reader.readBool(offsets[24]);
+  object.settingsSchemaVersion = reader.readLong(offsets[18]);
+  object.sortOption = reader.readLong(offsets[19]);
+  object.sortOrder = reader.readLong(offsets[20]);
+  object.startup = reader.readBool(offsets[21]);
+  object.startupAutoConnect = reader.readBool(offsets[22]);
+  object.startupMinimize = reader.readBool(offsets[23]);
+  object.userId = reader.readStringOrNull(offsets[24]);
+  object.userListSimple = reader.readBool(offsets[25]);
   return object;
 }
 
@@ -308,14 +315,16 @@ P _allSettingsDeserializeProp<P>(
     case 19:
       return (reader.readLong(offset)) as P;
     case 20:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 21:
       return (reader.readBool(offset)) as P;
     case 22:
       return (reader.readBool(offset)) as P;
     case 23:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 24:
+      return (reader.readStringOrNull(offset)) as P;
+    case 25:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1765,6 +1774,64 @@ extension AllSettingsQueryFilter
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  settingsSchemaVersionEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'settingsSchemaVersion',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  settingsSchemaVersionGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'settingsSchemaVersion',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  settingsSchemaVersionLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'settingsSchemaVersion',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  settingsSchemaVersionBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'settingsSchemaVersion',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
   sortOptionEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2293,6 +2360,20 @@ extension AllSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortBySettingsSchemaVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingsSchemaVersion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortBySettingsSchemaVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingsSchemaVersion', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> sortBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.asc);
@@ -2605,6 +2686,20 @@ extension AllSettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenBySettingsSchemaVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingsSchemaVersion', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenBySettingsSchemaVersionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'settingsSchemaVersion', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> thenBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'sortOption', Sort.asc);
@@ -2826,6 +2921,13 @@ extension AllSettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QDistinct>
+  distinctBySettingsSchemaVersion() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'settingsSchemaVersion');
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QDistinct> distinctBySortOption() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'sortOption');
@@ -2995,6 +3097,13 @@ extension AllSettingsQueryProperty
   serverSortFieldProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'serverSortField');
+    });
+  }
+
+  QueryBuilder<AllSettings, int, QQueryOperations>
+  settingsSchemaVersionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'settingsSchemaVersion');
     });
   }
 

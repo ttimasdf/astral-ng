@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -57,25 +58,29 @@ class _SoftwareSettingsPageState
       await _checkNotificationPermission();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            status.isGranted
-                ? LocaleKeys.permission_notification_success.tr()
-                : LocaleKeys.permission_notification_failed.tr(),
-          ),
-        ),
-      );
+      if (status.isGranted) {
+        AppSnackBars.success(
+          context,
+          LocaleKeys.permission_notification_success.tr(),
+          '',
+        );
+      } else {
+        AppSnackBars.error(
+          context,
+          LocaleKeys.permission_notification_failed.tr(),
+          '',
+        );
+      }
 
       if (status.isPermanentlyDenied) {
         _showNotificationPermissionDialog();
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(LocaleKeys.permission_notification_request_failed.tr()),
-        ),
+      AppSnackBars.error(
+        context,
+        LocaleKeys.permission_notification_request_failed.tr(),
+        '',
       );
     }
   }
@@ -130,25 +135,29 @@ class _SoftwareSettingsPageState
       await _checkInstallPermission();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            status.isGranted
-                ? LocaleKeys.permission_install_success.tr()
-                : LocaleKeys.permission_install_failed.tr(),
-          ),
-        ),
-      );
+      if (status.isGranted) {
+        AppSnackBars.success(
+          context,
+          LocaleKeys.permission_install_success.tr(),
+          '',
+        );
+      } else {
+        AppSnackBars.error(
+          context,
+          LocaleKeys.permission_install_failed.tr(),
+          '',
+        );
+      }
 
       if (status.isPermanentlyDenied) {
         _showPermissionDialog();
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(LocaleKeys.permission_install_request_failed.tr()),
-        ),
+      AppSnackBars.error(
+        context,
+        LocaleKeys.permission_install_request_failed.tr(),
+        '',
       );
     }
   }
@@ -183,181 +192,170 @@ class _SoftwareSettingsPageState
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                title: Text(LocaleKeys.software_settings.tr()),
-                subtitle: Text(LocaleKeys.software_behavior_desc.tr()),
-                leading: const Icon(Icons.settings),
-              ),
-              buildDivider(),
-              if (Platform.isAndroid)
-                ListTile(
-                  leading: const Icon(Icons.install_mobile),
-                  title: Text(LocaleKeys.get_install_permission.tr()),
-                  subtitle: Text(
-                    _hasInstallPermission
-                        ? LocaleKeys.install_permission_granted.tr()
-                        : LocaleKeys.install_permission_not_granted.tr(),
-                  ),
-                  trailing:
-                      _hasInstallPermission
-                          ? const Icon(Icons.check_circle, color: Colors.green)
-                          : const Icon(Icons.warning, color: Colors.orange),
-                  onTap:
-                      _hasInstallPermission ? null : _requestInstallPermission,
-                ),
-              if (!Platform.isAndroid)
-                SwitchListTile(
-                  title: Text(LocaleKeys.minimize.tr()),
-                  subtitle: Text(LocaleKeys.minimize_desc.tr()),
-                  value: ServiceManager().windowState.closeMinimize.watch(context),
-                  onChanged: (value) {
-                    ServiceManager().appSettings.updateCloseMinimize(value);
-                  },
-                ),
-              SwitchListTile(
-                title: Text(LocaleKeys.player_list_card.tr()),
-                subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
-                value: ServiceManager().displayState.userListSimple.watch(context),
-                onChanged: (value) {
-                  ServiceManager().appSettings.setUserListSimple(value);
-                },
-              ),
-              SwitchListTile(
-                title: Text(LocaleKeys.enable_banner_carousel.tr()),
-                subtitle: Text(LocaleKeys.enable_banner_carousel_desc.tr()),
-                value: ServiceManager().appSettingsState.enableBannerCarousel
-                    .watch(context),
-                onChanged: (value) async {
-                  await ServiceManager().appSettings.updateEnableBannerCarousel(
-                    value,
-                  );
-                },
-              ),
-              SwitchListTile(
-                title: const Text('减少动画更新'),
-                subtitle: const Text('降低拓扑图与连线动画刷新频率，减少 GPU 占用'),
-                value: ServiceManager().appSettingsState.reduceAnimationUpdates
-                    .watch(context),
-                onChanged: (value) async {
-                  await ServiceManager().appSettings
-                      .updateReduceAnimationUpdates(value);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                title: const Text('连接设置'),
-                subtitle: const Text('配置连接重试行为'),
-                leading: const Icon(Icons.sync),
-              ),
-              buildDivider(),
-              SwitchListTile(
-                title: const Text('连接失败自动重试'),
-                subtitle: const Text('连接失败时自动重新尝试连接'),
-                value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
-                onChanged: (value) async {
-                  await ServiceManager().appSettings.updateAutoRetryOnFailure(
-                    value,
-                  );
-                },
-              ),
-              if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
-                ListTile(
-                  title: const Text('最大重试次数'),
-                  subtitle: Text(
-                    '当前设置为 ${ServiceManager().appSettingsState.maxRetryCount.value} 次',
-                  ),
-                  trailing: SizedBox(
-                    width: 100,
-                    child: DropdownButton<int>(
-                      value: ServiceManager().appSettingsState.maxRetryCount.value,
-                      isExpanded: true,
-                      items: [1, 2, 3, 5, 10].map((int count) {
-                        return DropdownMenuItem<int>(
-                          value: count,
-                          child: Text('$count 次'),
-                        );
-                      }).toList(),
-                      onChanged: (int? newValue) async {
-                        if (newValue != null) {
-                          await ServiceManager().appSettings.updateMaxRetryCount(
-                            newValue,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          if (Platform.isAndroid)
-            buildSettingsCard(
-              context: context,
-              children: [
-                ListTile(
-                  title: Text(LocaleKeys.android_settings.tr()),
-                  subtitle: Text(LocaleKeys.android_settings_desc.tr()),
-                  leading: const Icon(Icons.android),
-                ),
-                buildDivider(),
-                ListTile(
-                  leading: const Icon(Icons.notifications),
-                  title: Text(LocaleKeys.get_notification_permission.tr()),
-                  subtitle: Text(
-                    _hasNotificationPermission
-                        ? LocaleKeys.notification_permission_granted.tr()
-                        : LocaleKeys.notification_permission_not_granted.tr(),
-                  ),
-                  trailing:
-                      _hasNotificationPermission
-                          ? const Icon(Icons.check_circle, color: Colors.green)
-                          : const Icon(Icons.warning, color: Colors.orange),
-                  onTap:
-                      _hasNotificationPermission
-                          ? null
-                          : _requestNotificationPermission,
-                ),
-                SwitchListTile(
-                  title: Text(LocaleKeys.enable_connection_notification.tr()),
-                  subtitle: Text(LocaleKeys.enable_connection_notification_desc.tr()),
-                  value: ServiceManager().appSettingsState.enableConnectionNotification.watch(context),
-                  onChanged: (value) async {
-                    if (value && !_hasNotificationPermission) {
-                      await _requestNotificationPermission();
-                      // 如果请求后仍没有权限，则不允许开启
-                      if (!_hasNotificationPermission) return;
-                    }
-                    await ServiceManager().appSettings.updateEnableConnectionNotification(value);
-                  },
-                ),
-                buildDivider(),
-                ListTile(
-                  title: Text(LocaleKeys.permission_description.tr()),
-                  subtitle: Text(LocaleKeys.permission_description_desc.tr()),
-                  leading: const Icon(Icons.info_outline),
-                ),
-                buildDivider(),
-                SwitchListTile(
-                  title: Text(LocaleKeys.enable_connection_notification.tr()),
-                  subtitle: Text(LocaleKeys.enable_connection_notification_desc.tr()),
-                  value: ServiceManager()
-                      .notificationState
-                      .enableConnectionNotification
-                      .value,
-                  onChanged: (value) {
-                    ServiceManager().appSettings.setEnableConnectionNotification(value);
-                  },
-                ),
-              ],
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              title: Text(LocaleKeys.software_settings.tr()),
+              subtitle: Text(LocaleKeys.software_behavior_desc.tr()),
+              leading: const Icon(Icons.settings),
             ),
-        ],
-      );
+            buildDivider(),
+            if (Platform.isAndroid)
+              ListTile(
+                leading: const Icon(Icons.install_mobile),
+                title: Text(LocaleKeys.get_install_permission.tr()),
+                subtitle: Text(
+                  _hasInstallPermission
+                      ? LocaleKeys.install_permission_granted.tr()
+                      : LocaleKeys.install_permission_not_granted.tr(),
+                ),
+                trailing:
+                    _hasInstallPermission
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.warning, color: Colors.orange),
+                onTap: _hasInstallPermission ? null : _requestInstallPermission,
+              ),
+            if (!Platform.isAndroid)
+              SwitchListTile(
+                title: Text(LocaleKeys.minimize.tr()),
+                subtitle: Text(LocaleKeys.minimize_desc.tr()),
+                value: ServiceManager().windowState.closeMinimize.watch(
+                  context,
+                ),
+                onChanged: (value) {
+                  ServiceManager().appSettings.updateCloseMinimize(value);
+                },
+              ),
+            SwitchListTile(
+              title: Text(LocaleKeys.player_list_card.tr()),
+              subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
+              value: ServiceManager().displayState.userListSimple.watch(
+                context,
+              ),
+              onChanged: (value) {
+                ServiceManager().appSettings.setUserListSimple(value);
+              },
+            ),
+            SwitchListTile(
+              title: const Text('减少动画更新'),
+              subtitle: const Text('降低拓扑图与连线动画刷新频率，减少 GPU 占用'),
+              value: ServiceManager().appSettingsState.reduceAnimationUpdates
+                  .watch(context),
+              onChanged: (value) async {
+                await ServiceManager().appSettings.updateReduceAnimationUpdates(
+                  value,
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              title: const Text('连接设置'),
+              subtitle: const Text('配置连接重试行为'),
+              leading: const Icon(Icons.sync),
+            ),
+            buildDivider(),
+            SwitchListTile(
+              title: const Text('连接失败自动重试'),
+              subtitle: const Text('连接失败时自动重新尝试连接'),
+              value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
+              onChanged: (value) async {
+                await ServiceManager().appSettings.updateAutoRetryOnFailure(
+                  value,
+                );
+              },
+            ),
+            if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
+              ListTile(
+                title: const Text('最大重试次数'),
+                subtitle: Text(
+                  '当前设置为 ${ServiceManager().appSettingsState.maxRetryCount.value} 次',
+                ),
+                trailing: SizedBox(
+                  width: 100,
+                  child: DropdownButton<int>(
+                    value:
+                        ServiceManager().appSettingsState.maxRetryCount.value,
+                    isExpanded: true,
+                    items:
+                        [1, 2, 3, 5, 10].map((int count) {
+                          return DropdownMenuItem<int>(
+                            value: count,
+                            child: Text('$count 次'),
+                          );
+                        }).toList(),
+                    onChanged: (int? newValue) async {
+                      if (newValue != null) {
+                        await ServiceManager().appSettings.updateMaxRetryCount(
+                          newValue,
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
+        if (Platform.isAndroid)
+          buildSettingsCard(
+            context: context,
+            children: [
+              ListTile(
+                title: Text(LocaleKeys.android_settings.tr()),
+                subtitle: Text(LocaleKeys.android_settings_desc.tr()),
+                leading: const Icon(Icons.android),
+              ),
+              buildDivider(),
+              ListTile(
+                leading: const Icon(Icons.notifications),
+                title: Text(LocaleKeys.get_notification_permission.tr()),
+                subtitle: Text(
+                  _hasNotificationPermission
+                      ? LocaleKeys.notification_permission_granted.tr()
+                      : LocaleKeys.notification_permission_not_granted.tr(),
+                ),
+                trailing:
+                    _hasNotificationPermission
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const Icon(Icons.warning, color: Colors.orange),
+                onTap:
+                    _hasNotificationPermission
+                        ? null
+                        : _requestNotificationPermission,
+              ),
+              SwitchListTile(
+                title: Text(LocaleKeys.enable_connection_notification.tr()),
+                subtitle: Text(
+                  LocaleKeys.enable_connection_notification_desc.tr(),
+                ),
+                value: ServiceManager()
+                    .appSettingsState
+                    .enableConnectionNotification
+                    .watch(context),
+                onChanged: (value) async {
+                  if (value && !_hasNotificationPermission) {
+                    await _requestNotificationPermission();
+                    // 如果请求后仍没有权限，则不允许开启
+                    if (!_hasNotificationPermission) return;
+                  }
+                  await ServiceManager().appSettings
+                      .updateEnableConnectionNotification(value);
+                },
+              ),
+              buildDivider(),
+              ListTile(
+                title: Text(LocaleKeys.permission_description.tr()),
+                subtitle: Text(LocaleKeys.permission_description_desc.tr()),
+                leading: const Icon(Icons.info_outline),
+              ),
+            ],
+          ),
+      ],
+    );
   }
 }

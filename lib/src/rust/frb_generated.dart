@@ -2807,8 +2807,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FlagsC dco_decode_flags_c(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 29)
-      throw Exception('unexpected arr length: expect 29 but see ${arr.length}');
+    if (arr.length != 30)
+      throw Exception('unexpected arr length: expect 30 but see ${arr.length}');
     return FlagsC(
       defaultProtocol: dco_decode_String(arr[0]),
       devName: dco_decode_String(arr[1]),
@@ -2839,6 +2839,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       disableSymHolePunching: dco_decode_bool(arr[26]),
       tcpWhitelist: dco_decode_String(arr[27]),
       udpWhitelist: dco_decode_String(arr[28]),
+      socks5Port: dco_decode_u_16(arr[29]),
     );
   }
 
@@ -2898,8 +2899,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   KVNodeInfo dco_decode_kv_node_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 14)
-      throw Exception('unexpected arr length: expect 14 but see ${arr.length}');
+    if (arr.length != 15)
+      throw Exception('unexpected arr length: expect 15 but see ${arr.length}');
     return KVNodeInfo(
       peerId: dco_decode_u_32(arr[0]),
       hostname: dco_decode_String(arr[1]),
@@ -2915,6 +2916,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       txBytes: dco_decode_u_64(arr[11]),
       version: dco_decode_String(arr[12]),
       cost: dco_decode_i_32(arr[13]),
+      proxyCidrs: dco_decode_list_String(arr[14]),
     );
   }
 
@@ -3468,6 +3470,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_disableSymHolePunching = sse_decode_bool(deserializer);
     var var_tcpWhitelist = sse_decode_String(deserializer);
     var var_udpWhitelist = sse_decode_String(deserializer);
+    var var_socks5Port = sse_decode_u_16(deserializer);
     return FlagsC(
       defaultProtocol: var_defaultProtocol,
       devName: var_devName,
@@ -3498,6 +3501,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       disableSymHolePunching: var_disableSymHolePunching,
       tcpWhitelist: var_tcpWhitelist,
       udpWhitelist: var_udpWhitelist,
+      socks5Port: var_socks5Port,
     );
   }
 
@@ -3572,6 +3576,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_txBytes = sse_decode_u_64(deserializer);
     var var_version = sse_decode_String(deserializer);
     var var_cost = sse_decode_i_32(deserializer);
+    var var_proxyCidrs = sse_decode_list_String(deserializer);
     return KVNodeInfo(
       peerId: var_peerId,
       hostname: var_hostname,
@@ -3587,6 +3592,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       txBytes: var_txBytes,
       version: var_version,
       cost: var_cost,
+      proxyCidrs: var_proxyCidrs,
     );
   }
 
@@ -4244,6 +4250,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_bool(self.disableSymHolePunching, serializer);
     sse_encode_String(self.tcpWhitelist, serializer);
     sse_encode_String(self.udpWhitelist, serializer);
+    sse_encode_u_16(self.socks5Port, serializer);
   }
 
   @protected
@@ -4306,6 +4313,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_u_64(self.txBytes, serializer);
     sse_encode_String(self.version, serializer);
     sse_encode_i_32(self.cost, serializer);
+    sse_encode_list_String(self.proxyCidrs, serializer);
   }
 
   @protected

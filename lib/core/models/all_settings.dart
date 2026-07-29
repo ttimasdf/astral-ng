@@ -1,4 +1,5 @@
 import 'package:isar_community/isar.dart';
+import 'package:astral/shared/utils/github_proxy_selector.dart';
 part 'all_settings.g.dart';
 
 @collection
@@ -43,7 +44,7 @@ class AllSettings {
   bool autoCheckUpdate = true;
 
   /// 下载加速
-  String downloadAccelerate = 'https://gh.xmly.dev/';
+  String downloadAccelerate = GitHubProxySelector.autoMode;
 
   /// 服务器排序字段
   String serverSortField = 'id';
@@ -80,4 +81,7 @@ class AllSettings {
 
   /// 最大重试次数
   int maxRetryCount = 3;
+
+  /// 设置 schema 版本（用于旧库字段迁移）
+  int settingsSchemaVersion = 0;
 }

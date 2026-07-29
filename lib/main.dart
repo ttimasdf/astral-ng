@@ -2,16 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'package:astral/src/rust/api/utils.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:astral/shared/utils/helpers/update_helper.dart';
-import 'package:astral/shared/utils/helpers/regex_patterns.dart'; // 添加这行导入
-import 'package:astral/core/app_s/log_capture.dart';
-import 'package:astral/core/app_s/file_logger.dart';
-import 'package:astral/core/app_s/global_error_handler.dart';
+import 'package:astral/core/platform/app_info.dart';
+import 'package:astral/core/platform/startup_url_scheme.dart';
+import 'package:astral/core/bootstrap/log_capture.dart';
+import 'package:astral/core/bootstrap/file_logger.dart';
+import 'package:astral/core/bootstrap/global_error_handler.dart';
 import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/constants/window_manager.dart';
+import 'package:astral/core/platform/window_manager.dart';
 import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/services/widget_service.dart';
-import 'package:astral/services/app_links/app_link_registry.dart';
+import 'package:astral/core/app_links/app_link_registry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
@@ -67,7 +66,6 @@ Future<void> _initializeApp() async {
   try {
     await _initRustLib();
     FileLogger().info('RustLib initialized');
-    // initApp();
 
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -92,7 +90,10 @@ Future<void> _initializeApp() async {
     FileLogger().info('ServiceManager initialized');
 
     // 初始化贴片服务
-    WidgetService.instance.initialize();
+    services.widgets.initialize();
+    if (Platform.isAndroid) {
+      await services.widgets.syncAll();
+    }
     FileLogger().info('WidgetService initialized');
 
     try {
@@ -133,14 +134,7 @@ void _runApp() {
     EasyLocalization(
       supportedLocales: const [
         Locale('zh'),
-        Locale('zh', 'TW'),
         Locale('en'),
-        Locale('ja'),
-        Locale('ko'),
-        Locale('ru'),
-        Locale('fr'),
-        Locale('de'),
-        Locale('es'),
       ],
       path: 'assets/translations',
       fallbackLocale: const Locale('zh'),

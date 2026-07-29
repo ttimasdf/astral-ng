@@ -1,0 +1,21 @@
+# CI 版本参考配置（非 workflow，勿放在 workflows/ 目录）
+# 各工作流在 jobs.env 中手动保持与此一致
+env:
+  # Flutter：克隆 flutter 仓库 beta 分支 = 最新 beta 预发布版
+  FLUTTER_VERSION: beta
+  FLUTTER_CHANNEL: beta
+
+  # Rust 版本配置
+  RUST_VERSION: 1.89.0
+
+  # Android 配置
+  JDK_VERSION: 17
+  NDK_VERSION: 28.2.13676358
+  CMAKE_VERSION: 3.18.1
+  ANDROID_GRADLE_PLUGIN: 8.11.1
+  KOTLIN_VERSION: 2.2.20
+  GRADLE_VERSION: 8.14
+
+  # 其他工具版本
+  PROTOBUF_VERSION: latest
+  NINJA_VERSION: latest

@@ -3,7 +3,7 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    id("org.jetbrains.kotlin.android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -14,11 +14,16 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val resolvedApplicationId =
+    System.getenv("ANDROID_APPLICATION_ID")
+        ?: project.findProperty("applicationId") as String?
+        ?: "pw.rabit.astralng"
+
 android {
     namespace = "pw.rabit.astralng"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-    // ndkVersion = "28.2.13676358"
+    // ndkVersion = flutter.ndkVersion
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -37,7 +42,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "pw.rabit.astralng"
+        applicationId = resolvedApplicationId
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -74,6 +79,7 @@ dependencies {
     // 添加对窗口模式的支持
     implementation("androidx.window:window:1.2.0-beta05")
     implementation("androidx.window:window-java:1.2.0-beta05")
+
 }
 
 flutter {

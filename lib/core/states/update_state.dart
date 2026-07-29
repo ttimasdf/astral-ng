@@ -1,5 +1,7 @@
 import 'package:signals_flutter/signals_flutter.dart';
 
+import 'package:astral/shared/utils/github_proxy_selector.dart';
+
 /// 更新相关状态
 class UpdateState {
   /// 是否加入测试版频道
@@ -8,8 +10,11 @@ class UpdateState {
   /// 是否自动检查更新
   final autoCheckUpdate = signal(true);
 
-  /// 下载加速前缀
-  final downloadAccelerate = signal('https://gh.xmly.dev/');
+  /// 下载加速前缀（`auto` = 自动测速，`''` = 关闭）
+  final downloadAccelerate = signal(GitHubProxySelector.autoMode);
+
+  /// 自动模式下最近一次测速选中的前缀
+  final resolvedDownloadAccelerate = signal<String?>(null);
 
   /// 最近一次检查到的最新版本号
   final latestVersion = signal<String?>(null);
@@ -24,18 +29,17 @@ class UpdateState {
 
   void setDownloadAccelerate(String value) {
     downloadAccelerate.value = value;
+    if (!GitHubProxySelector.isAutoMode(value)) {
+      resolvedDownloadAccelerate.value = null;
+    }
+  }
+
+  void setResolvedDownloadAccelerate(String? value) {
+    resolvedDownloadAccelerate.value = value;
   }
 
   void setLatestVersion(String? version) {
     latestVersion.value = version;
-  }
-
-  void toggleBeta() {
-    beta.value = !beta.value;
-  }
-
-  void toggleAutoCheckUpdate() {
-    autoCheckUpdate.value = !autoCheckUpdate.value;
   }
 
   /// 仅表示已经拿到可用版本号，不代表一定高于当前版本

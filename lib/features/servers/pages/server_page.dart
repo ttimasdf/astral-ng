@@ -1,0 +1,234 @@
+﻿import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/models/server_mod.dart';
+import 'package:astral/core/states/server_status_state.dart';
+import 'package:astral/shared/utils/network/blocked_servers.dart';
+import 'package:astral/features/servers/dialogs/server_dialog.dart';
+import 'package:astral/features/servers/server_status_style.dart';
+import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/core/ui/base_settings_page.dart';
+import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+
+/// 服务器管理页（底栏独立入口）
+class ServersPage extends BaseStatefulSettingsPage {
+  const ServersPage({super.key});
+
+  @override
+  BaseStatefulSettingsPageState<ServersPage> createState() =>
+      _ServersPageState();
+}
+
+class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 启动服务器状态定期检测
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final servers = ServiceManager().serverState.servers.value;
+      ServiceManager().serverStatusState.startPeriodicCheck(
+        servers,
+        const Duration(seconds: 30),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    ServiceManager().serverStatusState.stopPeriodicCheck();
+    super.dispose();
+  }
+
+  @override
+  bool get showAppBar => false;
+
+  @override
+  String get title => '';
+
+  @override
+  bool get showBackButton => false;
+
+  @override
+  Widget? buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () => showAddServerDialog(context),
+      child: const Icon(Icons.add),
+    );
+  }
+
+  @override
+  Widget buildContent(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Watch((context) {
+      final servers = ServiceManager().serverState.servers.watch(context);
+      final serverStatuses = ServiceManager().serverStatusState.serverStatuses
+          .watch(context);
+
+      if (servers.isEmpty) {
+        return buildEmptyState(
+          context: context,
+          icon: Icons.dns_outlined,
+          title: '暂无服务器',
+          actionLabel: '添加服务器',
+          onAction: () => showAddServerDialog(context),
+        );
+      }
+
+      return ReorderableListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: servers.length,
+        buildDefaultDragHandles: false,
+        proxyDecorator: (child, index, animation) {
+          return Material(
+            elevation: 0,
+            color: Colors.transparent,
+            child: child,
+          );
+        },
+        onReorderItem: (oldIndex, newIndex) async {
+          final newServers = List<ServerMod>.from(servers);
+          final server = newServers.removeAt(oldIndex);
+          newServers.insert(newIndex, server);
+          await ServiceManager().server.reorderServers(newServers);
+        },
+        itemBuilder: (context, index) {
+          final server = servers[index];
+          final status = serverStatuses[server.id] ?? ServerStatus.unknown;
+
+          return ReorderableDragStartListener(
+            key: ValueKey(server.id),
+            index: index,
+            child: Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: Container(
+                  width: 4,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: ServerStatusStyle.color(status, colorScheme),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                title: Text(
+                  server.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  BlockedServers.isBlocked(server.url) ? '***' : server.url,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: server.enable,
+                        onChanged: (value) {
+                          ServiceManager().server.setServerEnable(
+                            server,
+                            value,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          if (BlockedServers.isBlocked(server.url)) {
+                            AppSnackBars.info(
+                              context,
+                              '不可编辑',
+                              '此服务器不可编辑',
+                              duration: const Duration(seconds: 2),
+                            );
+                          } else {
+                            showEditServerDialog(context, server: server);
+                          }
+                        } else if (value == 'delete') {
+                          _showDeleteConfirmDialog(server);
+                        }
+                      },
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color:
+                                        BlockedServers.isBlocked(server.url)
+                                            ? colorScheme.outline
+                                            : colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    '编辑',
+                                    style: TextStyle(
+                                      color:
+                                          BlockedServers.isBlocked(server.url)
+                                              ? colorScheme.outline
+                                              : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                    color: colorScheme.error,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    '删除',
+                                    style: TextStyle(color: colorScheme.error),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  void _showDeleteConfirmDialog(ServerMod server) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('删除服务器'),
+            content: Text('确定要删除服务器 "${server.name}" 吗？此操作不可撤销。'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  ServiceManager().server.deleteServer(server);
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('删除'),
+              ),
+            ],
+          ),
+    );
+  }
+}
