@@ -367,4 +367,28 @@ development guidance.
 
 ---
 
+## [dlls-folder-documentation]: Document Windows DLL bundle contents
+
+- **Scope**: `dlls/README.md`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: 2026-06-29
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Adds a README to the Windows DLL bundle explaining which files are useful,
+why they are probably present, and where the build or runtime paths consume
+them. This documents the fork's Windows packaging mirror for EasyTier runtime
+DLLs, calls out non-runtime files such as `Packet.lib`, and records Binary
+Ninja findings that `Ak.dll` is an active Winsock-hooking DLL rather than a
+normal Astral-ng runtime dependency.
+
+### Files affected
+
+- `dlls/README.md`: new inventory of DLL/sys/lib files, direct packaging
+  references, likely runtime owners, and maintenance notes
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
