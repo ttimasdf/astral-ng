@@ -1,7 +1,7 @@
 {
   lib,
   stdenv,
-  flutter338,
+  flutter344,
   rustPlatform,
   fetchFromGitHub,
   makeDesktopItem,
@@ -33,7 +33,7 @@ let
     meta.platforms = [ "x86_64-linux" ];
   };
 in
-flutter338.buildFlutterApplication {
+flutter344.buildFlutterApplication {
   inherit pname version src;
 
   autoPubspecLock = src + "/pubspec.lock";
