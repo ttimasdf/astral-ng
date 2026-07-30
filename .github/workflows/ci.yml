@@ -3,13 +3,22 @@ name: CI
 on:
   push:
     branches:
-      - '**'
+      - main
     tags:
       - 'v*'
   pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
   linux:
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,14 +42,12 @@ jobs:
           cache-sdk: true
           cache: true
 
-      - name: Install Linux deps
+      - name: Install Linux build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential ninja-build libgtk-3-dev clang cmake pkg-config \
-            libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev \
-            patchelf fuse libfuse2 ruby-dev
-          sudo gem install --no-document fpm
+            libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev
 
       - name: Enable Linux desktop
         run: |
@@ -50,10 +57,20 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Analyze application code
+        run: flutter analyze lib
+
       - name: Build Linux
         run: flutter build linux --release
 
+      - name: Install Linux packaging dependencies
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sudo apt-get install -y patchelf ruby-dev
+          sudo gem install --no-document fpm
+
       - name: Package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           set -e
           mkdir -p release
@@ -78,6 +95,7 @@ jobs:
           mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-x64.rpm
 
       - name: Upload artifacts
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: astral-linux-x64
@@ -85,6 +103,10 @@ jobs:
           retention-days: 30
 
   windows:
+    if: >-
+      (github.event.action != 'labeled' || github.event.label.name == 'full-ci') &&
+      (github.event_name != 'pull_request' ||
+       contains(github.event.pull_request.labels.*.name, 'full-ci'))
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -109,6 +131,7 @@ jobs:
           cache: true
 
       - name: Install Inno Setup
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: choco install innosetup -y
 
       - name: Install Protobuf compiler
@@ -155,15 +178,18 @@ jobs:
         run: flutter build windows --release
 
       - name: Copy DLLs
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
 
       - name: Package zip
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           New-Item -ItemType Directory -Path "release" -Force
           Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
 
       - name: Upload zip artifact
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: astral-windows-x64-zip
@@ -171,6 +197,7 @@ jobs:
           retention-days: 30
 
       - name: Create Inno Setup script
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           $version = (Select-String -Path "pubspec.yaml" -Pattern "version: (.*)").Matches[0].Groups[1].Value
           @"
@@ -217,12 +244,14 @@ jobs:
           curl.exe -fL -o D:\ChineseSimplified.isl https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl
 
       - name: Build installer
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           New-Item -ItemType Directory -Path "release" -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
           Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\" -Force
 
       - name: Upload setup artifact
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: astral-windows-x64-setup
@@ -230,6 +259,10 @@ jobs:
           retention-days: 30
 
   android:
+    if: >-
+      (github.event.action != 'labeled' || github.event.label.name == 'full-ci') &&
+      (github.event_name != 'pull_request' ||
+       contains(github.event.pull_request.labels.*.name, 'full-ci'))
     runs-on: ubuntu-24.04
     env:
       JDK_VERSION: 17
@@ -256,7 +289,7 @@ jobs:
           cache: true
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'adopt'
@@ -287,7 +320,12 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Validate Android build
+        if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
+        run: flutter build apk --debug --target-platform android-arm64,android-arm
+
       - name: Setup signing
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
           echo "storeFile=upload-keystore.jks" >> android/key.properties
@@ -295,36 +333,31 @@ jobs:
           echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
 
-      - name: Build arm64
+      - name: Build split APKs
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          flutter build apk --release --target-platform android-arm64
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-arm64.apk
+          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/astral-android-arm64.apk
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/astral-android-armv7.apk
 
-      - name: Upload arm64 artifact
+      - name: Upload split APK artifacts
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: astral-android-arm64
-          path: build/app/outputs/flutter-apk/astral-android-arm64.apk
+          name: astral-android-split
+          path: |
+            build/app/outputs/flutter-apk/astral-android-arm64.apk
+            build/app/outputs/flutter-apk/astral-android-armv7.apk
           retention-days: 30
 
-      - name: Build armv7
-        run: |
-          flutter build apk --release --target-platform android-arm
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-armv7.apk
-
-      - name: Upload armv7 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: astral-android-armv7
-          path: build/app/outputs/flutter-apk/astral-android-armv7.apk
-          retention-days: 30
-
-      - name: Build universal
+      - name: Build universal APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           flutter build apk --release --target-platform android-arm64,android-arm
           mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-universal.apk
 
-      - name: Upload universal artifact
+      - name: Upload universal APK artifact
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: astral-android-universal
