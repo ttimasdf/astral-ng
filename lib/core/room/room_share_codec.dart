@@ -3,6 +3,7 @@ import 'dart:io' show gzip;
 
 import 'package:astral/core/bootstrap/file_logger.dart';
 import 'package:astral/core/models/room.dart';
+import 'package:astral/core/room/room_mode.dart';
 
 /// 房间分享编解码（纯逻辑，不含 Flutter UI）
 ///
@@ -186,7 +187,7 @@ $roomSummary$shareOptions
 
     if (!room.encrypted) {
       if (room.roomName.isEmpty) {
-        return (false, '公开房间必须有房间号');
+        return (false, '高级模式必须有房间号');
       }
 
       if (room.roomName.length > 100) {
@@ -237,7 +238,7 @@ $roomSummary$shareOptions
 
   /// 生成房间摘要信息
   static String generateRoomSummary(Room room) {
-    final type = room.encrypted ? '🔒 加密房间' : '🔓 公开房间';
+    final type = '⚙️ ${RoomMode.label(room.encrypted)}';
     final tags = room.tags.isNotEmpty ? '\n🏷️ ${room.tags.join(', ')}' : '';
 
     return '''

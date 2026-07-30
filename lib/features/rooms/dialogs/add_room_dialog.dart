@@ -1,5 +1,7 @@
-import 'package:astral/features/rooms/utils/random_name.dart';
 import 'package:astral/features/rooms/pages/room_page.dart';
+import 'package:astral/features/rooms/utils/random_name.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showAddRoomDialog(BuildContext context) async {
@@ -25,14 +27,33 @@ Future<void> showAddRoomDialog(BuildContext context) async {
                   onChanged: (value) => name = value,
                 ),
                 const SizedBox(height: 8),
-                SwitchListTile(
-                  title: const Text('是否保护'),
-                  value: isEncrypted,
-                  onChanged: (value) {
-                    setState(() {
-                      isEncrypted = value;
-                    });
-                  },
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    LocaleKeys.room_mode.tr(),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                RadioGroup<bool>(
+                  groupValue: isEncrypted,
+                  onChanged: (value) => setState(() => isEncrypted = value!),
+                  child: Column(
+                    children: [
+                      RadioListTile<bool>(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(LocaleKeys.room_mode_simple.tr()),
+                        subtitle: Text(LocaleKeys.room_mode_simple_desc.tr()),
+                        value: true,
+                      ),
+                      RadioListTile<bool>(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(LocaleKeys.room_mode_advanced.tr()),
+                        subtitle: Text(LocaleKeys.room_mode_advanced_desc.tr()),
+                        value: false,
+                      ),
+                    ],
+                  ),
                 ),
 
                 if (!isEncrypted) ...[

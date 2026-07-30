@@ -1,6 +1,9 @@
 // 修改RoomCard类，接收 Room 对象和分类名称列表
-import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/models/room.dart';
+import 'package:astral/core/room/room_mode.dart';
+import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class RoomCard extends StatefulWidget {
@@ -165,8 +168,11 @@ class _RoomCardState extends State<RoomCard> {
                           ),
                         const SizedBox(width: 8),
                         Icon(
-                          room.encrypted ? Icons.lock : Icons.lock_open,
-                          color: room.encrypted ? Colors.red : Colors.green,
+                          room.encrypted ? Icons.auto_awesome : Icons.tune,
+                          color:
+                              room.encrypted
+                                  ? colorScheme.primary
+                                  : colorScheme.secondary,
                           size: 20,
                         ),
                       ],
@@ -178,7 +184,7 @@ class _RoomCardState extends State<RoomCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '类型: ${room.encrypted ? "保护" : "不保护"}',
+                      '${LocaleKeys.room_mode.tr()}: ${RoomMode.label(room.encrypted)}',
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     if (room.servers.isNotEmpty)

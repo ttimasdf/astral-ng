@@ -1,7 +1,7 @@
-
-import 'package:flutter/material.dart';
 import 'package:astral/core/models/room.dart';
+import 'package:astral/core/room/room_mode.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:flutter/material.dart';
 
 // 添加DragHandle定义
 class DragHandle extends StatelessWidget {
@@ -262,7 +262,7 @@ class _RoomReorderItemState extends State<_RoomReorderItem> {
                 style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
               ),
               subtitle: Text(
-                widget.room.encrypted ? '加密房间' : '开放房间',
+                RoomMode.label(widget.room.encrypted),
                 style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),

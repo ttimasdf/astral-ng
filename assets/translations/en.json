@@ -168,5 +168,11 @@
   "permission_notification_success": "Notification permission granted successfully",
   "permission_notification_failed": "Failed to get notification permission",
   "permission_notification_request_failed": "Request for notification permission failed",
-  "permission_notification_denied_message": "Notification permission is permanently denied. Please enable it manually in system settings."
+  "permission_notification_denied_message": "Notification permission is permanently denied. Please enable it manually in system settings.",
+  "room_mode": "Mode",
+  "room_mode_simple": "Simple",
+  "room_mode_simple_desc": "Generates room credentials automatically.",
+  "room_mode_advanced": "Advanced",
+  "room_mode_advanced_desc": "Enter shared room credentials manually.",
+  "room_mode_cannot_change": "The room mode cannot be changed after creation."
 }

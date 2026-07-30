@@ -394,4 +394,31 @@ normal Astral-ng runtime dependency.
 
 ---
 
+## [room-modes]: Rename room credential modes
+
+- **Scope**: `assets/translations/`, `lib/core/room/`, `lib/features/home/widgets/canvas_jump.dart`, `lib/features/rooms/`, `lib/generated/locale_keys.g.dart`
+- **Type**: override
+- **Status**: active
+- **Introduced**: room-modes
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the ambiguous protected/unprotected (and encrypted/public) room labels
+with Simple and Advanced modes. Simple mode generates the EasyTier room
+credentials automatically; Advanced mode lets the user enter shared credentials.
+This clarifies that the choice does not control the separate network-traffic
+encryption setting.
+
+### Files affected
+
+- `assets/translations/en.json`, `assets/translations/zh.json`: localized room-mode labels and descriptions
+- `lib/core/room/room_mode.dart`: centralized localized display name for the stored room-mode flag
+- `lib/core/room/room_share_codec.dart`: mode-aware sharing summary and validation message
+- `lib/features/rooms/dialogs/add_room_dialog.dart`: explicit Simple/Advanced selector
+- `lib/features/rooms/dialogs/edit_room_dialog.dart`, `lib/features/rooms/widgets/room_card.dart`, `lib/features/rooms/widgets/room_reorder_sheet.dart`, `lib/features/home/widgets/canvas_jump.dart`: mode labels in room UI
+- `lib/generated/locale_keys.g.dart`: regenerated localization keys
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
