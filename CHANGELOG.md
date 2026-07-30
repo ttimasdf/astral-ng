@@ -14,7 +14,7 @@ baseline.
 ### Added
 
 - Added an Android Quick Settings tile that shows the current connection state
-  and connects or disconnects Astral-ng with one tap.
+  and connects or disconnects Astral-ng with one tap. ([#10])
 - Added automatic connection retries with a configurable retry limit.
   ([upstream-auto-retry])
 - Added a local SOCKS5 listener for accessing the virtual network in NO-TUN
@@ -161,6 +161,7 @@ changes. ([upstream-v2.7.3])
 [#5]: https://github.com/ttimasdf/astral-ng/pull/5
 [#6]: https://github.com/ttimasdf/astral-ng/pull/6
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
+[#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
