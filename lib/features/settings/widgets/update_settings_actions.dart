@@ -39,7 +39,7 @@ void showVersionInfo(BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${LocaleKeys.current_version.tr()}: ${AppInfoUtil.getVersion()}',
+                '${LocaleKeys.current_version.tr()}: ${AppInfoUtil.getVersionDisplay()}',
               ),
               const SizedBox(height: 8),
               Text(

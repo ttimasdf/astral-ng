@@ -9,8 +9,18 @@ class AppInfoUtil {
     _packageInfo = await PackageInfo.fromPlatform();
   }
 
-  /// 获取应用版本号 (例如: 1.0.0)
-  static String getVersion() {
-    return _packageInfo?.version ?? '';
+  /// 获取应用版本号 (例如: 1.0.0).
+  static String getVersion() => _packageInfo?.version ?? '';
+
+  /// Human-readable version, including the CI canary channel when applicable.
+  static String getVersionDisplay() {
+    final packageInfo = _packageInfo;
+    if (packageInfo == null) return '';
+
+    final buildNumber = int.tryParse(packageInfo.buildNumber);
+    if (buildNumber != null && buildNumber >= 1000000000) {
+      return '${packageInfo.version} (canary $buildNumber)';
+    }
+    return packageInfo.version;
   }
 }

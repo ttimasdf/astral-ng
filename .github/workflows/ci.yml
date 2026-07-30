@@ -26,6 +26,12 @@ jobs:
         with:
           lfs: true
 
+      - name: Resolve build version
+        run: |
+          python3 scripts/version.py sync --check
+          python3 scripts/version.py resolve
+          python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
+
       - name: Setup Rust
         run: rustup toolchain install stable --profile minimal
 
@@ -61,7 +67,7 @@ jobs:
         run: flutter analyze lib
 
       - name: Build Linux
-        run: flutter build linux --release
+        run: flutter build linux --release --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
 
       - name: Install Linux packaging dependencies
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -113,6 +119,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+
+      - name: Resolve build version
+        run: |
+          python scripts/version.py sync --check
+          python scripts/version.py resolve
+          python scripts/version.py resolve --format env >> $env:GITHUB_ENV
 
       - name: Setup Rust
         run: rustup toolchain install stable --profile minimal
@@ -175,7 +187,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows
-        run: flutter build windows --release
+        run: flutter build windows --release --build-name "$env:FLUTTER_BUILD_NAME" --build-number "$env:FLUTTER_BUILD_NUMBER"
 
       - name: Copy DLLs
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -272,6 +284,12 @@ jobs:
         with:
           lfs: true
 
+      - name: Resolve build version
+        run: |
+          python3 scripts/version.py sync --check
+          python3 scripts/version.py resolve
+          python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
+
       - name: Setup Rust
         run: rustup toolchain install stable --profile minimal
 
@@ -322,7 +340,7 @@ jobs:
 
       - name: Validate Android build
         if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
-        run: flutter build apk --debug --target-platform android-arm64,android-arm
+        run: flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
 
       - name: Setup signing
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -336,9 +354,9 @@ jobs:
       - name: Build split APKs
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi
-          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/astral-android-arm64.apk
-          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/astral-android-armv7.apk
+          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-arm64.apk"
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-armv7.apk"
 
       - name: Upload split APK artifacts
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -346,22 +364,22 @@ jobs:
         with:
           name: astral-android-split
           path: |
-            build/app/outputs/flutter-apk/astral-android-arm64.apk
-            build/app/outputs/flutter-apk/astral-android-armv7.apk
+            build/app/outputs/flutter-apk/astral-*-android-arm64.apk
+            build/app/outputs/flutter-apk/astral-*-android-armv7.apk
           retention-days: 30
 
       - name: Build universal APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          flutter build apk --release --target-platform android-arm64,android-arm
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/astral-android-universal.apk
+          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-universal.apk"
 
       - name: Upload universal APK artifact
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
           name: astral-android-universal
-          path: build/app/outputs/flutter-apk/astral-android-universal.apk
+          path: build/app/outputs/flutter-apk/astral-*-android-universal.apk
           retention-days: 30
 
   create-release:
@@ -374,12 +392,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Parse version from tag
-        id: parse-tag
+      - name: Resolve production version
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          python3 scripts/version.py sync --check
+          python3 scripts/version.py resolve --channel production
+          python3 scripts/version.py resolve --channel production --format env >> "$GITHUB_ENV"
 
       - name: Extract changelog for version
         id: extract-changelog
@@ -388,8 +405,7 @@ jobs:
             echo "ERROR: CHANGELOG.md not found"
             exit 1
           fi
-          VERSION="${{ steps.parse-tag.outputs.version }}"
-          CHANGELOG=$(awk -v ver="v$VERSION" '
+          CHANGELOG=$(awk -v ver="v$VERSION_BASE" '
             /^## / { in_section = 0 }
             $0 ~ "^## " ver { in_section = 1; next }
             in_section { print }
@@ -401,7 +417,7 @@ jobs:
       - name: Validate changelog entry is present
         run: |
           if [ -z "${{ steps.extract-changelog.outputs.changelog }}" ]; then
-            echo "ERROR: No changelog entry found for ${{ steps.parse-tag.outputs.tag }}"
+            echo "ERROR: No changelog entry found for $GITHUB_REF_NAME"
             exit 1
           fi
 
@@ -417,18 +433,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ steps.parse-tag.outputs.tag }}
-          tag_name: ${{ steps.parse-tag.outputs.tag }}
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           body: ${{ steps.extract-changelog.outputs.changelog }}
           draft: false
           files: |
-            artifacts/astral-linux-x64.tar.gz
-            artifacts/astral-linux-x64.deb
-            artifacts/astral-linux-x64.rpm
-            artifacts/astral-windows-x64.zip
-            artifacts/astral-windows-x64-setup.exe
-            artifacts/astral-android-arm64.apk
-            artifacts/astral-android-armv7.apk
-            artifacts/astral-android-universal.apk
+            artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
