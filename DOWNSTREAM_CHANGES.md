@@ -180,13 +180,14 @@ default version.
 A separate `release.yml` (later folded into `ci.yml` as a tag-push job) extracts
 release notes from `CHANGELOG.md` on tag push. The Windows installer metadata
 (app name, publisher) is updated for the fork. Windows-specific fixes: install
-Npcap SDK / system deps for cross-compilation, create a `third_party` symlink
-for the EasyTier build, correct the `Packet.lib` link search path, and replace
-`bash mkdir -p` with PowerShell `New-Item` on Windows runners.
+Npcap SDK / system deps for cross-compilation from an immutable Wayback Machine
+capture with SHA-256 verification, create a `third_party` symlink for the
+EasyTier build, correct the `Packet.lib` link search path, and replace `bash
+mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: unified build + (later) release job (added)
+- `.github/workflows/ci.yml`: unified build + (later) release job; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
 - `.github/workflows/release.yml`: added then removed (folded into ci.yml)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted

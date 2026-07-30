@@ -119,10 +119,16 @@ jobs:
 
       - name: Install Npcap SDK
         run: |
-          $sdkVer = "1.16"
+          # The upstream host is unreliable; use this immutable Wayback Machine capture.
+          $sdkUrl = "https://web.archive.org/web/20260706070319id_/https://npcap.com/dist/npcap-sdk-1.16.zip"
+          $sdkSha256 = "f0a8be7778ee3ae1b99bbbecb27a3ff0f6c111a4093f1c78c5c5a099607184db"
           $zip = Join-Path $env:RUNNER_TEMP "npcap-sdk.zip"
           $dst = Join-Path $env:GITHUB_WORKSPACE "third_party/npcap-sdk"
-          Invoke-WebRequest -Uri "https://npcap.com/dist/npcap-sdk-$sdkVer.zip" -OutFile $zip
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $zip
+          $actualSha256 = (Get-FileHash -Path $zip -Algorithm SHA256).Hash
+          if ($actualSha256 -ine $sdkSha256) {
+            throw "Npcap SDK checksum mismatch: expected $sdkSha256, got $actualSha256"
+          }
           if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
           New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
           Expand-Archive -Path $zip -DestinationPath $dst -Force
