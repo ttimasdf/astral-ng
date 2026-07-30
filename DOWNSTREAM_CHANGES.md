@@ -177,6 +177,10 @@ validate Windows and an unsigned multi-ABI Android debug build. Applying the
 `full-ci` label opts a pull request into those platform builds and uploads
 Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for
 testing. Full-CI artifacts use exact output paths and expire after seven days.
+Each package is uploaded as a direct single-file artifact without an additional
+ZIP wrapper. Snapshot and release filenames end with the resolved
+`ASSET_VERSION`, so canary files include their CI build identity and production
+files use the `vX.Y.Z` suffix.
 Superseded non-release runs are cancelled, while tag builds are never
 cancelled.
 
@@ -196,7 +200,7 @@ mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/build-and-release.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
+- `.github/workflows/build-and-release.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, direct version-suffixed snapshot and release files, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
 - `.github/workflows/release.yml`: added then removed (folded into the unified workflow, now `build-and-release.yml`)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
@@ -478,11 +482,13 @@ Windows, and Android test outputs as pull requests labeled `full-ci`. Linux and
 Windows use one event-independent upload path because those packages are not
 code-signed. Android debug builds use one short-lived test upload, while
 production keystore setup and signed release APKs remain restricted to `v*` tag
-pushes. Packaged files keep canonical names instead of being renamed per event.
+pushes. Packaged files are uploaded directly without an extra ZIP wrapper, use
+the same naming scheme for every event, and end with `ASSET_VERSION`, identifying
+the exact canary or production build.
 
 ### Files affected
 
-- `.github/workflows/build-and-release.yml`: renamed workflow; package and upload main-branch test builds; consolidate Linux, Windows, and Android upload steps; preserve tag-only Android signing and release publication
+- `.github/workflows/build-and-release.yml`: renamed workflow; package and directly upload main-branch test builds with version-suffixed filenames; preserve tag-only Android signing and release publication
 
 ---
 

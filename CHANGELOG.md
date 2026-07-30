@@ -25,6 +25,8 @@ baseline.
 
 ### Changed
 
+- Added version suffixes to downloadable CI snapshots and release assets, and
+  made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
   generates credentials; Advanced mode accepts shared credentials. This choice
   is separate from network-traffic encryption. ([#3])
@@ -46,8 +48,8 @@ baseline.
   ([upstream-#236])
 - Fixed low frame rates and delayed window closing on Windows.
   ([upstream-windows-fps], [upstream-window-close])
-- Fixed Linux RPM artifacts reporting version `1.0.0`, allowing package managers
-  to recognize upgrades correctly. ([upstream-#237])
+- Fixed Linux DEB and RPM artifacts reporting version `1.0.0`, allowing package
+  managers to recognize upgrades correctly. ([upstream-#237])
 
 ### Removed
 
