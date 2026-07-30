@@ -173,13 +173,18 @@ Deletes the upstream collection of per-platform workflow files
 with a single tiered `.github/workflows/ci.yml`. Pull requests analyze the
 application's Dart sources and build Linux; pushes to `main` additionally
 validate Windows and an unsigned multi-ABI Android debug build. Applying the
-`full-ci` label opts a pull request into those platform builds. Superseded
-non-release runs are cancelled, while tag builds are never cancelled.
+`full-ci` label opts a pull request into those platform builds and uploads
+clearly named, non-production Linux tar/DEB/RPM, Windows ZIP/installer, and
+Android debug APK artifacts for testing. Full-CI artifacts use exact output
+paths and expire after seven days. Superseded non-release runs are cancelled,
+while tag builds are never cancelled.
 
-Only `v*` tag pushes sign, package, and upload release artifacts (linux x64,
-windows x64/setup, android arm64/armv7/universal), then extract release notes
-from `CHANGELOG.md` and publish the GitHub release. Android split APKs are built
-in one invocation. `flutter-actions/setup-flutter@v4` and
+Only `v*` tag pushes access release signing secrets and publish release
+artifacts (linux x64, windows x64/setup, android arm64/armv7/universal), then
+extract release notes from `CHANGELOG.md` and publish the GitHub release.
+Workflow tokens otherwise default to read-only repository contents, and
+checkout credentials are not persisted in the worktree. Android split APKs are
+built in one invocation. `flutter-actions/setup-flutter@v4` and
 `Swatinem/rust-cache` retain SDK, pub, and Rust caching. Linux arm64 remains
 dropped because Flutter does not support it. The Windows installer metadata
 (app name, publisher) is updated for the fork. Windows-specific fixes: install
@@ -190,7 +195,7 @@ mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, tag-only packaging and release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
+- `.github/workflows/ci.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
 - `.github/workflows/release.yml`: added then removed (folded into ci.yml)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
