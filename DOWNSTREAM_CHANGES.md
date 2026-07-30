@@ -91,39 +91,41 @@ duplicate LICENSE symlink/reference that is removed.
 
 ---
 
-## [easytier-git-release-dependency]: Use EasyTier git release tag instead of a submodule
+## [easytier-git-release-dependency]: Pin EasyTier dependency to a git release tag
 
-- **Scope**: `rust/easytier`, `.gitmodules`, `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/ci.yml`, `flake.nix`
+- **Scope**: `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/ci.yml`, `flake.nix`, `.gitmodules`, `rust/easytier`
 - **Type**: override
 - **Status**: active
-- **Introduced**: `a8e300d`, `30e2353`, `5f664df`, `5fa9f23`; updated during upstream sync to `v2.8.7`
-- **Superseded by upstream**: N/A
+- **Introduced**: `a8e300d`, `30e2353`, `5f664df`, `5fa9f23`; updated during upstream sync to `v2.8.7` and reviewed against upstream `v2.9.9`
+- **Superseded by upstream**: Partially (`v2.9.9`)
 
 ### What this changes
 
-The fork originally replaced upstream's vendored EasyTier tree with an
-`EasyTier/EasyTier` git submodule under `rust/easytier`. During the upstream
-sync to `v2.8.7`, that downstream submodule was removed and `rust/Cargo.toml`
-was switched to an explicit EasyTier git release tag (`v2.6.4`) instead. This
-follows upstream's direction of not carrying a checked-out EasyTier tree in the
-GUI repository while avoiding the stale crates.io package, which does not expose
-the API required by the upstream `v2.8.7` Astral bridge code.
+Upstream `v2.9.9` now obtains EasyTier directly from the
+`EasyTier/EasyTier` git repository rather than carrying a checked-out EasyTier
+tree, superseding the fork's earlier submodule-removal rationale. Astral-ng
+intentionally retains an explicit EasyTier release-tag pin (`v2.6.4`) in
+`rust/Cargo.toml`, whereas upstream tracks the repository's default git ref.
+The pin makes builds reproducible against a known-compatible EasyTier API and
+prevents upstream EasyTier changes from silently changing the dependency used by
+a given Astral-ng source revision.
 
-Because `rust/easytier/easytier/third_party/` no longer exists, Windows Npcap
-linking is supplied explicitly by CI via `NPCAP_SDK_LIB` and a fork-controlled
-local fallback at `third_party/npcap-sdk/Lib/x64`. `rust/build.rs` no longer
-probes dependency source/cache paths for EasyTier's `third_party` directory.
-The Nix shell keeps `clang`/`libclang` for bindgen-capable builds.
+The historical downstream submodule at `rust/easytier` remains removed. Because
+its `easytier/third_party/` directory is unavailable, Windows Npcap linking is
+supplied explicitly by CI through `NPCAP_SDK_LIB`, with a fork-controlled local
+fallback at `third_party/npcap-sdk/Lib/x64`. `rust/build.rs` does not probe
+EasyTier dependency source/cache paths for `third_party`. The Nix shell keeps
+`clang` and `libclang` for bindgen-capable builds.
 
 ### Files affected
 
-- `rust/easytier`: removed git submodule / gitlink
+- `rust/easytier`: removed historical EasyTier submodule / gitlink
 - `.gitmodules`: removed EasyTier submodule entry
-- `rust/Cargo.toml`: EasyTier dependency uses git tag `v2.6.4` instead of `./easytier/easytier`
+- `rust/Cargo.toml`: pin EasyTier git dependency to tag `v2.6.4`; upstream `v2.9.9` uses the same git source without a tag
 - `rust/build.rs`: Npcap search limited to `NPCAP_SDK_LIB` and `third_party/npcap-sdk/Lib/x64`
 - `.github/workflows/ci.yml`: Windows CI installs Npcap SDK and exports `NPCAP_SDK_LIB`
-- `flake.nix`: keep `clang`, `libclang` in `buildInputs`
-- `rust/Cargo.lock`: regenerated when the EasyTier source changes
+- `flake.nix`: retain `clang` and `libclang` in `buildInputs`
+- `rust/Cargo.lock`: regenerated when the EasyTier source/tag changes
 
 ---
 
