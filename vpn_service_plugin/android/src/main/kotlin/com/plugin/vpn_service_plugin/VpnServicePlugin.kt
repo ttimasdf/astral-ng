@@ -41,6 +41,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
             override fun onCancel(arguments: Any?) {
                 eventSink = null
+                TauriVpnService.triggerCallback = { _, _ -> }
             }
         })
     }
@@ -68,11 +69,8 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                     // 需要先获取VPN权限
                     result.success(mapOf("errorMsg" to "need_prepare"))
                 } else {
-                    // Replace the existing TUN for a route refresh without
-                    // reporting an application-initiated restart as a revocation.
-                    TauriVpnService.self?.closeForRestart()
-
-                    // 配置并启动VPN服务
+                    // 配置并启动VPN服务. Starting an existing service replaces
+                    // its TUN without treating the refresh as a revocation.
                     val serviceIntent = Intent(activity, TauriVpnService::class.java)
                     
                     // 处理IPv4地址
@@ -107,7 +105,6 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             // 停止VPN服务
             "stopVpn" -> {
-                TauriVpnService.self?.stopFromApp()
                 activity.stopService(Intent(activity, TauriVpnService::class.java))
                 result.success(mapOf<String, Any>())
             }
@@ -119,6 +116,8 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
+        eventSink = null
+        TauriVpnService.triggerCallback = { _, _ -> }
     }
 
     // 插件附加到Activity时调用

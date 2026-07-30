@@ -3,18 +3,20 @@ package com.plugin.vpn_service_plugin
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
-import android.os.ParcelFileDescriptor
 import android.os.Bundle
-import java.net.InetAddress
-import java.util.Arrays
+import android.os.Handler
+import android.os.Looper
+import android.os.ParcelFileDescriptor
+import android.util.Log
+import java.io.IOException
 
 // VPN服务类，继承自Android系统的VpnService
 class TauriVpnService : VpnService() {
     companion object {
+        private const val TAG = "TauriVpnService"
+
         // 用于触发回调的函数引用
         var triggerCallback: (String, Map<String, Any>) -> Unit = { _, _ -> }
-        // 保存当前VPN服务实例的静态引用
-        @JvmField var self: TauriVpnService? = null
 
         // VPN配置相关的常量
         const val IPV4_ADDR = "IPV4_ADDR"                    // IPv4地址
@@ -24,31 +26,46 @@ class TauriVpnService : VpnService() {
         const val MTU = "MTU"                                // 最大传输单元
     }
 
-    // VPN接口文件描述符
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    // Accessed only from the main thread.
     private var vpnInterface: ParcelFileDescriptor? = null
+    private var revocationReported = false
 
     // VPN服务启动时的回调函数
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("vpn on start command ${intent?.extras} $intent")
 
-        // A route refresh can start this service again. Replace the old TUN
-        // without reporting it as a system revocation.
-        closeVpnInterface()
-        val vpnInterface = createVpnInterface(intent?.extras)
-        this.vpnInterface = vpnInterface
-        println("vpn created ${vpnInterface.fd}")
+        val args = intent?.extras
+        if (args == null) {
+            Log.w(TAG, "Ignoring service restart without VPN configuration")
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
+        // Establish the replacement before closing the old TUN. Android keeps
+        // the old interface active if establishing the replacement fails.
+        val replacement = createVpnInterface(args)
+        if (replacement == null) {
+            handleRevocation()
+            return START_NOT_STICKY
+        }
+
+        val previous = vpnInterface
+        vpnInterface = replacement
+        revocationReported = false
+        previous.closeSafely()
+        println("vpn created ${replacement.fd}")
 
         // 创建并发送启动事件数据
-        val eventData = mapOf("fd" to vpnInterface.fd)
-        triggerCallback("vpn_service_start", eventData)
+        triggerCallback("vpn_service_start", mapOf("fd" to replacement.fd))
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     // 服务创建时的回调函数
     override fun onCreate() {
         super.onCreate()
-        self = this
         println("vpn on create")
     }
 
@@ -56,53 +73,62 @@ class TauriVpnService : VpnService() {
     override fun onDestroy() {
         println("vpn on destroy")
         closeVpnInterface()
-        if (self == this) self = null
         super.onDestroy()
     }
 
     // VPN权限被系统撤销时的回调函数
     override fun onRevoke() {
         println("vpn on revoke")
-        disconnect(reason = "revoked")
-        super.onRevoke()
-        stopSelf()
+        runOnMainThread(::handleRevocation)
     }
 
-    // Closes the current TUN while retaining the service for a route refresh.
-    fun closeForRestart() {
+    private fun handleRevocation() {
+        if (revocationReported) return
+        revocationReported = true
+
         closeVpnInterface()
-    }
+        triggerCallback("vpn_service_stop", mapOf("reason" to "revoked"))
 
-    // Stops a VPN at the application's request without treating it as a revoke.
-    fun stopFromApp() {
-        closeVpnInterface()
+        // VpnService.onRevoke() only calls stopSelf(). Do that explicitly
+        // after cleanup instead of calling super from a possible Binder thread.
         stopSelf()
-    }
-
-    private fun disconnect(reason: String) {
-        val vpnInterface = vpnInterface ?: return
-        this.vpnInterface = null
-        triggerCallback("vpn_service_stop", mapOf("reason" to reason))
-        vpnInterface.close()
     }
 
     private fun closeVpnInterface() {
-        val vpnInterface = vpnInterface ?: return
-        this.vpnInterface = null
-        vpnInterface.close()
+        val current = vpnInterface
+        vpnInterface = null
+        current.closeSafely()
+    }
+
+    private fun ParcelFileDescriptor?.closeSafely() {
+        if (this == null) return
+
+        try {
+            close()
+        } catch (exception: IOException) {
+            Log.w(TAG, "Failed to close VPN interface", exception)
+        }
+    }
+
+    private fun runOnMainThread(action: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action()
+        } else {
+            mainHandler.post { action() }
+        }
     }
 
     // 创建VPN接口的私有方法
-    private fun createVpnInterface(args: Bundle?): ParcelFileDescriptor {
+    private fun createVpnInterface(args: Bundle): ParcelFileDescriptor? {
         // 初始化VPN构建器
         var builder = Builder()
                 .setSession("TauriVpnService")
                 .setBlocking(false)
         
         // 获取VPN配置参数，如果未指定则使用默认值
-        var mtu = args?.getInt(MTU) ?: 1500
-        var ipv4Addr = args?.getString(IPV4_ADDR) ?: "100.100.100.0/24"
-        var dns = args?.getString(DNS) ?: "114.114.114.114"
+        val mtu = if (args.containsKey(MTU)) args.getInt(MTU) else 1500
+        val ipv4Addr = args.getString(IPV4_ADDR) ?: "100.100.100.0/24"
+        val dns = args.getString(DNS) ?: "114.114.114.114"
         
         // 从ipv4Addr中计算网段地址
         val ipAddrParts = ipv4Addr.split("/")
@@ -121,13 +147,13 @@ class TauriVpnService : VpnService() {
             "224.0.0.0/4",  // 组播地址范围
             "255.255.255.255/32"  // 广播地址
         )
-        val additionalRoutes = args?.getStringArray(ROUTES)
+        val additionalRoutes = args.getStringArray(ROUTES)
         if (additionalRoutes != null && additionalRoutes.isNotEmpty()) {
             routes = routes.toMutableList().apply { addAll(additionalRoutes) }.toTypedArray()
         }
         // 添加组播和广播地址到路由routes中
 
-        var disallowedApplications = args?.getStringArray(DISALLOWED_APPLICATIONS) ?: emptyArray()
+        val disallowedApplications = args.getStringArray(DISALLOWED_APPLICATIONS) ?: emptyArray()
 
         println("vpn create vpn interface. mtu: $mtu, ipv4Addr: $ipv4Addr, networkCidr: $networkCidr, dns:" +
             "$dns, routes: ${java.util.Arrays.toString(routes)}," +
@@ -168,8 +194,7 @@ class TauriVpnService : VpnService() {
             }
         }
         .establish()
-        ?: throw IllegalStateException("Failed to init VpnService")
-        
+
         return vpnInterface
     }
 }
