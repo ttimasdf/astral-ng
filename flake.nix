@@ -24,7 +24,21 @@
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
         };
-        astral-ng = pkgs.callPackage ./package.nix {};
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = rustToolchain;
+          rustc = rustToolchain;
+        };
+        flutterVersion = (builtins.fromJSON (builtins.readFile ./.fvmrc)).flutter;
+        flutterSdk =
+          assert pkgs.lib.assertMsg (
+            pkgs.flutter344.version == flutterVersion
+          ) "Flutter pin ${flutterVersion} does not match nixpkgs flutter344 ${pkgs.flutter344.version}";
+          pkgs.flutter344;
+        astral-ng = pkgs.callPackage ./package.nix {
+          inherit rustPlatform;
+          flutter344 = flutterSdk;
+        };
       in
       {
         packages = {
@@ -36,8 +50,8 @@
           mkShell {
             name = "astral-dev";
             buildInputs = [
-              rust-bin.beta.latest.default
-              flutter
+              rustToolchain
+              flutterSdk
               rustup
               protobuf
               webkitgtk_4_1
@@ -50,7 +64,7 @@
             nativeBuildInputs = [ pkg-config ];
 
             env = {
-              RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";
+              RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
               LIBCLANG_PATH = "${libclang.lib}/lib";
               ACT_DISABLE_VERSION_CHECK = 1;
             };

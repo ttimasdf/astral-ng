@@ -118,6 +118,7 @@ class RustBuilder {
   void prepare(
     Rustup rustup,
   ) {
+    _toolchain = _buildOptions?.toolchain.name ?? rustup.activeToolchain();
     final toolchain = _toolchain;
     if (rustup.installedTargets(toolchain) == null) {
       rustup.installToolchain(toolchain);
@@ -133,7 +134,7 @@ class RustBuilder {
   CargoBuildOptions? get _buildOptions =>
       environment.crateOptions.cargo[environment.configuration];
 
-  String get _toolchain => _buildOptions?.toolchain.name ?? 'stable';
+  late String _toolchain;
 
   /// Returns the path of directory containing build artifacts.
   Future<String> build() async {

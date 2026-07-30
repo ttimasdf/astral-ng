@@ -32,21 +32,13 @@ jobs:
           python3 scripts/version.py resolve
           python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
 
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
+      - name: Setup pinned toolchains
+        uses: ./.github/actions/setup-toolchains
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "rust -> target"
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: latest
-          cache-sdk: true
-          cache: true
 
       - name: Install Linux build dependencies
         run: |
@@ -126,21 +118,13 @@ jobs:
           python scripts/version.py resolve
           python scripts/version.py resolve --format env >> $env:GITHUB_ENV
 
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
+      - name: Setup pinned toolchains
+        uses: ./.github/actions/setup-toolchains
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "rust -> target"
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: latest
-          cache-sdk: true
-          cache: true
 
       - name: Install Inno Setup
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -290,21 +274,13 @@ jobs:
           python3 scripts/version.py resolve
           python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
 
-      - name: Setup Rust
-        run: rustup toolchain install stable --profile minimal
+      - name: Setup pinned toolchains
+        uses: ./.github/actions/setup-toolchains
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "rust -> target"
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: latest
-          cache-sdk: true
-          cache: true
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -333,7 +309,7 @@ jobs:
           rustup target add aarch64-linux-android
 
       - name: Install cargo-ndk
-        run: cargo install cargo-ndk
+        run: cargo install cargo-ndk --version 4.1.2 --locked
 
       - name: Get dependencies
         run: flutter pub get

@@ -1,0 +1,45 @@
+name: Setup pinned toolchains
+description: Install the Rust and Flutter versions declared by the repository
+
+outputs:
+  rust-version:
+    description: Pinned Rust toolchain version
+    value: ${{ steps.versions.outputs.rust }}
+  flutter-version:
+    description: Pinned Flutter SDK version
+    value: ${{ steps.versions.outputs.flutter }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read toolchain pins
+      id: versions
+      shell: bash
+      run: |
+        python_command=python3
+        command -v "$python_command" >/dev/null 2>&1 || python_command=python
+        "$python_command" - <<'PY' >> "$GITHUB_OUTPUT"
+        import json
+        import tomllib
+
+        with open("rust-toolchain.toml", "rb") as file:
+            print(f"rust={tomllib.load(file)['toolchain']['channel']}")
+        with open(".fvmrc", encoding="utf-8") as file:
+            print(f"flutter={json.load(file)['flutter']}")
+        PY
+
+    - name: Setup Rust
+      shell: bash
+      run: |
+        rustup toolchain install "${{ steps.versions.outputs.rust }}" --profile minimal --component rust-src
+        rustup show active-toolchain
+        rustc --version --verbose
+        cargo --version
+
+    - name: Setup Flutter SDK
+      uses: flutter-actions/setup-flutter@v4
+      with:
+        channel: stable
+        version: ${{ steps.versions.outputs.flutter }}
+        cache-sdk: true
+        cache: true
