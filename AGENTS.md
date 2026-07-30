@@ -69,6 +69,22 @@ completion, inspect failures with `gh run view "$RUN_ID" --log-failed` or
 download artifacts with `gh run download "$RUN_ID" --dir <directory>` (add
 `--name <artifact>` to select one).
 
+## Changelog Maintenance
+
+Follow [`docs/CHANGELOG_GUIDELINES.md`](docs/CHANGELOG_GUIDELINES.md) whenever a
+change affects users, integrators, supported platforms, or release artifacts.
+Add the entry to `CHANGELOG.md` under `Unreleased` in the same pull request as
+the change; do not generate entries mechanically from commit subjects.
+
+Keep the changelog concise and user-facing, with links or a short `Developer
+notes` section for implementation provenance. Every `Unreleased` and version
+section must begin with the exact machine-readable bilingual highlight block
+defined by the guideline, including its quoted blank separator. Maintain
+`DOWNSTREAM_CHANGES.md` separately for exact fork-only behavior. Release
+headings must start with
+`## vMAJOR.MINOR.PATCH` so CI can extract them, and an upstream merge must not
+set or imply the downstream release version.
+
 ## Fork Maintenance
 
 This repository is a **soft fork** of an upstream project. It periodically

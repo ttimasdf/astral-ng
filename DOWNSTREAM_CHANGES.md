@@ -349,9 +349,9 @@ and stopped around that state only. Fixes upstream issue #192.
 
 ---
 
-## [docs-readme-changelog-gitignore]: Replace README, add CHANGELOG, comprehensive .gitignore, and CLAUDE.md
+## [docs-readme-changelog-gitignore]: Maintain fork documentation and changelog standards
 
-- **Scope**: `README.md`, `README_en.md`, `CHANGELOG.md`, `.gitignore`, `CLAUDE.md`
+- **Scope**: `README.md`, `README_en.md`, `CHANGELOG.md`, `docs/CHANGELOG_GUIDELINES.md`, `AGENTS.md`, `.gitignore`, `CLAUDE.md`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: `a7aa44c`, `6cd9a8f`, `10543e2`, `73f0551`, `c68cbd0`
@@ -361,18 +361,28 @@ and stopped around that state only. Fixes upstream issue #192.
 
 Replaces the upstream README with fork-specific Chinese and English READMEs
 that credit the original author (`ldoubil`) and document the fork's use cases.
-Adds a `CHANGELOG.md` (v2.7.0 → v2.8.0 entries, later expanded with full CI
-changes and upstream-merge details, and backfilled with v2.7.0–v2.7.3 entries).
-Replaces the minimal `.gitignore` with a comprehensive gitignore.io-generated
-template covering Dart, Flutter, Flatpak, IntelliJ, Android Studio, VS Code,
-direnv, and Claude Code local settings. Adds `CLAUDE.md` with fork-specific
-development guidance.
+Adds and maintains `CHANGELOG.md` as a concise record of Astral-ng release
+impact, with developer provenance kept in links and optional developer notes.
+Each release section starts with English `> **Highlight:** ...` and Chinese
+`> **版本亮点：** ...` summaries separated by a blank blockquote line; the stable
+block grammar supports localized release-manifest generation. Adds
+`docs/CHANGELOG_GUIDELINES.md` as the writing, verification, and release
+standard and references it from `AGENTS.md`. Replaces the minimal `.gitignore`
+with a comprehensive gitignore.io-generated template covering Dart, Flutter,
+Flatpak, IntelliJ, Android Studio, VS Code, direnv, and Claude Code local
+settings. Adds `CLAUDE.md` with fork-specific development guidance.
 
 ### Files affected
 
 - `README.md`: rewritten (zh) with author credit and use cases
 - `README_en.md`: new English README
-- `CHANGELOG.md`: new, with v2.7.0–v2.8.0 entries
+- `CHANGELOG.md`: Astral-ng release history and current `Unreleased` changes,
+  written for users with linked developer provenance and bilingual release
+  highlights
+- `docs/CHANGELOG_GUIDELINES.md`: changelog structure, bilingual highlight
+  grammar, evidence hierarchy, entry style, provenance, release workflow, and
+  checklist
+- `AGENTS.md`: requires changelog updates to follow the guideline
 - `.gitignore`: replaced with comprehensive template
 - `CLAUDE.md`: new, fork dev guidance
 
