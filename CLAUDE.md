@@ -13,12 +13,14 @@ Astral is a cross-platform P2P networking and VPN application built with Flutter
 nix develop  # Enter development shell with all dependencies
 ```
 
-The flake provides: Flutter, Rust (beta channel), protobuf, webkitgtk, and libayatana-appindicator.
+The flake provides the repository-pinned Flutter and Rust toolchains, protobuf,
+webkitgtk, and libayatana-appindicator. See
+[docs/TOOLCHAINS.md](docs/TOOLCHAINS.md) for pin ownership and upgrades.
 
 ### Manual Setup
 Install dependencies:
-- Flutter SDK 3.7+
-- Rust (beta channel recommended)
+- Flutter via FVM; `.fvmrc` selects the exact SDK release
+- Rust via rustup; `rust-toolchain.toml` selects the exact toolchain
 - protobuf compiler
 - Platform-specific dependencies (webkitgtk on Linux, etc.)
 

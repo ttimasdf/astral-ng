@@ -446,4 +446,32 @@ Makes `VERSION` the only human-edited source for Astral-ng's application version
 
 ---
 
+## [toolchain-pinning]: Pin Rust and Flutter toolchains repository-wide
+
+- **Scope**: `rust-toolchain.toml`, `.fvmrc`, `.github/`, `flake.nix`, `rust_builder/cargokit/`, `.gitignore`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
+- **Type**: config
+- **Status**: active
+- **Introduced**: `toolchain-pinning`
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Makes tool-native root files the source of truth for the Rust and Flutter SDKs
+instead of a CI-only version reference. Rust is pinned to `1.97.1` and Flutter
+to `3.44.4`; GitHub Actions reads those pins through a shared composite action,
+and Nix consumes or validates the same versions. Cargokit's default build path
+now respects rustup's active project toolchain instead of bypassing the pin with
+`stable`. The Android build also pins cargo-ndk to the version used by the last
+successful full-platform build.
+
+### Files affected
+
+- `rust-toolchain.toml`, `.fvmrc`: canonical exact Rust and Flutter SDK versions
+- `.github/actions/setup-toolchains/action.yml`, `.github/workflows/ci.yml`: install the root pins for every build job and pin cargo-ndk
+- `.github/ci-versions.yml`: remove the unused upstream CI-only version reference
+- `flake.nix`: build and develop with the pinned Rust toolchain and reject a Flutter/nixpkgs mismatch
+- `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains and use the active project override
+- `.gitignore`: ignore FVM's generated project directory
+- `CLAUDE.md`, `docs/TOOLCHAINS.md`: document local usage, source ownership, and upgrade procedure
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
