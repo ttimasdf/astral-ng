@@ -66,7 +66,8 @@ baseline.
   tags. ([#4])
 - Consolidated validation and release packaging into tiered CI: pull requests
   run analysis and Linux by default, while the `full-ci` label adds Windows and
-  Android. ([#5], [#6])
+  Android; main-branch pushes now retain the same short-lived test artifacts.
+  ([#5], [#6])
 - Updated the Nix development and packaging environment to Flutter 3.44 for
   Dart 3.12 source compatibility. ([nix-flutter-3.44])
 

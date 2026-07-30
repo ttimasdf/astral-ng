@@ -93,7 +93,7 @@ duplicate LICENSE symlink/reference that is removed.
 
 ## [easytier-git-release-dependency]: Pin EasyTier dependency to a git release tag
 
-- **Scope**: `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/ci.yml`, `flake.nix`, `.gitmodules`, `rust/easytier`
+- **Scope**: `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/build-and-release.yml`, `flake.nix`, `.gitmodules`, `rust/easytier`
 - **Type**: override
 - **Status**: active
 - **Introduced**: `a8e300d`, `30e2353`, `5f664df`, `5fa9f23`; updated during upstream sync to `v2.8.7` and reviewed against upstream `v2.9.9`
@@ -123,7 +123,7 @@ EasyTier dependency source/cache paths for `third_party`. The Nix shell keeps
 - `.gitmodules`: removed EasyTier submodule entry
 - `rust/Cargo.toml`: pin EasyTier git dependency to tag `v2.6.4`; upstream `v2.9.9` uses the same git source without a tag
 - `rust/build.rs`: Npcap search limited to `NPCAP_SDK_LIB` and `third_party/npcap-sdk/Lib/x64`
-- `.github/workflows/ci.yml`: Windows CI installs Npcap SDK and exports `NPCAP_SDK_LIB`
+- `.github/workflows/build-and-release.yml`: Windows CI installs Npcap SDK and exports `NPCAP_SDK_LIB`
 - `flake.nix`: retain `clang` and `libclang` in `buildInputs`
 - `rust/Cargo.lock`: regenerated when the EasyTier source/tag changes
 
@@ -170,14 +170,15 @@ Deletes the upstream collection of per-platform workflow files
 (`android-build-*.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`,
 `windows-build*.yml`, `build-all-platforms.yaml`, `dart.yml`, plus custom
 `install_rust.sh/ps1` and `install_flutter.sh/ps1` scripts) and replaces them
-with a single tiered `.github/workflows/ci.yml`. Pull requests analyze the
+with a single tiered workflow, now located at
+`.github/workflows/build-and-release.yml`. Pull requests analyze the
 application's Dart sources and build Linux; pushes to `main` additionally
 validate Windows and an unsigned multi-ABI Android debug build. Applying the
 `full-ci` label opts a pull request into those platform builds and uploads
-clearly named, non-production Linux tar/DEB/RPM, Windows ZIP/installer, and
-Android debug APK artifacts for testing. Full-CI artifacts use exact output
-paths and expire after seven days. Superseded non-release runs are cancelled,
-while tag builds are never cancelled.
+Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for
+testing. Full-CI artifacts use exact output paths and expire after seven days.
+Superseded non-release runs are cancelled, while tag builds are never
+cancelled.
 
 Only `v*` tag pushes access release signing secrets and publish release
 artifacts (linux x64, windows x64/setup, android arm64/armv7/universal), then
@@ -195,8 +196,8 @@ mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
-- `.github/workflows/release.yml`: added then removed (folded into ci.yml)
+- `.github/workflows/build-and-release.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
+- `.github/workflows/release.yml`: added then removed (folded into the unified workflow, now `build-and-release.yml`)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
 
@@ -441,7 +442,7 @@ encryption setting.
 
 ## [version-source]: Establish Astral-ng-owned release and canary versioning
 
-- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/ci.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
+- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `version-source`
@@ -455,9 +456,33 @@ Makes `VERSION` the only human-edited source for Astral-ng's application version
 
 - `VERSION`, `scripts/version.py`: cross-platform version source management, derivation, bumping, and mirror validation
 - `pubspec.yaml`: Flutter-required mirror of the source version
-- `.github/workflows/ci.yml`: production-tag validation and version-derived build/package metadata
+- `.github/workflows/build-and-release.yml`: production-tag validation and version-derived build/package metadata
 - `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
 - `docs/VERSIONING.md`: maintainer workflow and versioning contract
+
+---
+
+## [main-ci-artifacts]: Publish test artifacts from main-branch builds
+
+- **Scope**: `.github/workflows/build-and-release.yml`
+- **Type**: config
+- **Status**: active
+- **Introduced**: `main-ci-artifacts`
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Renames the unified workflow from `CI` / `ci.yml` to `Build and Release` /
+`build-and-release.yml`. Pushes to `main` now package and retain the same Linux,
+Windows, and Android test outputs as pull requests labeled `full-ci`. Linux and
+Windows use one event-independent upload path because those packages are not
+code-signed. Android debug builds use one short-lived test upload, while
+production keystore setup and signed release APKs remain restricted to `v*` tag
+pushes. Packaged files keep canonical names instead of being renamed per event.
+
+### Files affected
+
+- `.github/workflows/build-and-release.yml`: renamed workflow; package and upload main-branch test builds; consolidate Linux, Windows, and Android upload steps; preserve tag-only Android signing and release publication
 
 ---
 
