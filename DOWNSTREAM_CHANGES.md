@@ -156,12 +156,12 @@ the Linux desktop item. `.envrc` enables direnv automatic shell switching.
 
 ---
 
-## [ci-overhaul]: Replace 11 platform workflows with unified ci.yml (+release)
+## [ci-overhaul]: Use tiered CI and release builds
 
 - **Scope**: `.github/workflows/`, `scripts/install_*.{sh,ps1}`
 - **Type**: override
 - **Status**: active
-- **Introduced**: `9759107`, `3d0c98c`, `1668853`, `62ce3de`, `ac21953`, `7be7a3c`, `f4cce97`, `e77a928`, `663dd73`, `6f728a3`, `e8fc9fc`, `50fcb14`, `c49aa02`, `30fe346`, `8f06925`
+- **Introduced**: `ci-overhaul`
 - **Superseded by upstream**: N/A
 
 ### What this changes
@@ -170,15 +170,18 @@ Deletes the upstream collection of per-platform workflow files
 (`android-build-*.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`,
 `windows-build*.yml`, `build-all-platforms.yaml`, `dart.yml`, plus custom
 `install_rust.sh/ps1` and `install_flutter.sh/ps1` scripts) and replaces them
-with a single unified `.github/workflows/ci.yml` that builds every target
-(linux x64, windows x64/setup, android arm64/armv7/universal) using a
-cross-compilation matrix, `flutter-actions/setup-flutter@v4` with caching,
-`Swatinem/rust-cache` with workspace mapping, and pub caching. Linux arm64 is
-dropped (Flutter doesn't support it). The Android NDK is reverted to Flutter's
-default version.
+with a single tiered `.github/workflows/ci.yml`. Pull requests analyze the
+application's Dart sources and build Linux; pushes to `main` additionally
+validate Windows and an unsigned multi-ABI Android debug build. Applying the
+`full-ci` label opts a pull request into those platform builds. Superseded
+non-release runs are cancelled, while tag builds are never cancelled.
 
-A separate `release.yml` (later folded into `ci.yml` as a tag-push job) extracts
-release notes from `CHANGELOG.md` on tag push. The Windows installer metadata
+Only `v*` tag pushes sign, package, and upload release artifacts (linux x64,
+windows x64/setup, android arm64/armv7/universal), then extract release notes
+from `CHANGELOG.md` and publish the GitHub release. Android split APKs are built
+in one invocation. `flutter-actions/setup-flutter@v4` and
+`Swatinem/rust-cache` retain SDK, pub, and Rust caching. Linux arm64 remains
+dropped because Flutter does not support it. The Windows installer metadata
 (app name, publisher) is updated for the fork. Windows-specific fixes: install
 Npcap SDK / system deps for cross-compilation from an immutable Wayback Machine
 capture with SHA-256 verification, create a `third_party` symlink for the
@@ -187,7 +190,7 @@ mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: unified build + (later) release job; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
+- `.github/workflows/ci.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, tag-only packaging and release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
 - `.github/workflows/release.yml`: added then removed (folded into ci.yml)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
