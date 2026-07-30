@@ -446,4 +446,26 @@ Makes `VERSION` the only human-edited source for Astral-ng's application version
 
 ---
 
+## [full-ci-artifacts]: Publish short-lived test packages for full CI
+
+- **Scope**: `.github/workflows/ci.yml`
+- **Type**: config
+- **Status**: active
+- **Introduced**: full-ci-artifacts
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Pull requests carrying the `full-ci` label upload explicitly named,
+non-production test artifacts for Linux, Windows, and Android. Artifacts use
+exact output paths, expire after seven days, and remain separate from signed
+`v*` release builds. Workflow tokens default to read-only repository contents,
+and checkout credentials are not persisted in the worktree.
+
+### Files affected
+
+- `.github/workflows/ci.yml`: package and upload Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for labeled pull requests without exposing release signing secrets
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
