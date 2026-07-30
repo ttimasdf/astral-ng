@@ -393,4 +393,25 @@ normal Astral-ng runtime dependency.
 
 ---
 
+## [npcap-sdk-webarchive]: Install Npcap SDK from a verified archive capture
+
+- **Scope**: `.github/workflows/ci.yml`
+- **Type**: config
+- **Status**: active
+- **Introduced**: npcap-sdk-webarchive
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Uses an immutable Wayback Machine capture of the Npcap SDK 1.16 ZIP instead of
+the unreliable upstream download host in Windows CI. The workflow verifies the
+captured archive's SHA-256 before extraction so a failed or altered replay does
+not silently change the linked SDK libraries.
+
+### Files affected
+
+- `.github/workflows/ci.yml`: download the archived SDK capture and verify SHA-256 before extraction
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
