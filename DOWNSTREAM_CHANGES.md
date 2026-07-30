@@ -438,7 +438,7 @@ Makes `VERSION` the only human-edited source for Astral-ng's application version
 
 ### Files affected
 
-- `VERSION`, `scripts/version.py`: version source, derivation, bumping, and mirror validation
+- `VERSION`, `scripts/version.py`: cross-platform version source management, derivation, bumping, and mirror validation
 - `pubspec.yaml`: Flutter-required mirror of the source version
 - `.github/workflows/ci.yml`: production-tag validation and version-derived build/package metadata
 - `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
