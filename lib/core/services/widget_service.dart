@@ -4,6 +4,7 @@ import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/services/home_widget_theme_sync.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/connection_state.dart';
+import 'package:astral/src/rust/frb_generated.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -13,11 +14,16 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
   await _ensureWidgetRuntimeReady();
   final services = ServiceManager();
 
-  if (uri != null && uri.scheme == 'astral' && uri.host == 'toggle_connection') {
-    final state = services.connectionState.connectionState.value;
-    if (state == CoState.idle) {
+  if (uri != null &&
+      uri.scheme == 'astral' &&
+      uri.host == 'toggle_connection') {
+    final persistedState = await HomeWidget.getWidgetData<String>(
+      HomeWidgetKeys.connectionState,
+      defaultValue: HomeWidgetKeys.connectionIdle,
+    );
+    if (persistedState == HomeWidgetKeys.connectionIdle) {
       await services.connection.connect(isManual: false);
-    } else if (state == CoState.connected) {
+    } else if (persistedState == HomeWidgetKeys.connectionConnected) {
       await services.connection.disconnect();
     }
   }
@@ -26,13 +32,14 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
 }
 
 Future<void> _ensureWidgetRuntimeReady() async {
+  await RustLib.init();
   final db = AppDatabase();
   if (!db.isInitialized) {
     await db.init();
   }
   final services = ServiceManager();
   if (!services.isInitialized) {
-    await services.init();
+    await services.init(runStartupActions: false);
   }
 }
 
@@ -83,6 +90,20 @@ class WidgetService {
     );
 
     final state = services.connectionState.connectionState.value;
+    final persistedState = switch (state) {
+      CoState.idle => HomeWidgetKeys.connectionIdle,
+      CoState.connecting => HomeWidgetKeys.connectionConnecting,
+      CoState.connected => HomeWidgetKeys.connectionConnected,
+    };
+    await HomeWidget.saveWidgetData<String>(
+      HomeWidgetKeys.connectionState,
+      persistedState,
+    );
+    await HomeWidget.saveWidgetData<bool>(
+      HomeWidgetKeys.requiresVpn,
+      !services.networkConfigState.noTun.value,
+    );
+
     String statusText = '未连接';
     if (state == CoState.connecting) {
       statusText = '连接中...';

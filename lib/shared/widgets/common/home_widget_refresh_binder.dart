@@ -12,7 +12,8 @@ class HomeWidgetRefreshBinder extends StatefulWidget {
   final Widget child;
 
   @override
-  State<HomeWidgetRefreshBinder> createState() => _HomeWidgetRefreshBinderState();
+  State<HomeWidgetRefreshBinder> createState() =>
+      _HomeWidgetRefreshBinderState();
 }
 
 class _HomeWidgetRefreshBinderState extends State<HomeWidgetRefreshBinder>
@@ -32,6 +33,7 @@ class _HomeWidgetRefreshBinderState extends State<HomeWidgetRefreshBinder>
       services.connectionState.connectionState.value;
       services.roomState.selectedRoom.value;
       services.networkConfigState.ipv4.value;
+      services.networkConfigState.noTun.value;
       services.themeState.themeColor.value;
       services.themeState.themeMode.value;
       _scheduleSync();

@@ -145,7 +145,7 @@ class ServiceManager {
     );
   }
 
-  Future<void> init() async {
+  Future<void> init({bool runStartupActions = true}) async {
     if (_initialized) return;
     final results = await Future.wait([
       _initService('Theme', () => theme.init()),
@@ -165,7 +165,9 @@ class ServiceManager {
       await vpn.initAndroidHooks();
     }
 
-    await ConnectionConnectGuard.tryStartupAutoConnect();
+    if (runStartupActions) {
+      await ConnectionConnectGuard.tryStartupAutoConnect();
+    }
 
     _initialized = true;
   }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="quick_settings_tile_label">Astral-ng</string>
+    <string name="quick_settings_tile_status_connected">Connected</string>
+    <string name="quick_settings_tile_status_connecting">Connecting…</string>
+    <string name="quick_settings_tile_status_disconnected">Disconnected</string>
+    <string name="quick_settings_tile_status_updating">Updating…</string>
+    <string name="quick_settings_tile_content_description">Astral-ng, %1$s</string>
+    <string name="quick_settings_tile_vpn_permission_required">Open Astral-ng and connect once to grant VPN access</string>
+</resources>

@@ -76,6 +76,23 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".AstralQuickSettingsTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_quick_settings_astral"
+            android:label="@string/quick_settings_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="true" />
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
+
         <!-- Widgets Receivers -->
         <receiver android:name=".AstralWidgetProvider" android:exported="true">
             <intent-filter>
