@@ -5,6 +5,25 @@ developer documentation, see `CLAUDE.md`.
 
 ---
 
+## Feature Development Workflow
+
+When instructed to implement a new feature, use the following workflow:
+
+1. Choose a short, stable, kebab-case slug that identifies the feature.
+2. Create a feature branch named `feature/<slug>` and a linked worktree at
+   `.worktrees/<slug>` (for example,
+   `git worktree add -b feature/<slug> .worktrees/<slug>`).
+3. Make all feature changes in that worktree. Commit focused, reviewable units
+   of work along the way instead of leaving the implementation uncommitted.
+4. Add or update the corresponding `DOWNSTREAM_CHANGES.md` entry before the
+   feature is considered complete, using the same slug.
+5. Run the relevant checks, push the feature branch, and create a pull request.
+   The pull request title must begin with `[<slug>]` so the slug is retained in
+   the squash commit message (for example, `[tray-status-icons] Add tray status
+   indicators`).
+6. Do not merge the pull request. The maintainer will audit and test the work,
+   then merge it when approved.
+
 ## Fork Maintenance
 
 This repository is a **soft fork** of an upstream project. It periodically
@@ -29,7 +48,7 @@ Every entry in `DOWNSTREAM_CHANGES.md` follows this structure:
 - **Scope**: `path/to/file` (or comma-separated paths)
 - **Type**: patch \| feature \| config \| override \| removal
 - **Status**: active \| superseded \| removed
-- **Introduced**: <commit-sha, tag, or date>
+- **Introduced**: <slug-id>
 - **Superseded by upstream**: <upstream-version or N/A>
 
 ### What this changes
@@ -52,6 +71,13 @@ Plain-English description of what the fork does differently from upstream and wh
 - `active` — currently in effect
 - `superseded` — upstream now implements equivalent functionality; entry kept for history
 - `removed` — change reverted; entry kept for history
+
+**Slug provenance:**
+- Use the same stable slug in the entry heading, the `Introduced` field, the
+  feature branch/worktree names, and the pull request title.
+- Do not put commit hashes, tags, or dates in `Introduced`. The slug in the pull
+  request title is retained in the squash commit message and provides the
+  durable link between the ledger entry and repository history.
 
 ### When making downstream changes
 
