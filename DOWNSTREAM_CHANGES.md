@@ -486,4 +486,31 @@ pushes. Packaged files keep canonical names instead of being renamed per event.
 
 ---
 
+## [android-vpn-revocation]: Synchronize system VPN revocation with connection state
+
+- **Scope**: `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/TauriVpnService.kt`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`, `lib/core/services/vpn_manager.dart`
+- **Type**: patch
+- **Status**: active
+- **Introduced**: android-vpn-revocation
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Android permits only one active VPN. When another VPN takes ownership, the
+system invokes `VpnService.onRevoke()`. Astral-ng handles that callback on the
+main thread, closes and stops its VPN service, emits one distinct `revoked`
+event even if the TUN is already closed, and disconnects the EasyTier backend
+and UI state. Application-requested stops and route refreshes remain local and
+do not trigger this disconnect path. Route refreshes establish the replacement
+TUN before closing the previous descriptor, and the service does not restart
+without the packet-processing backend after process death.
+
+### Files affected
+
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/TauriVpnService.kt`: serialize system revocation onto the main thread, deduplicate revocation events independently of TUN state, perform seamless TUN replacement, and use a non-sticky lifecycle
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`: stop the service through Android lifecycle APIs, refresh routes without a static service reference, and clear the Flutter callback when the event channel detaches
+- `lib/core/services/vpn_manager.dart`: subscribe to revocation events and disconnect the active connection
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
