@@ -24,6 +24,19 @@ When instructed to implement a new feature, use the following workflow:
 6. Do not merge the pull request. The maintainer will audit and test the work,
    then merge it when approved.
 
+### Pull request CI
+
+CI opt-in labels are applied to pull requests, not individual commits. A normal
+pull request runs application analysis and the Linux build only. Add the
+`full-ci` label to immediately include Windows and Android validation; the label
+persists on the pull request, so later commits continue to run all platforms
+until the label is removed.
+
+Use the pull request's **Labels** control in the GitHub sidebar, or run
+`gh pr edit <number> --add-label full-ci`. Remove it with
+`gh pr edit <number> --remove-label full-ci` when full-platform validation is no
+longer needed.
+
 ## Fork Maintenance
 
 This repository is a **soft fork** of an upstream project. It periodically
