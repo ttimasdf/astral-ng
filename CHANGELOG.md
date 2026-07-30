@@ -13,6 +13,8 @@ baseline.
 
 ### Added
 
+- Added an Android Quick Settings tile that shows the current connection state
+  and connects or disconnects Astral-ng with one tap.
 - Added automatic connection retries with a configurable retry limit.
   ([upstream-auto-retry])
 - Added a local SOCKS5 listener for accessing the virtual network in NO-TUN
