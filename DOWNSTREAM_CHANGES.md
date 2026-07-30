@@ -424,4 +424,26 @@ encryption setting.
 
 ---
 
+## [version-source]: Establish Astral-ng-owned release and canary versioning
+
+- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/ci.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
+- **Type**: config
+- **Status**: active
+- **Introduced**: `version-source`
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Makes `VERSION` the only human-edited source for Astral-ng's application version and production build number. The cross-platform Python tool validates the Flutter mirror, derives package and installer versions, supports semantic version bumps, and logs an observable build identity. CI requires production tags to match the source and gives canary builds a separate CI-unique build number and artifact label.
+
+### Files affected
+
+- `VERSION`, `scripts/version.py`: version source, derivation, bumping, and mirror validation
+- `pubspec.yaml`: Flutter-required mirror of the source version
+- `.github/workflows/ci.yml`: production-tag validation and version-derived build/package metadata
+- `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
+- `docs/VERSIONING.md`: maintainer workflow and versioning contract
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
