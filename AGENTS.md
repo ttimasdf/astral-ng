@@ -21,8 +21,9 @@ When instructed to implement a new feature, use the following workflow:
    The pull request title must begin with `[<slug>]` so the slug is retained in
    the squash commit message (for example, `[tray-status-icons] Add tray status
    indicators`).
-6. Do not merge the pull request. The maintainer will audit and test the work,
-   then merge it when approved.
+6. Merge a pull request only after the user explicitly approves the merge. Once
+   authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
+   and cleanup workflow.
 
 ### Pull request CI
 
@@ -149,9 +150,13 @@ no way to know which changes to preserve during upstream merges, and downstream
 modifications will be silently overwritten.
 
 Routine maintenance changes that do not alter downstream behavior are exempt.
-In particular, do **not** add or update ledger entries solely for dependency or
-fixed-output hash refreshes (such as `cargoHash`) or for project/package version
-bumps. If such a change also introduces or modifies fork-specific behavior,
+Developer-only coding-agent instructions and prompt templates, such as
+`AGENTS.md` workflow guidance and `.pi/prompts/`, are also exempt when they do
+not change the application, build/CI, packaging, release behavior, or
+user-facing documentation. In particular, do **not** add or update ledger
+entries solely for those developer-only files, dependency or fixed-output hash
+refreshes (such as `cargoHash`), or project/package version bumps. If an exempt
+change also introduces or modifies fork-specific product or delivery behavior,
 record that behavioral change normally.
 
 When `/upstream-sync` detects that an upstream release implements the same
