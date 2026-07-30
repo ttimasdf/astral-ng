@@ -72,9 +72,9 @@ download artifacts with `gh run download "$RUN_ID" --dir <directory>` (add
 
 ## Changelog Maintenance
 
-Follow [`docs/CHANGELOG_GUIDELINES.md`](docs/CHANGELOG_GUIDELINES.md) whenever a
-change affects users, integrators, supported platforms, or release artifacts.
-Add the entry to `CHANGELOG.md` under `Unreleased` in the same pull request as
+Follow `docs/CHANGELOG_GUIDELINES.md` whenever a change affects users,
+integrators, supported platforms, or release artifacts. Add the entry to
+`CHANGELOG.md` under `Unreleased` in the same pull request as
 the change; do not generate entries mechanically from commit subjects.
 
 Keep the changelog concise and user-facing, with links or a short `Developer
@@ -165,11 +165,9 @@ feature or fix as a downstream change, it will update the entry's status to
 
 ### Versioning
 
-Astral-ng uses its own release cycle and version sequence, independently of
-upstream. An upstream tag recorded in `.upstream-version` identifies the last
-merged upstream baseline; it is not the Astral-ng application or package
-version. Upstream synchronization must not copy, derive, or bump the downstream
-version from the upstream tag unless explicitly requested as part of a separate
-downstream release.
-
-<!-- IMPORTANT: This section must remain at the end of AGENTS.md. Do not move it or add content after it. -->
+Follow `docs/VERSIONING.md` for the version source of truth, version bump and
+synchronization commands, build-number rules, and release-tag requirements.
+Astral-ng uses its own release cycle and version sequence independently of
+upstream. An upstream tag recorded in `.upstream-version` identifies only the
+last merged upstream baseline and must not set, derive, or bump the downstream
+application or package version.
