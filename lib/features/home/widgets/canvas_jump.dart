@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:astral/core/models/room.dart';
+import 'package:astral/core/room/room_mode.dart';
 
 class CanvasJump {
   static void show(BuildContext context, {required List<Room> rooms, required Function(Room) onSelect}) {
@@ -196,7 +197,7 @@ class _CanvasDialogState extends State<_CanvasDialog> {
                               child: ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                                 title: Text(room.name, style: TextStyle(fontSize: 16, color: colorScheme.onSurface)),
-                                subtitle: Text(room.encrypted ? '加密房间' : '开放房间', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                                subtitle: Text(RoomMode.label(room.encrypted), style: TextStyle(color: colorScheme.onSurfaceVariant)),
                                 trailing: Icon(Icons.chevron_right, color: colorScheme.primary.withAlpha(150)),
                               ),
                             ),

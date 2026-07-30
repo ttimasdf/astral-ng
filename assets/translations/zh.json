@@ -168,5 +168,11 @@
   "permission_notification_success": "通知权限获取成功",
   "permission_notification_failed": "通知权限获取失败",
   "permission_notification_request_failed": "请求通知权限失败",
-  "permission_notification_denied_message": "通知权限已被永久拒绝，请在系统设置页面手动开启权限。"
+  "permission_notification_denied_message": "通知权限已被永久拒绝，请在系统设置页面手动开启权限。",
+  "room_mode": "模式",
+  "room_mode_simple": "简单模式",
+  "room_mode_simple_desc": "自动生成房间凭据。",
+  "room_mode_advanced": "高级模式",
+  "room_mode_advanced_desc": "手动输入共享房间凭据。",
+  "room_mode_cannot_change": "房间创建后无法更改模式。"
 }

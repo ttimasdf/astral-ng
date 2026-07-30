@@ -173,5 +173,11 @@ abstract class  LocaleKeys {
   static const permission_notification_failed = 'permission_notification_failed';
   static const permission_notification_request_failed = 'permission_notification_request_failed';
   static const permission_notification_denied_message = 'permission_notification_denied_message';
+  static const room_mode = 'room_mode';
+  static const room_mode_simple = 'room_mode_simple';
+  static const room_mode_simple_desc = 'room_mode_simple_desc';
+  static const room_mode_advanced = 'room_mode_advanced';
+  static const room_mode_advanced_desc = 'room_mode_advanced_desc';
+  static const room_mode_cannot_change = 'room_mode_cannot_change';
 
 }

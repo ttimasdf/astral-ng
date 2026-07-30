@@ -1,5 +1,8 @@
-﻿import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/models/room.dart';
+﻿import 'package:astral/core/models/room.dart';
+import 'package:astral/core/room/room_mode.dart';
+import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showEditRoomDialog(
@@ -64,7 +67,11 @@ Future<void> showEditRoomDialog(
             // 显示房间类型（只读）
             ListTile(
               title: const Text('房间类型'),
-              subtitle: Text(room.encrypted ? '加密房间' : '普通房间'),
+              subtitle: Text(RoomMode.label(room.encrypted)),
+              trailing: Tooltip(
+                message: LocaleKeys.room_mode_cannot_change.tr(),
+                child: const Icon(Icons.lock_outline),
+              ),
             ),
             if (!room.encrypted) ...[
               TextField(
