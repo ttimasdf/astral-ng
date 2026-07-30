@@ -63,14 +63,15 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             // 启动VPN服务
             "startVpn" -> {
                 val args = call.arguments<Map<String, Any>>()
-                // 停止现有VPN服务
-                TauriVpnService.self?.onRevoke()
-
                 val intent = VpnService.prepare(activity)
                 if (intent != null) {
                     // 需要先获取VPN权限
                     result.success(mapOf("errorMsg" to "need_prepare"))
                 } else {
+                    // Replace the existing TUN for a route refresh without
+                    // reporting an application-initiated restart as a revocation.
+                    TauriVpnService.self?.closeForRestart()
+
                     // 配置并启动VPN服务
                     val serviceIntent = Intent(activity, TauriVpnService::class.java)
                     
@@ -106,7 +107,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             }
             // 停止VPN服务
             "stopVpn" -> {
-                TauriVpnService.self?.onRevoke()
+                TauriVpnService.self?.stopFromApp()
                 activity.stopService(Intent(activity, TauriVpnService::class.java))
                 result.success(mapOf<String, Any>())
             }

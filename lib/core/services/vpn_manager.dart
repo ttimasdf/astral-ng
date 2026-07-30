@@ -5,13 +5,16 @@ import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/network/ip_utils.dart';
 import 'package:vpn_service_plugin/vpn_service_plugin.dart';
 import 'package:astral/src/rust/api/simple.dart';
+import 'package:flutter/foundation.dart';
 
 /// VPN 管理器（仅 Android）
 class VpnManager {
   static VpnManager? _instance;
   final VpnServicePlugin? _plugin;
   StreamSubscription<dynamic>? _vpnStartedSub;
+  StreamSubscription<dynamic>? _vpnStoppedSub;
   bool _androidHooksInitialized = false;
+  bool _handlingSystemRevocation = false;
 
   VpnManager._() : _plugin = Platform.isAndroid ? VpnServicePlugin() : null;
 
@@ -40,6 +43,25 @@ class VpnManager {
         configureTunFd(fd);
       }
     });
+
+    await _vpnStoppedSub?.cancel();
+    _vpnStoppedSub = _plugin?.onVpnServiceStopped.listen((data) {
+      if (data['reason'] == 'revoked') {
+        unawaited(_handleSystemRevocation());
+      }
+    });
+  }
+
+  Future<void> _handleSystemRevocation() async {
+    if (_handlingSystemRevocation) return;
+    _handlingSystemRevocation = true;
+
+    try {
+      debugPrint('Android revoked the active VPN; disconnecting Astral-ng.');
+      await ServiceManager().connection.disconnect();
+    } finally {
+      _handlingSystemRevocation = false;
+    }
   }
 
   /// 准备 VPN 服务（请求权限）

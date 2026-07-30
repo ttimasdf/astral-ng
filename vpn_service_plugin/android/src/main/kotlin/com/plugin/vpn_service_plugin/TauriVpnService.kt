@@ -25,21 +25,23 @@ class TauriVpnService : VpnService() {
     }
 
     // VPN接口文件描述符
-    private lateinit var vpnInterface: ParcelFileDescriptor
+    private var vpnInterface: ParcelFileDescriptor? = null
 
     // VPN服务启动时的回调函数
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("vpn on start command ${intent?.getExtras()} $intent")
-        var args = intent?.getExtras()
+        println("vpn on start command ${intent?.extras} $intent")
 
-        // 创建VPN接口
-        vpnInterface = createVpnInterface(args)
+        // A route refresh can start this service again. Replace the old TUN
+        // without reporting it as a system revocation.
+        closeVpnInterface()
+        val vpnInterface = createVpnInterface(intent?.extras)
+        this.vpnInterface = vpnInterface
         println("vpn created ${vpnInterface.fd}")
 
         // 创建并发送启动事件数据
         val eventData = mapOf("fd" to vpnInterface.fd)
         triggerCallback("vpn_service_start", eventData)
-        
+
         return START_STICKY
     }
 
@@ -53,26 +55,41 @@ class TauriVpnService : VpnService() {
     // 服务销毁时的回调函数
     override fun onDestroy() {
         println("vpn on destroy")
+        closeVpnInterface()
+        if (self == this) self = null
         super.onDestroy()
-        disconnect()
-        self = null
     }
 
-    // VPN权限被撤销时的回调函数
+    // VPN权限被系统撤销时的回调函数
     override fun onRevoke() {
         println("vpn on revoke")
+        disconnect(reason = "revoked")
         super.onRevoke()
-        disconnect()
-        self = null
+        stopSelf()
     }
 
-    // 断开VPN连接的私有方法
-    private fun disconnect() {
-        if (self == this && this::vpnInterface.isInitialized) {
-                 // 使用空 Map 替代 JSObject
-                 triggerCallback("vpn_service_stop", mapOf())
-                 vpnInterface.close()
-        }
+    // Closes the current TUN while retaining the service for a route refresh.
+    fun closeForRestart() {
+        closeVpnInterface()
+    }
+
+    // Stops a VPN at the application's request without treating it as a revoke.
+    fun stopFromApp() {
+        closeVpnInterface()
+        stopSelf()
+    }
+
+    private fun disconnect(reason: String) {
+        val vpnInterface = vpnInterface ?: return
+        this.vpnInterface = null
+        triggerCallback("vpn_service_stop", mapOf("reason" to reason))
+        vpnInterface.close()
+    }
+
+    private fun closeVpnInterface() {
+        val vpnInterface = vpnInterface ?: return
+        this.vpnInterface = null
+        vpnInterface.close()
     }
 
     // 创建VPN接口的私有方法
