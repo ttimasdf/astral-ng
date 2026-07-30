@@ -180,13 +180,14 @@ default version.
 A separate `release.yml` (later folded into `ci.yml` as a tag-push job) extracts
 release notes from `CHANGELOG.md` on tag push. The Windows installer metadata
 (app name, publisher) is updated for the fork. Windows-specific fixes: install
-Npcap SDK / system deps for cross-compilation, create a `third_party` symlink
-for the EasyTier build, correct the `Packet.lib` link search path, and replace
-`bash mkdir -p` with PowerShell `New-Item` on Windows runners.
+Npcap SDK / system deps for cross-compilation from an immutable Wayback Machine
+capture with SHA-256 verification, create a `third_party` symlink for the
+EasyTier build, correct the `Packet.lib` link search path, and replace `bash
+mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: unified build + (later) release job (added)
+- `.github/workflows/ci.yml`: unified build + (later) release job; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
 - `.github/workflows/release.yml`: added then removed (folded into ci.yml)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
@@ -390,27 +391,6 @@ normal Astral-ng runtime dependency.
 
 - `dlls/README.md`: new inventory of DLL/sys/lib files, direct packaging
   references, likely runtime owners, and maintenance notes
-
----
-
-## [npcap-sdk-webarchive]: Install Npcap SDK from a verified archive capture
-
-- **Scope**: `.github/workflows/ci.yml`
-- **Type**: config
-- **Status**: active
-- **Introduced**: npcap-sdk-webarchive
-- **Superseded by upstream**: N/A
-
-### What this changes
-
-Uses an immutable Wayback Machine capture of the Npcap SDK 1.16 ZIP instead of
-the unreliable upstream download host in Windows CI. The workflow verifies the
-captured archive's SHA-256 before extraction so a failed or altered replay does
-not silently change the linked SDK libraries.
-
-### Files affected
-
-- `.github/workflows/ci.yml`: download the archived SDK capture and verify SHA-256 before extraction
 
 ---
 
