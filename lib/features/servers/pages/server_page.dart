@@ -3,7 +3,7 @@ import 'package:astral/core/models/server_mod.dart';
 import 'package:astral/core/states/server_status_state.dart';
 import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:astral/features/servers/dialogs/server_dialog.dart';
-import 'package:astral/features/servers/server_status_style.dart';
+import 'package:astral/features/servers/widgets/server_list_tile.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +57,9 @@ class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
 
   @override
   Widget buildContent(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final platform = Theme.of(context).platform;
+    final useMobileActions =
+        platform == TargetPlatform.android || platform == TargetPlatform.iOS;
 
     return Watch((context) {
       final servers = ServiceManager().serverState.servers.watch(context);
@@ -95,120 +97,52 @@ class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
           final server = servers[index];
           final status = serverStatuses[server.id] ?? ServerStatus.unknown;
 
+          final row = ServerListTile(
+            server: server,
+            status: status,
+            useMobileActions: useMobileActions,
+            onEdit: () => _editServer(server),
+            onToggle:
+                (value) =>
+                    ServiceManager().server.setServerEnable(server, value),
+            onConfirmDelete: () => _showDeleteConfirmDialog(server),
+            onDelete: () => ServiceManager().server.deleteServer(server),
+          );
+
+          if (useMobileActions) {
+            return ReorderableDelayedDragStartListener(
+              key: ValueKey(server.id),
+              index: index,
+              child: row,
+            );
+          }
+
           return ReorderableDragStartListener(
             key: ValueKey(server.id),
             index: index,
-            child: Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Container(
-                  width: 4,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: ServerStatusStyle.color(status, colorScheme),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                title: Text(
-                  server.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  BlockedServers.isBlocked(server.url) ? '***' : server.url,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Transform.scale(
-                      scale: 0.8,
-                      child: Switch(
-                        value: server.enable,
-                        onChanged: (value) {
-                          ServiceManager().server.setServerEnable(
-                            server,
-                            value,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'edit') {
-                          if (BlockedServers.isBlocked(server.url)) {
-                            AppSnackBars.info(
-                              context,
-                              '不可编辑',
-                              '此服务器不可编辑',
-                              duration: const Duration(seconds: 2),
-                            );
-                          } else {
-                            showEditServerDialog(context, server: server);
-                          }
-                        } else if (value == 'delete') {
-                          _showDeleteConfirmDialog(server);
-                        }
-                      },
-                      itemBuilder:
-                          (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.edit_outlined,
-                                    size: 18,
-                                    color:
-                                        BlockedServers.isBlocked(server.url)
-                                            ? colorScheme.outline
-                                            : colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '编辑',
-                                    style: TextStyle(
-                                      color:
-                                          BlockedServers.isBlocked(server.url)
-                                              ? colorScheme.outline
-                                              : null,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete_outline,
-                                    size: 18,
-                                    color: colorScheme.error,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '删除',
-                                    style: TextStyle(color: colorScheme.error),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            child: row,
           );
         },
       );
     });
   }
 
-  void _showDeleteConfirmDialog(ServerMod server) {
-    showDialog(
+  void _editServer(ServerMod server) {
+    if (BlockedServers.isBlocked(server.url)) {
+      AppSnackBars.info(
+        context,
+        '不可编辑',
+        '此服务器不可编辑',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    showEditServerDialog(context, server: server);
+  }
+
+  Future<bool> _showDeleteConfirmDialog(ServerMod server) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -216,19 +150,20 @@ class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
             content: Text('确定要删除服务器 "${server.name}" 吗？此操作不可撤销。'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context).pop(false),
                 child: const Text('取消'),
               ),
               TextButton(
-                onPressed: () {
-                  ServiceManager().server.deleteServer(server);
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
                 child: const Text('删除'),
               ),
             ],
           ),
     );
+
+    return confirmed ?? false;
   }
 }
