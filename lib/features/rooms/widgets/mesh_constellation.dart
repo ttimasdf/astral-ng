@@ -40,8 +40,8 @@ class MeshConstellation extends StatelessWidget {
         );
 
         return ClipRect(
-          child: DecoratedBox(
-            decoration: BoxDecoration(color: colorScheme.surface),
+          child: Material(
+            color: colorScheme.surface,
             child: Stack(
               children: [
                 Positioned.fill(
