@@ -63,6 +63,11 @@ baseline.
   covering its title and navigation bars. Android back now unwinds those nested
   views reliably, and exiting the Android engine closes its VPN service instead
   of leaving a stale system VPN indicator. ([#12])
+- Redesigned Home as Mission Control with live session summaries and per-room
+  path, peer-connectivity, and Windows LAN-discovery controls. Changes made
+  during a connection are staged until the user explicitly reconnects.
+- Replaced the room topology graph with a default, non-hierarchical mesh
+  constellation of observed paths; the detailed member list remains available.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
