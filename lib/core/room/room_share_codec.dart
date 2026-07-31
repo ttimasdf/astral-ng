@@ -24,7 +24,7 @@ class RoomShareCodec {
       }
 
       final cleanedRoom = cleanRoom(room);
-      final shareCode = encryptRoom(
+      final shareCode = encodeRoom(
         cleanedRoom,
         includeNetworkConfig: cleanedRoom.networkConfigJson.isNotEmpty,
       );
@@ -98,8 +98,8 @@ $roomSummary$shareOptions
     return shareCode;
   }
 
-  /// 加密房间为分享码
-  static String encryptRoom(Room room, {bool includeNetworkConfig = false}) {
+  /// Encode a room as a compressed, URL-safe share code.
+  static String encodeRoom(Room room, {bool includeNetworkConfig = false}) {
     try {
       if (room.name.isEmpty) {
         throw ArgumentError('房间名称不能为空');
@@ -110,7 +110,8 @@ $roomSummary$shareOptions
         'r': room.roomName,
         'p': room.password,
         'm': room.messageKey,
-        'e': room.encrypted ? 1 : 0,
+        // `e` is retained for compatibility with existing share codes.
+        'e': room.simpleMode ? 1 : 0,
         if (room.servers.isNotEmpty) 's': room.servers,
         if (room.customParam.isNotEmpty) 'c': room.customParam,
         if (includeNetworkConfig && room.networkConfigJson.isNotEmpty)
@@ -124,12 +125,12 @@ $roomSummary$shareOptions
 
       return encoded;
     } catch (e) {
-      throw Exception('房间加密失败: $e');
+      throw Exception('房间分享码编码失败: $e');
     }
   }
 
-  /// 将分享码解密为房间对象
-  static Room? decryptRoom(String token) {
+  /// Decode a compressed room share code.
+  static Room? decodeRoom(String token) {
     try {
       if (token.isEmpty) {
         throw ArgumentError('分享码不能为空');
@@ -156,7 +157,7 @@ $roomSummary$shareOptions
         roomName: roomData['r'] ?? '',
         password: roomData['p'] ?? '',
         messageKey: roomData['m'] ?? '',
-        encrypted: (roomData['e'] ?? 0) == 1,
+        simpleMode: (roomData['e'] ?? 0) == 1,
         tags: [],
         servers: roomData['s'] != null ? List<String>.from(roomData['s']) : [],
         customParam: roomData['c'] ?? '',
@@ -191,7 +192,7 @@ $roomSummary$shareOptions
       return (false, '房间名称包含非法字符');
     }
 
-    if (!room.encrypted) {
+    if (!room.simpleMode) {
       if (room.roomName.isEmpty) {
         return (false, '高级模式必须有房间号');
       }
@@ -226,7 +227,7 @@ $roomSummary$shareOptions
     return Room(
       id: room.id,
       name: room.name.trim(),
-      encrypted: room.encrypted,
+      simpleMode: room.simpleMode,
       roomName: room.roomName.trim(),
       password: room.password.trim(),
       messageKey: room.messageKey.trim(),
@@ -244,7 +245,7 @@ $roomSummary$shareOptions
 
   /// 生成房间摘要信息
   static String generateRoomSummary(Room room) {
-    final type = '⚙️ ${RoomMode.label(room.encrypted)}';
+    final type = '⚙️ ${RoomMode.label(room.simpleMode)}';
     final tags = room.tags.isNotEmpty ? '\n🏷️ ${room.tags.join(', ')}' : '';
 
     return '''
@@ -258,7 +259,7 @@ $type$tags
     if (shareCode.isEmpty) return false;
 
     try {
-      return decryptRoom(shareCode) != null;
+      return decodeRoom(shareCode) != null;
     } catch (e) {
       return false;
     }

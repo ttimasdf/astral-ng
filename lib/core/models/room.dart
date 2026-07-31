@@ -6,8 +6,11 @@ class Room {
   /// 主键自增
   Id id = Isar.autoIncrement;
   String name = ""; // 房间别名
-  // 是否加密
-  bool encrypted = false;
+  /// Whether this room uses automatically generated credentials.
+  ///
+  /// The storage name is retained so existing databases keep their mode value.
+  @Name('encrypted')
+  bool simpleMode = false;
   //房间名称
   String roomName = "";
   // 房间密码
@@ -31,7 +34,7 @@ class Room {
   Room({
     this.id = Isar.autoIncrement,
     this.name = "",
-    this.encrypted = false,
+    this.simpleMode = false,
     this.roomName = "",
     this.messageKey = "",
     this.password = "",
