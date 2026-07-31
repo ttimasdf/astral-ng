@@ -26,7 +26,9 @@ val toolchainProperties = Properties().apply {
 android {
     namespace = "pw.rabit.astralng"
     compileSdk = toolchainProperties.getProperty("android.compileSdk").toInt()
-    compileSdkMinor = toolchainProperties.getProperty("android.compileSdkMinor").toInt()
+    toolchainProperties.getProperty("android.compileSdkMinor").toInt().let { minor ->
+        if (minor > 0) compileSdkMinor = minor
+    }
     buildToolsVersion = toolchainProperties.getProperty("android.buildTools")
     ndkVersion = toolchainProperties.getProperty("android.ndk")
 

@@ -521,7 +521,7 @@ without the packet-processing backend after process death.
 
 ## [toolchain-pinning]: Derive development toolchains from locked nixpkgs
 
-- **Scope**: `flake.nix`, `flake.lock`, `scripts/sync_toolchains.py`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
+- **Scope**: `flake.nix`, `flake.lock`, `package.nix`, `scripts/sync_toolchains.py`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `toolchain-pinning`
@@ -533,20 +533,22 @@ Makes the versions selected by `flake.nix` and the locked nixpkgs revision the
 source of truth for Rust, Flutter, Java, cargo-ndk, and Android tooling. A Nix
 application deterministically synchronizes those package versions to standard
 consumer files used by rustup, FVM, Java tools, Gradle, and CI. The Nix shell
-includes the locked Android SDK defaults (platform/build tools 37 and NDK 29),
-exports Android and Java paths, and supports local APK builds. Cargokit's
-default build path respects rustup's active project toolchain instead of
-bypassing the synchronized pin with `stable`.
+includes compatible historical Android components available from the locked
+nixpkgs revision (platform 36, Build Tools 35.0.0, CMake 3.22.1, NDK 28.2, and
+JDK 17), exports Android and Java paths, and supports local APK builds.
+Cargokit's default build path respects rustup's active project toolchain instead
+of bypassing the synchronized pin with `stable`, and explicitly uses rustup's
+cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
 
 ### Files affected
 
-- `flake.nix`, `flake.lock`: select all canonical packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions, add the sync app/check, and remove rust-overlay
+- `flake.nix`, `flake.lock`, `package.nix`: select canonical development packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions only through the synchronization package passthru, add the sync app/check, keep default-system development outputs, and leave the application package dependent only on nixpkgs inputs
 - `scripts/sync_toolchains.py`: generate or verify deterministic tool-specific mirrors from Nix-provided versions
 - `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/toolchain.properties`: generated mirrors consumed outside Nix
-- `android/app/build.gradle.kts`: consume synchronized platform, build-tools, target, and NDK versions
+- `android/app/build.gradle.kts`, `android/build.gradle.kts`: consume synchronized platform, build-tools, target, CMake, and NDK versions and apply them consistently to third-party Android subprojects
 - `.github/actions/setup-toolchains/action.yml`, `.github/workflows/build-and-release.yml`: install synchronized Rust/Flutter versions and optionally set up the complete Android toolchain
 - `.github/ci-versions.yml`: remove the unused upstream CI-only version reference
-- `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains and use the active project override
+- `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains, use the active project override, and select rustup's compiler explicitly for cross-target builds inside the Nix shell
 - `.gitignore`: ignore FVM's generated project directory
 - `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup, consumer mirrors, and upgrades
 

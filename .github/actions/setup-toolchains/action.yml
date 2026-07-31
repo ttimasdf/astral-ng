@@ -57,6 +57,7 @@ runs:
         android = properties("android/toolchain.properties")
         print(f"android-platform={android['android.platform']}")
         print(f"android-build-tools={android['android.buildTools']}")
+        print(f"android-cmake={android['android.cmake']}")
         print(f"android-ndk={android['android.ndk']}")
         print(f"android-cmdline-tools={android['android.cmdlineTools']}")
         print(f"cargo-ndk={android['cargoNdk']}")
@@ -94,6 +95,7 @@ runs:
           platform-tools
           platforms;android-${{ steps.versions.outputs['android-platform'] }}
           build-tools;${{ steps.versions.outputs['android-build-tools'] }}
+          cmake;${{ steps.versions.outputs['android-cmake'] }}
           ndk;${{ steps.versions.outputs['android-ndk'] }}
 
     - name: Setup Rust Android targets

@@ -8,15 +8,16 @@ that do not evaluate Nix.
 | --- | --- | --- |
 | Rust | `nixpkgs#rustc` | `rust-toolchain.toml` |
 | Flutter | `nixpkgs#flutter344` | `.fvmrc` |
-| Java | `nixpkgs#jdk` | `.java-version` |
-| Android SDK/NDK | `nixpkgs#androidenv` defaults | `android/toolchain.properties` |
+| Java | `nixpkgs#jdk17` | `.java-version` |
+| Android SDK/NDK | compatible versions from `nixpkgs#androidenv` | `android/toolchain.properties` |
 | cargo-ndk | `nixpkgs#cargo-ndk` | `android/toolchain.properties` |
 
-The lock file fixes the nixpkgs revision, so moving package aliases such as the
-Android environment's `latest` selection resolve reproducibly for a given
-checkout. `pubspec.lock` and `rust/Cargo.lock` lock project dependencies; they
-do not select SDKs. Flutter's `.metadata` records project migration state and
-is not a toolchain pin.
+The lock file fixes the nixpkgs revision and Android artifact definitions. The
+flake deliberately selects Android platform 36, Build Tools 35.0.0, CMake
+3.22.1, NDK 28.2, and JDK 17 from that locked revision because these versions
+match Flutter 3.44 and its current plugins. `pubspec.lock` and `rust/Cargo.lock`
+lock project dependencies; they do not select SDKs. Flutter's `.metadata`
+records project migration state and is not a toolchain pin.
 
 ## Synchronizing consumer files
 
@@ -32,6 +33,12 @@ Verify that committed mirrors are current without modifying them:
 nix run .#sync-toolchains -- --check
 ```
 
+The resolved values are also exposed as package metadata:
+
+```bash
+nix eval --json .#packages.x86_64-linux.syncToolchains.passthru.toolchainVersions
+```
+
 Do not edit `.fvmrc`, `.java-version`, `rust-toolchain.toml`, or
 `android/toolchain.properties` directly. The sync application obtains exact
 versions from the evaluated Nix packages and writes deterministic files.
@@ -45,12 +52,19 @@ nix develop
 ```
 
 The shell includes Flutter, Rust, Java, cargo-ndk, protobuf, and the Android SDK
-composition selected by the current lock, including its default platform,
-build tools, and NDK. It exports `JAVA_HOME`, `ANDROID_HOME`,
+composition selected from the current lock, including the compatible platform,
+build tools, CMake, and NDK versions. It exports `JAVA_HOME`, `ANDROID_HOME`,
 `ANDROID_SDK_ROOT`, and `ANDROID_NDK_ROOT`, supplies Nix's `aapt2` to Gradle,
 and writes ignored `android/local.properties` paths for Flutter and Android.
 The flake accepts the Android SDK license and enables the unfree Android command
 line tools required by this environment.
+
+`eachDefaultSystem` keeps development-shell and synchronization outputs
+available on the standard Linux and macOS systems. Linux-only GUI dependencies
+are added conditionally. The packaged `astral-ng` derivation remains Linux-only
+because nixpkgs' `buildFlutterApplication` currently states that it has no macOS
+support; macOS application builds continue to use Flutter and Xcode from the
+Darwin development shell rather than claiming unsupported Nix package metadata.
 
 Outside Nix, FVM and rustup consume their generated files normally:
 
@@ -71,7 +85,7 @@ Its Android setup is opt-in:
 ```
 
 That option additionally installs the mirrored Java major, Android platform,
-build tools, NDK, Rust Android targets, and cargo-ndk. Other jobs avoid the
+build tools, CMake, NDK, Rust Android targets, and cargo-ndk. Other jobs avoid the
 Android setup cost.
 
 ## Updating a toolchain

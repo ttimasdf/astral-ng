@@ -21,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--android-compile-sdk", required=True)
     parser.add_argument("--android-compile-sdk-minor", required=True)
     parser.add_argument("--android-build-tools", required=True)
+    parser.add_argument("--android-cmake", required=True)
     parser.add_argument("--android-ndk", required=True)
     parser.add_argument("--android-cmdline-tools", required=True)
     parser.add_argument(
@@ -53,6 +54,7 @@ def rendered_files(args: argparse.Namespace) -> dict[str, str]:
             f"android.compileSdkMinor={args.android_compile_sdk_minor}\n"
             f"android.targetSdk={args.android_compile_sdk}\n"
             f"android.buildTools={args.android_build_tools}\n"
+            f"android.cmake={args.android_cmake}\n"
             f"android.ndk={args.android_ndk}\n"
             f"android.cmdlineTools={args.android_cmdline_tools}\n"
             f"cargoNdk={args.cargo_ndk}\n"

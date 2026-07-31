@@ -25,23 +25,33 @@
         inherit (pkgs) lib;
 
         flutterSdk = pkgs.flutter344;
+        javaSdk = pkgs.jdk17;
         androidComposition = pkgs.androidenv.composeAndroidPackages {
+          platformVersions = [ "36" ];
+          buildToolsVersions = [ "35.0.0" ];
+          includeCmake = true;
+          cmakeVersions = [ "3.22.1" ];
           includeNDK = true;
+          ndkVersions = [ "28.2.13676358" ];
         };
         androidSdk = androidComposition.androidsdk;
         cmdlineToolsArchive = toString androidComposition."cmdline-tools-package".archives;
         cmdlineToolsMatch = builtins.match ".*-([0-9]+)_latest\\.zip" cmdlineToolsArchive;
+        androidPlatformVersion = builtins.head androidComposition.platformVersions;
+        androidPlatformParts = lib.versions.splitVersion androidPlatformVersion;
 
         toolchainVersions = {
           rust = pkgs.rustc.version;
           flutter = flutterSdk.version;
-          java = lib.versions.major pkgs.jdk.version;
+          java = lib.versions.major javaSdk.version;
           cargoNdk = pkgs.cargo-ndk.version;
           android = {
-            platform = builtins.head androidComposition.platformVersions;
-            compileSdk = lib.versions.major (builtins.head androidComposition.platformVersions);
-            compileSdkMinor = lib.versions.minor (builtins.head androidComposition.platformVersions);
+            platform = androidPlatformVersion;
+            compileSdk = builtins.head androidPlatformParts;
+            compileSdkMinor =
+              if builtins.length androidPlatformParts > 1 then builtins.elemAt androidPlatformParts 1 else "0";
             buildTools = (builtins.head androidComposition."build-tools").version;
+            cmake = (builtins.head androidComposition.cmake).version;
             ndk = androidComposition."ndk-bundle".version;
             cmdlineTools = builtins.head cmdlineToolsMatch;
           };
@@ -64,6 +74,8 @@
           toolchainVersions.android.compileSdkMinor
           "--android-build-tools"
           toolchainVersions.android.buildTools
+          "--android-cmake"
+          toolchainVersions.android.cmake
           "--android-ndk"
           toolchainVersions.android.ndk
           "--android-cmdline-tools"
@@ -72,6 +84,8 @@
         syncToolchains = pkgs.writeShellApplication {
           name = "sync-toolchains";
           runtimeInputs = [ pkgs.python3 ];
+          passthru = { inherit toolchainVersions; };
+          meta.description = "Synchronize toolchain mirrors from locked nixpkgs";
           text = ''
             exec python3 ${./scripts/sync_toolchains.py} ${syncArgs} "$@"
           '';
@@ -80,16 +94,18 @@
         astral-ng = pkgs.callPackage ./package.nix { };
       in
       {
-        inherit toolchainVersions;
-
         packages = {
-          inherit astral-ng syncToolchains;
+          inherit syncToolchains;
+        }
+        // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          inherit astral-ng;
           default = astral-ng;
         };
 
         apps.sync-toolchains = {
           type = "app";
           program = "${syncToolchains}/bin/sync-toolchains";
+          meta.description = "Synchronize toolchain mirrors from locked nixpkgs";
         };
 
         checks.toolchain-mirrors = pkgs.runCommand "toolchain-mirrors" { } ''
@@ -109,13 +125,15 @@
               cargo-ndk
               flutterSdk
               androidSdk
-              jdk
+              javaSdk
               protobuf
-              webkitgtk_4_1
-              libayatana-appindicator
               clang
               libclang
               act
+            ]
+            ++ lib.optionals stdenv.hostPlatform.isLinux [
+              webkitgtk_4_1
+              libayatana-appindicator
             ];
 
             nativeBuildInputs = [ pkg-config ];
@@ -123,7 +141,7 @@
             env = {
               RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";
               LIBCLANG_PATH = "${libclang.lib}/lib";
-              JAVA_HOME = jdk.home;
+              JAVA_HOME = javaSdk.home;
               ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
               ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
               ANDROID_NDK_ROOT = "${androidSdk}/libexec/android-sdk/ndk/${toolchainVersions.android.ndk}";

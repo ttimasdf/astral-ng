@@ -28,6 +28,20 @@ class Rustup {
     return line.split(RegExp(r'\s+')).first;
   }
 
+  String which(String executable, {required String toolchain}) {
+    final result = runCommand(
+      "rustup",
+      ['which', '--toolchain', toolchain, executable],
+    );
+    final executablePath = result.stdout.toString().trim();
+    if (executablePath.isEmpty) {
+      throw StateError(
+        'rustup did not report $executable for toolchain $toolchain',
+      );
+    }
+    return executablePath;
+  }
+
   List<String>? installedTargets(String toolchain) {
     final targets = _installedTargets(toolchain);
     return targets != null ? List.unmodifiable(targets) : null;

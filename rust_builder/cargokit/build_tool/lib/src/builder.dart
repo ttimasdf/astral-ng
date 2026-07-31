@@ -129,12 +129,14 @@ class RustBuilder {
     if (!rustup.installedTargets(toolchain)!.contains(target.rust)) {
       rustup.installTarget(target.rust, toolchain: toolchain);
     }
+    _rustcPath = rustup.which('rustc', toolchain: toolchain);
   }
 
   CargoBuildOptions? get _buildOptions =>
       environment.crateOptions.cargo[environment.configuration];
 
   late String _toolchain;
+  late String _rustcPath;
 
   /// Returns the path of directory containing build artifacts.
   Future<String> build() async {
@@ -158,7 +160,12 @@ class RustBuilder {
         '--target-dir',
         environment.targetTempDir,
       ],
-      environment: await _buildEnvironment(),
+      environment: {
+        ...await _buildEnvironment(),
+        // `rustup run cargo` otherwise finds Nix's host rustc first in PATH,
+        // which does not contain rustup-installed cross-target libraries.
+        'RUSTC': _rustcPath,
+      },
     );
     return path.join(
       environment.targetTempDir,
