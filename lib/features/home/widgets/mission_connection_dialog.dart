@@ -65,13 +65,14 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _room == null) return;
     setState(() => _saving = true);
-    await Future.wait([
-      _services.appSettings.updatePlayerName(_nameController.text.trim()),
-      _services.networkConfig.updateDhcp(_automaticIp),
-      if (!_automaticIp)
-        _services.networkConfig.updateIpv4(_ipController.text.trim()),
-      _services.room.setRoom(_room!),
-    ]);
+    // Player name and selected room share the AllSettings record, so persist
+    // them sequentially to avoid overlapping read-modify-write transactions.
+    await _services.appSettings.updatePlayerName(_nameController.text.trim());
+    await _services.room.setRoom(_room!);
+    await _services.networkConfig.updateDhcp(_automaticIp);
+    if (!_automaticIp) {
+      await _services.networkConfig.updateIpv4(_ipController.text.trim());
+    }
     if (mounted) Navigator.of(context).pop();
   }
 
