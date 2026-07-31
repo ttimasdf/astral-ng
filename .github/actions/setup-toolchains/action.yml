@@ -1,0 +1,112 @@
+name: Setup pinned toolchains
+description: Install the toolchain mirrors generated from the locked Nix package set
+
+inputs:
+  setup-android:
+    description: Install Java, Android SDK/NDK, Rust Android targets, and cargo-ndk
+    required: false
+    default: 'false'
+
+outputs:
+  rust-version:
+    description: Mirrored Rust toolchain version
+    value: ${{ steps.versions.outputs.rust }}
+  flutter-version:
+    description: Mirrored Flutter SDK version
+    value: ${{ steps.versions.outputs.flutter }}
+  java-version:
+    description: Mirrored Java major version
+    value: ${{ steps.versions.outputs.java }}
+  android-platform:
+    description: Mirrored Android platform version
+    value: ${{ steps.versions.outputs['android-platform'] }}
+  android-ndk:
+    description: Mirrored Android NDK version
+    value: ${{ steps.versions.outputs['android-ndk'] }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read toolchain mirrors
+      id: versions
+      shell: bash
+      run: |
+        python_command=python3
+        command -v "$python_command" >/dev/null 2>&1 || python_command=python
+        "$python_command" - <<'PY' >> "$GITHUB_OUTPUT"
+        import json
+        import tomllib
+
+        def properties(path):
+            values = {}
+            with open(path, encoding="utf-8") as file:
+                for raw_line in file:
+                    line = raw_line.strip()
+                    if line and not line.startswith("#"):
+                        key, value = line.split("=", 1)
+                        values[key] = value
+            return values
+
+        with open("rust-toolchain.toml", "rb") as file:
+            print(f"rust={tomllib.load(file)['toolchain']['channel']}")
+        with open(".fvmrc", encoding="utf-8") as file:
+            print(f"flutter={json.load(file)['flutter']}")
+        with open(".java-version", encoding="utf-8") as file:
+            print(f"java={file.read().strip()}")
+
+        android = properties("android/toolchain.properties")
+        print(f"android-platform={android['android.platform']}")
+        print(f"android-build-tools={android['android.buildTools']}")
+        print(f"android-cmake={android['android.cmake']}")
+        print(f"android-ndk={android['android.ndk']}")
+        print(f"android-cmdline-tools={android['android.cmdlineTools']}")
+        print(f"cargo-ndk={android['cargoNdk']}")
+        PY
+
+    - name: Setup Rust
+      shell: bash
+      run: |
+        rustup toolchain install "${{ steps.versions.outputs.rust }}" --profile minimal --component rust-src
+        rustup show active-toolchain
+        rustc --version --verbose
+        cargo --version
+
+    - name: Setup Flutter SDK
+      uses: flutter-actions/setup-flutter@v4
+      with:
+        channel: stable
+        version: ${{ steps.versions.outputs.flutter }}
+        cache-sdk: true
+        cache: true
+
+    - name: Setup Java
+      if: inputs['setup-android'] == 'true'
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ steps.versions.outputs.java }}
+        distribution: temurin
+
+    - name: Setup Android SDK and NDK
+      if: inputs['setup-android'] == 'true'
+      uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: ${{ steps.versions.outputs['android-cmdline-tools'] }}
+        packages: >-
+          platform-tools
+          platforms;android-${{ steps.versions.outputs['android-platform'] }}
+          build-tools;${{ steps.versions.outputs['android-build-tools'] }}
+          cmake;${{ steps.versions.outputs['android-cmake'] }}
+          ndk;${{ steps.versions.outputs['android-ndk'] }}
+
+    - name: Setup Rust Android targets
+      if: inputs['setup-android'] == 'true'
+      shell: bash
+      run: |
+        rustup target add --toolchain "${{ steps.versions.outputs.rust }}" \
+          armv7-linux-androideabi \
+          aarch64-linux-android
+
+    - name: Install cargo-ndk
+      if: inputs['setup-android'] == 'true'
+      shell: bash
+      run: cargo install cargo-ndk --version "${{ steps.versions.outputs['cargo-ndk'] }}" --locked

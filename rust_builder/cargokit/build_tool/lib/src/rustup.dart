@@ -19,6 +19,29 @@ class _Toolchain {
 }
 
 class Rustup {
+  String activeToolchain() {
+    final result = runCommand("rustup", ['show', 'active-toolchain']);
+    final line = result.stdout.toString().trim();
+    if (line.isEmpty) {
+      throw StateError('rustup did not report an active toolchain');
+    }
+    return line.split(RegExp(r'\s+')).first;
+  }
+
+  String which(String executable, {required String toolchain}) {
+    final result = runCommand(
+      "rustup",
+      ['which', '--toolchain', toolchain, executable],
+    );
+    final executablePath = result.stdout.toString().trim();
+    if (executablePath.isEmpty) {
+      throw StateError(
+        'rustup did not report $executable for toolchain $toolchain',
+      );
+    }
+    return executablePath;
+  }
+
   List<String>? installedTargets(String toolchain) {
     final targets = _installedTargets(toolchain);
     return targets != null ? List.unmodifiable(targets) : null;
@@ -64,13 +87,13 @@ class Rustup {
 
     final res = runCommand("rustup", ['toolchain', 'list']);
 
-    // To list all non-custom toolchains, we need to filter out lines that
-    // don't start with "stable", "beta", or "nightly".
-    Pattern nonCustom = RegExp(r"^(stable|beta|nightly)");
+    // Keep official channel names and exact-version toolchains, but ignore
+    // custom toolchains that rustup cannot install or add targets to.
+    final official = RegExp(r"^(stable|beta|nightly|\d+\.\d+\.\d+)(-|$)");
     final lines = res.stdout
         .toString()
         .split('\n')
-        .where((e) => e.isNotEmpty && e.startsWith(nonCustom))
+        .where((e) => e.isNotEmpty && official.hasMatch(e))
         .map(extractToolchainName)
         .toList(growable: true);
 

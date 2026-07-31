@@ -30,7 +30,7 @@ let
 
     passthru.libraryPath = "lib/librust_lib_astral.so";
 
-    meta.platforms = [ "x86_64-linux" ];
+    meta.platforms = lib.platforms.linux;
   };
 in
 flutter344.buildFlutterApplication {
@@ -68,24 +68,24 @@ flutter344.buildFlutterApplication {
       };
   };
 
-  nativeBuildInputs = [
+  nativeBuildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     copyDesktopItems
   ];
 
-  buildInputs = [
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     libayatana-appindicator
   ];
 
-  postInstall = ''
+  postInstall = lib.optionalString stdenv.hostPlatform.isLinux ''
     mkdir -p $out/share/pixmaps
     cp $out/app/${pname}/data/flutter_assets/assets/logo.png $out/share/pixmaps/astral-ng.png
   '';
 
-  extraWrapProgramArgs = ''
+  extraWrapProgramArgs = lib.optionalString stdenv.hostPlatform.isLinux ''
     --prefix LD_LIBRARY_PATH : $out/app/${pname}/lib
   '';
 
-  desktopItems = [
+  desktopItems = lib.optionals stdenv.hostPlatform.isLinux [
     (makeDesktopItem {
       name = "astral-ng";
       desktopName = "Astral-NG";
@@ -96,7 +96,12 @@ flutter344.buildFlutterApplication {
       type = "Application";
       categories = [ "Network" ];
       startupNotify = true;
-      keywords = [ "Easytier" "VPN" "Network" "Proxy" ];
+      keywords = [
+        "Easytier"
+        "VPN"
+        "Network"
+        "Proxy"
+      ];
     })
   ];
 
@@ -109,7 +114,7 @@ flutter344.buildFlutterApplication {
     homepage = "https://github.com/ttimasdf/astral-ng";
     license = licenses.gpl3;
     maintainers = with maintainers; [ ];
-    platforms = [ "x86_64-linux" ];
+    platforms = platforms.linux;
     mainProgram = "astral";
   };
 }

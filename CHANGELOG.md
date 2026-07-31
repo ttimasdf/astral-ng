@@ -72,6 +72,9 @@ baseline.
   ([#5], [#6])
 - Updated the Nix development and packaging environment to Flutter 3.44 for
   Dart 3.12 source compatibility. ([nix-flutter-3.44])
+- Made the locked nixpkgs package set authoritative for development toolchains,
+  added a complete local Android SDK/NDK environment, and synchronized versions
+  for standard local tools and CI. ([#9])
 
 ## v2.8.1 - 2026-03-31
 
@@ -155,6 +158,7 @@ changes. ([upstream-v2.7.3])
 [#4]: https://github.com/ttimasdf/astral-ng/pull/4
 [#5]: https://github.com/ttimasdf/astral-ng/pull/5
 [#6]: https://github.com/ttimasdf/astral-ng/pull/6
+[#9]: https://github.com/ttimasdf/astral-ng/pull/9
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
