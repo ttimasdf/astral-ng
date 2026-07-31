@@ -83,14 +83,13 @@ def save_ico(img, path, sizes):
     print(f"  {os.path.relpath(path, ROOT):62s} multi-size ICO [transparent]")
 
 def make_canary_source(img):
-    """Create a grayscale icon with gold highlights for canary packages."""
+    """Create a grayscale icon with an entirely gold emblem for canaries."""
     out = Image.new("RGBA", img.size)
     pixels = []
     for red, green, blue, alpha in img.getdata():
         gray = round(0.299 * red + 0.587 * green + 0.114 * blue)
-        saturation = max(red, green, blue) - min(red, green, blue)
-        is_warm_highlight = saturation > 36 and red > blue * 1.2 and red > green * 0.82
-        if is_warm_highlight:
+        is_emblem_stroke = gray > 65
+        if is_emblem_stroke:
             shade = max(0.45, min(1.25, gray / 185))
             color = tuple(min(255, round(channel * shade)) for channel in (246, 195, 68))
         else:
