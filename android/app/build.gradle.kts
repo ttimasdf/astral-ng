@@ -19,11 +19,16 @@ val resolvedApplicationId =
         ?: project.findProperty("applicationId") as String?
         ?: "pw.rabit.astralng"
 
+val toolchainProperties = Properties().apply {
+    FileInputStream(rootProject.file("toolchain.properties")).use { load(it) }
+}
+
 android {
     namespace = "pw.rabit.astralng"
-    compileSdk = flutter.compileSdkVersion
-    // ndkVersion = flutter.ndkVersion
-    ndkVersion = "28.2.13676358"
+    compileSdk = toolchainProperties.getProperty("android.compileSdk").toInt()
+    compileSdkMinor = toolchainProperties.getProperty("android.compileSdkMinor").toInt()
+    buildToolsVersion = toolchainProperties.getProperty("android.buildTools")
+    ndkVersion = toolchainProperties.getProperty("android.ndk")
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -46,7 +51,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = toolchainProperties.getProperty("android.targetSdk").toInt()
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
