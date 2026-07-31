@@ -10,7 +10,6 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.widget.Toast
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetPlugin
 
 @TargetApi(Build.VERSION_CODES.N)
@@ -49,29 +48,22 @@ class AstralQuickSettingsTileService : TileService() {
     override fun onClick() {
         super.onClick()
 
-        when (widgetData.getString(CONNECTION_STATE_KEY, STATE_IDLE)) {
-            STATE_CONNECTING -> return
-            STATE_IDLE -> {
-                val requiresVpn = widgetData.getBoolean(REQUIRES_VPN_KEY, true)
-                if (requiresVpn && VpnService.prepare(this) != null) {
-                    openAppForVpnPermission()
-                    return
-                }
+        val state = widgetData.getString(CONNECTION_STATE_KEY, STATE_IDLE)
+        if (state == STATE_CONNECTING) return
+
+        val action = if (state == STATE_CONNECTED) ACTION_DISCONNECT else ACTION_CONNECT
+        if (action == ACTION_CONNECT) {
+            val requiresVpn = widgetData.getBoolean(REQUIRES_VPN_KEY, true)
+            if (requiresVpn && VpnService.prepare(this) != null) {
+                openAppForAction(action)
+                return
             }
         }
 
-        qsTile?.let { tile ->
-            tile.state = Tile.STATE_UNAVAILABLE
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                tile.subtitle = getString(R.string.quick_settings_tile_status_updating)
-            }
-            tile.updateTile()
-        }
-
-        try {
-            HomeWidgetBackgroundIntent.getBroadcast(this, TOGGLE_URI).send()
-        } catch (_: PendingIntent.CanceledException) {
-            updateTile()
+        if (MainActivity.dispatchQuickSettingsToggle(action)) {
+            showUpdatingState(state)
+        } else {
+            openAppForAction(action)
         }
     }
 
@@ -105,16 +97,29 @@ class AstralQuickSettingsTileService : TileService() {
         tile.updateTile()
     }
 
-    private fun openAppForVpnPermission() {
-        Toast.makeText(
-            this,
-            R.string.quick_settings_tile_vpn_permission_required,
-            Toast.LENGTH_LONG,
-        ).show()
+    private fun showUpdatingState(state: String) {
+        val tile = qsTile ?: return
+        tile.state = if (state == STATE_CONNECTED) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            tile.subtitle = getString(R.string.quick_settings_tile_status_updating)
+        }
+        tile.updateTile()
+    }
 
-        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+    private fun openAppForAction(action: String) {
+        if (action == ACTION_CONNECT) {
+            Toast.makeText(
+                this,
+                R.string.quick_settings_tile_vpn_permission_required,
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+
+        val launchIntent = Intent(this, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("astral://toggle_connection?action=$action")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        } ?: return
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val pendingIntent = PendingIntent.getActivity(
@@ -137,6 +142,7 @@ class AstralQuickSettingsTileService : TileService() {
         private const val STATE_CONNECTING = "connecting"
         private const val STATE_CONNECTED = "connected"
         private const val OPEN_APP_REQUEST_CODE = 4102
-        private val TOGGLE_URI: Uri = Uri.parse("astral://toggle_connection")
+        private const val ACTION_CONNECT = "connect"
+        private const val ACTION_DISCONNECT = "disconnect"
     }
 }

@@ -31,6 +31,7 @@ class AppLinkRegistry {
   void _registerDefaultHandlers() {
     _registerHandler('debug', LinkHandlers.handleDebug);
     _registerHandler('room', LinkHandlers.handleRoom);
+    _registerHandler('toggle_connection', LinkHandlers.handleConnectionToggle);
   }
 
   Future<void> _handleInitialLink() async {

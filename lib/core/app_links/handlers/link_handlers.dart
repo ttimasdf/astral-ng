@@ -1,5 +1,6 @@
 import 'package:astral/core/room/room_share_codec.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/connection_state.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/core/ui/room_navigation.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,19 @@ class LinkHandlers {
       if (context != null && context.mounted) {
         AppSnackBars.error(context, '处理分享链接失败', '发生未知错误：${e.toString()}', copyAction: true);
       }
+    }
+  }
+
+  /// Handles a connection request initiated when the Quick Settings tile has
+  /// to launch the app because its primary Flutter engine is unavailable.
+  static Future<void> handleConnectionToggle(Uri uri) async {
+    final action = uri.queryParameters['action'];
+    final state = _services.connectionState.connectionState.value;
+
+    if (action == 'connect' && state == CoState.idle) {
+      await _services.connection.connect(isManual: false);
+    } else if (action == 'disconnect' && state == CoState.connected) {
+      await _services.connection.disconnect();
     }
   }
 
