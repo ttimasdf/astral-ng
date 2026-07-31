@@ -7,12 +7,14 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** Clearer rooms and more reliable connections on desktop and Android.
+> **Highlight:** AstralNG unifies the app's name across desktop and mobile.
 >
-> **版本亮点：** 房间设置更清晰，桌面端和 Android 端的连接也更可靠。
+> **版本亮点：** AstralNG 在桌面端和移动端统一使用全新名称。
 
 ### Added
 
+- Added an Android Quick Settings tile that shows the current connection state
+  and connects or disconnects Astral-ng with one tap. ([#10])
 - Added automatic connection retries with a configurable retry limit.
   ([upstream-auto-retry])
 - Added a local SOCKS5 listener for accessing the virtual network in NO-TUN
@@ -25,6 +27,8 @@ baseline.
 
 ### Changed
 
+- Renamed the visible application, widget, notification, installer, and Quick
+  Settings tile branding to AstralNG across supported platforms.
 - Added version suffixes to downloadable CI snapshots and release assets, and
   made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
@@ -159,6 +163,7 @@ changes. ([upstream-v2.7.3])
 [#5]: https://github.com/ttimasdf/astral-ng/pull/5
 [#6]: https://github.com/ttimasdf/astral-ng/pull/6
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
+[#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

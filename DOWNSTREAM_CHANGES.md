@@ -10,7 +10,7 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ---
 
-## [rebrand-astral-ng]: Rebrand GUI from Astral to Astral-ng
+## [rebrand-astral-ng]: Rebrand GUI from Astral to AstralNG
 
 - **Scope**: `lib/core/states/`, `lib/features/settings/`, `lib/shared/`, `ios/`, `windows/`, `android/`, `assets/`, `scripts/`
 - **Type**: override
@@ -20,22 +20,25 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ### What this changes
 
-Replaces all user-facing "Astral" branding with "Astral-ng" across the GUI:
-app name in state management, about page title, Android notification channel
-and titles, Windows window title and tray tooltip, iOS display name, and room
-sharing messages. Also ships a new app icon set (squircle design with baked
-drop shadow on macOS, transparent ICO on Windows, plain square on iOS/Android,
-maskable variants on web) plus a `scripts/generate_icons.py` generator that
-rebuilds them from `assets/icon_raw.png`.
+Replaces all user-facing "Astral" branding with "AstralNG" across the GUI:
+app name in state management, Android notification channel and titles, Windows
+window title, tray tooltip, executable metadata, and installer, iOS/macOS
+application display names, Linux desktop and AppImage metadata, Android home
+widgets and Quick Settings tile, and room sharing messages. It preserves the
+stable `pw.rabit.astralng` identifiers, executable/artifact names, and
+`astral://` deep-link scheme. The fork also ships a new app icon set (squircle
+design with baked drop shadow on macOS, transparent ICO on Windows, plain
+square on iOS/Android, maskable variants on web) plus a
+`scripts/generate_icons.py` generator that rebuilds them from
+`assets/icon_raw.png`.
 
 ### Files affected
 
-- `lib/core/states/app_settings_state.dart`, `lib/core/states/ui_state.dart`: app name string
-- `lib/core/services/notification_service.dart`: Android notification channel/titles
-- `lib/features/settings/pages/general/about_page.dart`: about page title
-- `lib/shared/utils/data/room_share_helper.dart`: room sharing message text
-- `lib/shared/widgets/common/windows_controls.dart`: window title
-- `windows/runner/main.cpp`, `ios/Runner/Info.plist`: platform display name
+- `lib/core/states/app_settings_state.dart`, `lib/core/services/notification_service.dart`, `lib/core/room/room_share_codec.dart`, `lib/shared/widgets/common/windows_controls.dart`: GUI, notification, share, and tray branding
+- `android/app/src/main/`: launcher, widget, and Quick Settings tile labels
+- `ios/Runner/Info.plist`, `macos/Runner/Configs/AppInfo.xcconfig`: Apple platform display names
+- `windows/runner/main.cpp`, `windows/runner/Runner.rc`, `.github/workflows/build-and-release.yml`: Windows window, executable metadata, and installer name
+- `linux/runner/my_application.cc`, `linux/packaging/`: Linux window, desktop, and AppImage display names
 - `assets/icon.ico`, `assets/icon_raw.png`, `assets/icon_tray.png`, `assets/logo.png`: new icons
 - `android/app/src/main/res/mipmap-*/ic_launcher.png`, `ios/Runner/Assets.xcassets/AppIcon.appiconset/*`, `macos/Runner/Assets.xcassets/AppIcon.appiconset/*`: platform icon assets
 - `scripts/generate_icons.py`: icon regeneration script
@@ -551,6 +554,40 @@ cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
 - `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains, use the active project override, and select rustup's compiler explicitly for cross-target builds inside the Nix shell
 - `.gitignore`: ignore FVM's generated project directory
 - `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup, consumer mirrors, and upgrades
+
+---
+
+## [android-quick-settings-tile]: Add an Android Quick Settings connection tile
+
+- **Scope**: `android/app/src/main/`, `lib/core/app_links/`, `lib/core/services/widget_service.dart`, `lib/core/constants/home_widget_keys.dart`, `lib/shared/widgets/common/home_widget_refresh_binder.dart`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: android-quick-settings-tile
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Adds an Android 7.0+ Quick Settings tile that displays Astral-ng's persisted
+connection state and toggles the selected room. When the primary Flutter engine
+is running, the native tile sends its action directly to that engine so the GUI,
+Rust backend, VPN, and tile share one connection state. When the app is not
+running, the tile opens Astral-ng with the same action as an app link. The tile
+supports both VPN and NO-TUN configurations and opens the app when Android
+still needs initial VPN consent. Home-widget background engines initialize the
+Rust bridge without applying normal app-start auto-connect behavior, while the
+VPN plugin uses application context after consent so widget operations do not
+require an attached Activity.
+
+### Files affected
+
+- `android/app/src/main/AndroidManifest.xml`: registers the active, toggleable Quick Settings tile service
+- `android/app/src/main/kotlin/pw/rabit/astralng/AstralQuickSettingsTileService.kt`: renders tile state and delivers actions to the primary engine or app-link fallback without leaving the tile unavailable
+- `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`, `lib/core/services/widget_service.dart`: establish the native-to-primary-Flutter toggle channel
+- `lib/core/app_links/`: handles the same toggle action when the tile must launch the app
+- `android/app/src/main/res/`: adds the monochrome tile icon and English/Chinese status strings
+- `lib/core/constants/home_widget_keys.dart`, `lib/shared/widgets/common/home_widget_refresh_binder.dart`: persist and refresh connection and VPN-mode state for native surfaces
+- `lib/core/services/service_manager.dart`: allows background entry points to skip normal startup actions
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`: allows already-authorized VPN start and stop calls from a background Flutter engine
 
 ---
 

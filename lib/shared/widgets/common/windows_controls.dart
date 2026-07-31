@@ -47,7 +47,7 @@ class _WindowControlsState extends State<WindowControls>
     }
 
     if (!Platform.isLinux) {
-      await trayManager.setToolTip('Astral-ng');
+      await trayManager.setToolTip('AstralNG');
     }
 
     await _updateTrayMenu();

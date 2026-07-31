@@ -4,6 +4,12 @@ abstract final class HomeWidgetKeys {
   static const roomName = 'room_name';
   static const ipText = 'ip_text';
   static const durationText = 'duration_text';
+  static const connectionState = 'connection_state';
+  static const requiresVpn = 'requires_vpn';
+
+  static const connectionIdle = 'idle';
+  static const connectionConnecting = 'connecting';
+  static const connectionConnected = 'connected';
 
   static const themeCard = 'theme_card';
   static const themeCanvas = 'theme_canvas';

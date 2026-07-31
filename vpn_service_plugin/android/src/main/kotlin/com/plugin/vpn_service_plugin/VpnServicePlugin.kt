@@ -1,6 +1,7 @@
 package com.plugin.vpn_service_plugin
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -18,13 +19,16 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel : MethodChannel
     // 事件通道，用于向Flutter发送VPN状态变化事件
     private lateinit var eventChannel: EventChannel
-    // Activity实例，用于启动VPN服务
-    private lateinit var activity: Activity
+    // Application context is also available to background Flutter engines.
+    private lateinit var applicationContext: Context
+    // Activity is only required while displaying the initial VPN consent UI.
+    private var activity: Activity? = null
     // 事件接收器
     private var eventSink: EventChannel.EventSink? = null
 
     // 插件附加到Flutter引擎时调用
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        applicationContext = binding.applicationContext
         channel = MethodChannel(binding.binaryMessenger, "vpn_service")
         channel.setMethodCallHandler(this)
         
@@ -51,11 +55,15 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         when (call.method) {
             // 准备VPN服务
             "prepareVpn" -> {
-                val intent = VpnService.prepare(activity)
-                if (intent != null) {
+                val currentActivity = activity
+                val intent = VpnService.prepare(currentActivity ?: applicationContext)
+                if (intent != null && currentActivity != null) {
                     // 需要用户授权，启动授权界面
-                    activity.startActivityForResult(intent, 0x0f)
+                    currentActivity.startActivityForResult(intent, 0x0f)
                     result.success(mapOf("errorMsg" to "again"))
+                } else if (intent != null) {
+                    // Background engines cannot display Android's VPN consent UI.
+                    result.success(mapOf("errorMsg" to "need_activity"))
                 } else {
                     // 已经获得授权
                     result.success(mapOf<String, Any>())
@@ -64,14 +72,15 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             // 启动VPN服务
             "startVpn" -> {
                 val args = call.arguments<Map<String, Any>>()
-                val intent = VpnService.prepare(activity)
+                val serviceContext = activity ?: applicationContext
+                val intent = VpnService.prepare(serviceContext)
                 if (intent != null) {
                     // 需要先获取VPN权限
                     result.success(mapOf("errorMsg" to "need_prepare"))
                 } else {
                     // 配置并启动VPN服务. Starting an existing service replaces
                     // its TUN without treating the refresh as a revocation.
-                    val serviceIntent = Intent(activity, TauriVpnService::class.java)
+                    val serviceIntent = Intent(serviceContext, TauriVpnService::class.java)
                     
                     // 处理IPv4地址
                     serviceIntent.putExtra("IPV4_ADDR", args?.get("ipv4Addr") as? String)
@@ -99,13 +108,14 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                         serviceIntent.putExtra("MTU", mtu)
                     }
 
-                    activity.startService(serviceIntent)
+                    serviceContext.startService(serviceIntent)
                     result.success(mapOf<String, Any>())
                 }
             }
             // 停止VPN服务
             "stopVpn" -> {
-                activity.stopService(Intent(activity, TauriVpnService::class.java))
+                val serviceContext = activity ?: applicationContext
+                serviceContext.stopService(Intent(serviceContext, TauriVpnService::class.java))
                 result.success(mapOf<String, Any>())
             }
             else -> result.notImplemented()
@@ -126,9 +136,13 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     // Activity生命周期相关回调
-    override fun onDetachedFromActivity() {}
+    override fun onDetachedFromActivity() {
+        activity = null
+    }
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activity = binding.activity
     }
-    override fun onDetachedFromActivityForConfigChanges() {}
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
 }
