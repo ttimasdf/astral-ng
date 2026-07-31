@@ -275,7 +275,7 @@ class _PreferenceRow extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 560;
+        final compact = constraints.maxWidth < 720;
         final text = Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

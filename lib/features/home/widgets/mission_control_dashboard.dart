@@ -355,29 +355,36 @@ class _HeroMetrics extends StatelessWidget {
         border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          _Metric(
-            label: LocaleKeys.mission_peers.tr(),
-            value: connected ? '${summary.peerCount}' : '—',
+          Expanded(
+            child: _Metric(
+              label: LocaleKeys.mission_peers.tr(),
+              value: connected ? '${summary.peerCount}' : '—',
+            ),
           ),
           _MetricDivider(color: colorScheme.outlineVariant),
-          _Metric(
-            label: LocaleKeys.mission_direct.tr(),
-            value: connected ? '${summary.directCount}' : '—',
+          Expanded(
+            child: _Metric(
+              label: LocaleKeys.mission_direct.tr(),
+              value: connected ? '${summary.directCount}' : '—',
+            ),
           ),
           _MetricDivider(color: colorScheme.outlineVariant),
-          _Metric(
-            label: LocaleKeys.mission_forwarded.tr(),
-            value: connected ? '${summary.forwardedCount}' : '—',
+          Expanded(
+            child: _Metric(
+              label: LocaleKeys.mission_forwarded.tr(),
+              value: connected ? '${summary.forwardedCount}' : '—',
+            ),
           ),
           _MetricDivider(color: colorScheme.outlineVariant),
-          _Metric(
-            label: LocaleKeys.mission_latency.tr(),
-            value:
-                connected && summary.averageLatency != null
-                    ? '${summary.averageLatency} ms'
-                    : '—',
+          Expanded(
+            child: _Metric(
+              label: LocaleKeys.mission_latency.tr(),
+              value:
+                  connected && summary.averageLatency != null
+                      ? '${summary.averageLatency} ms'
+                      : '—',
+            ),
           ),
         ],
       ),
