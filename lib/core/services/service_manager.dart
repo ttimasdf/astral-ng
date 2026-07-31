@@ -21,6 +21,7 @@ import 'package:astral/core/states/firewall_state.dart';
 import 'package:astral/core/states/vpn_state.dart';
 import 'package:astral/core/states/app_settings_state.dart';
 import 'package:astral/core/states/server_status_state.dart';
+import 'package:astral/core/states/mission_control_state.dart';
 
 // Repositories
 import 'package:astral/core/repositories/theme_repository.dart';
@@ -39,6 +40,7 @@ import 'package:astral/core/services/server_connection_manager.dart';
 import 'package:astral/core/services/vpn_manager.dart';
 import 'package:astral/core/services/notification_service.dart';
 import 'package:astral/core/services/widget_service.dart';
+import 'package:astral/core/services/mission_control_service.dart';
 
 /// 服务管理器：统一管理领域服务与运行时单例入口
 class ServiceManager {
@@ -75,6 +77,7 @@ class ServiceManager {
   late final VpnState vpnState;
   late final AppSettingsState appSettingsState;
   late final ServerStatusState serverStatusState;
+  late final MissionControlState missionControlState;
 
   // ========== 数据访问 ==========
   late final AppDatabase db;
@@ -92,6 +95,7 @@ class ServiceManager {
   late final NetworkConfigService networkConfig;
   late final AppSettingsService appSettings;
   late final FirewallService firewall;
+  late final MissionControlService missionControl;
 
   // ========== Runtime singletons ==========
   ServerConnectionManager get connection => ServerConnectionManager.instance;
@@ -115,6 +119,7 @@ class ServiceManager {
     vpnState = VpnState();
     appSettingsState = AppSettingsState();
     serverStatusState = ServerStatusState();
+    missionControlState = MissionControlState();
   }
 
   void _initializeData() {
@@ -133,6 +138,11 @@ class ServiceManager {
       _networkConfigRepository,
     );
     firewall = FirewallService(firewallState);
+    missionControl = MissionControlService(
+      state: missionControlState,
+      networkConfigState: networkConfigState,
+      settingsRepository: _appSettingsRepository,
+    );
 
     appSettings = AppSettingsService(
       playerState: playerState,
@@ -157,6 +167,7 @@ class ServiceManager {
       _initService('Server', () => server.init()),
       _initService('NetworkConfig', () => networkConfig.init()),
       _initService('AppSettings', () => appSettings.init()),
+      _initService('MissionControl', () => missionControl.init()),
       _initService('Firewall', () => firewall.init()),
     ]);
 

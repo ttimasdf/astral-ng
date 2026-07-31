@@ -1,5 +1,6 @@
 import 'package:astral/core/models/server_mod.dart';
 import 'package:astral/core/models/network_config_share.dart';
+import 'package:astral/core/models/mission_control_preferences.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/network/ip_utils.dart';
 import 'package:astral/src/rust/api/simple.dart';
@@ -151,7 +152,9 @@ class ServerConfigBuilder {
   }
 
   /// 构建运行时标志（支持房间配置覆盖）
-  ServerConfigBuilder withFlags() {
+  ServerConfigBuilder withFlags({
+    MissionControlPreferences? missionPreferences,
+  }) {
     final nc = _services.networkConfigState;
     final rc = _roomConfig; // 房间配置
 
@@ -170,13 +173,21 @@ class ServerConfigBuilder {
       enableIpv6: nc.enableIpv6.value,
       mtu: nc.mtu.value,
       multiThread: nc.multiThread.value,
-      latencyFirst: rc?.latencyFirst ?? nc.latencyFirst.value,
+      latencyFirst:
+          missionPreferences?.latencyFirst.value ??
+          rc?.latencyFirst ??
+          nc.latencyFirst.value,
       enableExitNode: nc.enableExitNode.value,
       noTun: rc?.noTun ?? nc.noTun.value,
       useSmoltcp: nc.useSmoltcp.value,
       relayNetworkWhitelist: '*',
-      disableP2P: rc?.disableP2p ?? nc.disableP2p.value,
-      enableUdpBroadcastRelay: nc.enableUdpBroadcastRelay.value,
+      disableP2P:
+          missionPreferences?.relayOnly.value ??
+          rc?.disableP2p ??
+          nc.disableP2p.value,
+      enableUdpBroadcastRelay:
+          missionPreferences?.lanDiscovery.value ??
+          nc.enableUdpBroadcastRelay.value,
       relayAllPeerRpc: nc.relayAllPeerRpc.value,
       disableUdpHolePunching:
           rc?.disableUdpHolePunching ?? nc.disableUdpHolePunching.value,

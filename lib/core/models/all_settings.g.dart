@@ -67,53 +67,58 @@ const AllSettingsSchema = CollectionSchema(
       name: r'launchToTray',
       type: IsarType.bool,
     ),
-    r'peerDisplayMode': PropertySchema(
+    r'missionControlOverridesJson': PropertySchema(
       id: 10,
+      name: r'missionControlOverridesJson',
+      type: IsarType.string,
+    ),
+    r'peerDisplayMode': PropertySchema(
+      id: 11,
       name: r'peerDisplayMode',
       type: IsarType.long,
     ),
     r'peerListeners': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'peerListeners',
       type: IsarType.stringList,
     ),
     r'peerName': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'peerName',
       type: IsarType.string,
     ),
     r'peerSortOption': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'peerSortOption',
       type: IsarType.long,
     ),
     r'peerSortOrder': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'peerSortOrder',
       type: IsarType.long,
     ),
     r'preferAstralAdapter': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'preferAstralAdapter',
       type: IsarType.bool,
     ),
     r'receiveBetaUpdates': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'receiveBetaUpdates',
       type: IsarType.bool,
     ),
     r'reduceTopologyAnimations': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'reduceTopologyAnimations',
       type: IsarType.bool,
     ),
     r'selectedRoomId': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'selectedRoomId',
       type: IsarType.long,
     ),
     r'updateDownloadSource': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'updateDownloadSource',
       type: IsarType.string,
     ),
@@ -153,6 +158,7 @@ int _allSettingsEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.missionControlOverridesJson.length * 3;
   {
     final list = object.peerListeners;
     if (list != null) {
@@ -191,16 +197,17 @@ void _allSettingsSerialize(
   writer.writeString(offsets[7], object.latestAvailableVersion);
   writer.writeBool(offsets[8], object.launchAtLogin);
   writer.writeBool(offsets[9], object.launchToTray);
-  writer.writeLong(offsets[10], object.peerDisplayMode);
-  writer.writeStringList(offsets[11], object.peerListeners);
-  writer.writeString(offsets[12], object.peerName);
-  writer.writeLong(offsets[13], object.peerSortOption);
-  writer.writeLong(offsets[14], object.peerSortOrder);
-  writer.writeBool(offsets[15], object.preferAstralAdapter);
-  writer.writeBool(offsets[16], object.receiveBetaUpdates);
-  writer.writeBool(offsets[17], object.reduceTopologyAnimations);
-  writer.writeLong(offsets[18], object.selectedRoomId);
-  writer.writeString(offsets[19], object.updateDownloadSource);
+  writer.writeString(offsets[10], object.missionControlOverridesJson);
+  writer.writeLong(offsets[11], object.peerDisplayMode);
+  writer.writeStringList(offsets[12], object.peerListeners);
+  writer.writeString(offsets[13], object.peerName);
+  writer.writeLong(offsets[14], object.peerSortOption);
+  writer.writeLong(offsets[15], object.peerSortOrder);
+  writer.writeBool(offsets[16], object.preferAstralAdapter);
+  writer.writeBool(offsets[17], object.receiveBetaUpdates);
+  writer.writeBool(offsets[18], object.reduceTopologyAnimations);
+  writer.writeLong(offsets[19], object.selectedRoomId);
+  writer.writeString(offsets[20], object.updateDownloadSource);
 }
 
 AllSettings _allSettingsDeserialize(
@@ -221,16 +228,17 @@ AllSettings _allSettingsDeserialize(
   object.latestAvailableVersion = reader.readStringOrNull(offsets[7]);
   object.launchAtLogin = reader.readBool(offsets[8]);
   object.launchToTray = reader.readBool(offsets[9]);
-  object.peerDisplayMode = reader.readLong(offsets[10]);
-  object.peerListeners = reader.readStringList(offsets[11]);
-  object.peerName = reader.readStringOrNull(offsets[12]);
-  object.peerSortOption = reader.readLong(offsets[13]);
-  object.peerSortOrder = reader.readLong(offsets[14]);
-  object.preferAstralAdapter = reader.readBool(offsets[15]);
-  object.receiveBetaUpdates = reader.readBool(offsets[16]);
-  object.reduceTopologyAnimations = reader.readBool(offsets[17]);
-  object.selectedRoomId = reader.readLongOrNull(offsets[18]);
-  object.updateDownloadSource = reader.readString(offsets[19]);
+  object.missionControlOverridesJson = reader.readString(offsets[10]);
+  object.peerDisplayMode = reader.readLong(offsets[11]);
+  object.peerListeners = reader.readStringList(offsets[12]);
+  object.peerName = reader.readStringOrNull(offsets[13]);
+  object.peerSortOption = reader.readLong(offsets[14]);
+  object.peerSortOrder = reader.readLong(offsets[15]);
+  object.preferAstralAdapter = reader.readBool(offsets[16]);
+  object.receiveBetaUpdates = reader.readBool(offsets[17]);
+  object.reduceTopologyAnimations = reader.readBool(offsets[18]);
+  object.selectedRoomId = reader.readLongOrNull(offsets[19]);
+  object.updateDownloadSource = reader.readString(offsets[20]);
   return object;
 }
 
@@ -262,24 +270,26 @@ P _allSettingsDeserializeProp<P>(
     case 9:
       return (reader.readBool(offset)) as P;
     case 10:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readStringList(offset)) as P;
-    case 12:
-      return (reader.readStringOrNull(offset)) as P;
-    case 13:
       return (reader.readLong(offset)) as P;
+    case 12:
+      return (reader.readStringList(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
     case 14:
       return (reader.readLong(offset)) as P;
     case 15:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 16:
       return (reader.readBool(offset)) as P;
     case 17:
       return (reader.readBool(offset)) as P;
     case 18:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 19:
+      return (reader.readLongOrNull(offset)) as P;
+    case 20:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -930,6 +940,168 @@ extension AllSettingsQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'launchToTray', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'missionControlOverridesJson',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'missionControlOverridesJson',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'missionControlOverridesJson',
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'missionControlOverridesJson',
+          value: '',
+        ),
       );
     });
   }
@@ -1851,6 +2023,20 @@ extension AllSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortByMissionControlOverridesJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortByMissionControlOverridesJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> sortByPeerDisplayMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'peerDisplayMode', Sort.asc);
@@ -2108,6 +2294,20 @@ extension AllSettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenByMissionControlOverridesJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenByMissionControlOverridesJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> thenByPeerDisplayMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'peerDisplayMode', Sort.asc);
@@ -2302,6 +2502,16 @@ extension AllSettingsQueryWhereDistinct
   }
 
   QueryBuilder<AllSettings, AllSettings, QDistinct>
+  distinctByMissionControlOverridesJson({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'missionControlOverridesJson',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QDistinct>
   distinctByPeerDisplayMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'peerDisplayMode');
@@ -2443,6 +2653,13 @@ extension AllSettingsQueryProperty
   QueryBuilder<AllSettings, bool, QQueryOperations> launchToTrayProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'launchToTray');
+    });
+  }
+
+  QueryBuilder<AllSettings, String, QQueryOperations>
+  missionControlOverridesJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'missionControlOverridesJson');
     });
   }
 
