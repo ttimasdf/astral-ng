@@ -620,4 +620,35 @@ to assistive technologies.
 
 ---
 
+## [canary-branding]: Give canary builds a separate install identity
+
+- **Scope**: `.github/workflows/build-and-release.yml`, `scripts/`, `assets/`, `lib/core/`, `lib/shared/`, `android/`, `linux/`, `windows/`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: canary-branding
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Brands non-tag CI artifacts as AstralNG Canary and gives them identities that
+are separate from production releases. Canary builds use the `astral-canary`
+executable and Linux package, Android application ID
+`pw.rabit.astralng.canary`, an independent Windows installer and single-instance
+mutex, and grayscale-and-gold launcher and tray icons. This allows canary and
+production builds to be installed and launched side by side while production
+tags preserve the existing names and identifiers.
+
+### Files affected
+
+- `scripts/version.py`, `docs/VERSIONING.md`: resolve and document channel-specific display, executable, package, and installer identities
+- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter and package canary artifacts under their separate identities
+- `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
+- `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
+- `scripts/generate_icons.py`, `assets/`, `android/app/src/main/res/mipmap-*`, `windows/runner/resources/`: generate and ship the grayscale-and-gold icon set
+- `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
+- `linux/CMakeLists.txt`, `linux/runner/`, `linux/packaging/`: select the canary executable, GTK application ID, window name, package launcher, and icon
+- `windows/CMakeLists.txt`, `windows/runner/`: select the canary executable, metadata, icon, window title, and single-instance boundary
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
