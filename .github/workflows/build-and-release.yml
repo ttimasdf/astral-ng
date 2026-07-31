@@ -99,8 +99,26 @@ jobs:
           rm -rf "$STAGING"
           mkdir -p "$STAGING/opt/$APP_EXECUTABLE"
           cp -a "$BUNDLE/." "$STAGING/opt/$APP_EXECUTABLE/"
-          install -Dm755 "linux/packaging/$APP_EXECUTABLE-cli.sh" "$STAGING/usr/bin/$APP_EXECUTABLE"
-          install -Dm644 "linux/packaging/$APP_EXECUTABLE.desktop" "$STAGING/usr/share/applications/$APP_EXECUTABLE.desktop"
+
+          install -d -m755 "$STAGING/usr/bin" "$STAGING/usr/share/applications"
+          printf '%s\n' \
+            '#!/usr/bin/env bash' \
+            "# Launch $APP_DISPLAY_NAME from the installed bundle" \
+            "exec /opt/$APP_EXECUTABLE/$APP_EXECUTABLE \"\$@\"" \
+            > "$STAGING/usr/bin/$APP_EXECUTABLE"
+          chmod 755 "$STAGING/usr/bin/$APP_EXECUTABLE"
+          {
+            printf '[Desktop Entry]\n'
+            printf 'Name=%s\n' "$APP_DISPLAY_NAME"
+            printf 'Comment=%s desktop client\n' "$APP_DISPLAY_NAME"
+            printf 'Exec=/usr/bin/%s %%u\n' "$APP_EXECUTABLE"
+            printf 'TryExec=/usr/bin/%s\n' "$APP_EXECUTABLE"
+            printf 'Icon=%s\n' "$APP_EXECUTABLE"
+            printf 'Terminal=false\nType=Application\nCategories=Network;\n'
+            printf 'StartupNotify=true\nX-GNOME-UsesNotifications=true\n'
+            printf 'Keywords=VPN;Network;Proxy;\n'
+          } > "$STAGING/usr/share/applications/$APP_EXECUTABLE.desktop"
+
           if [ "$BUILD_CHANNEL" = canary ]; then
             ICON_SOURCE=assets/logo_canary.png
           else
