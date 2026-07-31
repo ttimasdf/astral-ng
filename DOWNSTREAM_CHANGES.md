@@ -729,4 +729,39 @@ loss and recovery, and teardown.
 
 ---
 
+## [mission-control-home]: Replace Home and room topology with mesh-native views
+
+- **Scope**: `lib/features/home/`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation*`, `lib/core/models/mission_control_preferences.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/states/`, `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `assets/translations/`, `pubspec.yaml`
+- **Type**: override
+- **Status**: active
+- **Introduced**: mission-control-home
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the card-based Home page with a responsive Mission Control view that
+integrates connection setup and actions, displays live peer/path/session
+summaries, and exposes only three outcome-oriented controls: path priority,
+adaptive mesh versus relay-only connectivity, and Windows LAN discovery.
+Per-room device overrides take precedence over room recommendations and global
+defaults. Changes made during a live connection are persisted for the next
+session and shown as pending until the user explicitly reconnects.
+
+Replaces the hierarchical room topology editor with a default constellation
+that gives peers equal visual weight and draws only routes observed from the
+local device. The member list remains available as a secondary view. The old
+`vyuh_node_flow` implementation and dependency are removed.
+
+### Files affected
+
+- `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, mesh summary, integrated connection action, staged quick controls, and session details
+- `lib/core/models/mission_control_preferences.dart`, `lib/core/states/mission_control_state.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/models/all_settings.dart`: preference precedence and persisted device-local room overrides
+- `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
+- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`: default non-hierarchical constellation and secondary list view
+- `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
+- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control and constellation strings
+- `test/`: preference, responsive layout, room-mode compatibility, and constellation coverage
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->

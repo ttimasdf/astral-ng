@@ -41,6 +41,11 @@ baseline.
   and move the complete Isar database file set into the new `db` subdirectory,
   while other users must reconfigure the app. Existing logs are not migrated,
   and cache diagnostics may be removed early by the OS or user.
+- Redesigned Home as Mission Control with live session summaries and per-room
+  path, peer-connectivity, and Windows LAN-discovery controls. Changes made
+  during a connection are staged until the user explicitly reconnects.
+- Replaced the room topology graph with a default, non-hierarchical mesh
+  constellation of observed paths; the detailed member list remains available.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.
