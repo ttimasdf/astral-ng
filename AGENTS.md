@@ -26,6 +26,11 @@ When instructed to implement a new feature, use the following workflow:
    authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
    and cleanup workflow.
 
+## Commit Signing
+
+Create commits in linked worktrees without signing (`git commit --no-gpg-sign`).
+Create commits on `main` with signing enabled (`git commit --gpg-sign`).
+
 ## Local Android Builds
 
 Run Android Flutter commands from the Nix development shell with
