@@ -62,13 +62,9 @@ class ServerListTile extends StatelessWidget {
           _deleteIfConfirmed();
         },
       },
-      child: Dismissible(
+      child: _ServerSwipeAction(
         key: ValueKey('server-swipe-${server.id}'),
-        direction: DismissDirection.horizontal,
-        dismissThresholds: const {
-          DismissDirection.startToEnd: 0.3,
-          DismissDirection.endToStart: 0.3,
-        },
+        server: server,
         background: _buildSwipeBackground(
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.only(left: 24),
@@ -94,16 +90,9 @@ class ServerListTile extends StatelessWidget {
           icon: Icons.delete_outline,
           label: '删除',
         ),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            await onToggle(!server.enable);
-            return false;
-          }
-          return onConfirmDelete();
-        },
-        onDismissed: (_) {
-          onDelete();
-        },
+        onToggle: onToggle,
+        onConfirmDelete: onConfirmDelete,
+        onDelete: onDelete,
         child: card,
       ),
     );
@@ -214,5 +203,156 @@ class ServerListTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ServerSwipeAction extends StatefulWidget {
+  const _ServerSwipeAction({
+    super.key,
+    required this.server,
+    required this.background,
+    required this.secondaryBackground,
+    required this.onToggle,
+    required this.onConfirmDelete,
+    required this.onDelete,
+    required this.child,
+  });
+
+  final ServerMod server;
+  final Widget background;
+  final Widget secondaryBackground;
+  final Future<void> Function(bool) onToggle;
+  final Future<bool> Function() onConfirmDelete;
+  final Future<void> Function() onDelete;
+  final Widget child;
+
+  @override
+  State<_ServerSwipeAction> createState() => _ServerSwipeActionState();
+}
+
+class _ServerSwipeActionState extends State<_ServerSwipeAction>
+    with SingleTickerProviderStateMixin {
+  static const _maximumDragFraction = 0.24;
+  static const _triggerFraction = 0.14;
+
+  late final AnimationController _returnController;
+  Animation<double>? _returnAnimation;
+  double _dragExtent = 0;
+  double _rowWidth = 0;
+  double _backgroundDirection = 0;
+  bool _handlingAction = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _returnController =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 280),
+          )
+          ..addListener(() {
+            final animation = _returnAnimation;
+            if (animation == null || !mounted) return;
+            setState(() => _dragExtent = animation.value);
+          })
+          ..addStatusListener((status) {
+            if (status != AnimationStatus.completed || !mounted) return;
+            setState(() {
+              _dragExtent = 0;
+              _backgroundDirection = 0;
+            });
+          });
+  }
+
+  @override
+  void dispose() {
+    _returnController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _rowWidth = constraints.maxWidth;
+        final background =
+            _backgroundDirection < 0
+                ? widget.secondaryBackground
+                : widget.background;
+
+        return ClipRect(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragStart: _handleDragStart,
+            onHorizontalDragUpdate: _handleDragUpdate,
+            onHorizontalDragEnd: _handleDragEnd,
+            onHorizontalDragCancel: _animateBack,
+            child: Stack(
+              children: [
+                if (_backgroundDirection != 0)
+                  Positioned.fill(child: IgnorePointer(child: background)),
+                Transform.translate(
+                  key: ValueKey('server-swipe-content-${widget.server.id}'),
+                  offset: Offset(_dragExtent, 0),
+                  child: widget.child,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleDragStart(DragStartDetails details) {
+    if (_handlingAction) return;
+    _returnController.stop();
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    if (_handlingAction || _rowWidth <= 0) return;
+
+    final maximumExtent = _rowWidth * _maximumDragFraction;
+    final nextExtent =
+        (_dragExtent + details.delta.dx)
+            .clamp(-maximumExtent, maximumExtent)
+            .toDouble();
+
+    setState(() {
+      _dragExtent = nextExtent;
+      if (nextExtent != 0) _backgroundDirection = nextExtent.sign;
+    });
+  }
+
+  Future<void> _handleDragEnd(DragEndDetails details) async {
+    if (_handlingAction || _rowWidth <= 0) return;
+
+    if (_dragExtent.abs() < _rowWidth * _triggerFraction) {
+      _animateBack();
+      return;
+    }
+
+    _handlingAction = true;
+    final swipedRight = _dragExtent > 0;
+    _animateBack();
+
+    if (swipedRight) {
+      await widget.onToggle(!widget.server.enable);
+    } else if (await widget.onConfirmDelete()) {
+      await widget.onDelete();
+    }
+
+    if (!mounted) return;
+    _handlingAction = false;
+  }
+
+  void _animateBack() {
+    if (!mounted) return;
+    _returnController.stop();
+    _returnController.reset();
+    _returnAnimation = Tween<double>(begin: _dragExtent, end: 0).animate(
+      CurvedAnimation(parent: _returnController, curve: Curves.easeOutBack),
+    );
+    _returnController.forward();
   }
 }

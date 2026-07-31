@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:astral/core/models/server_mod.dart';
 import 'package:astral/features/servers/widgets/server_list_tile.dart';
 import 'package:flutter/material.dart';
@@ -114,11 +116,58 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
+    final swipe = find.byKey(const ValueKey('server-swipe-42'));
+    final gesture = await tester.startGesture(tester.getCenter(swipe));
+    await gesture.moveBy(const Offset(20, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(400, 0));
+    await tester.pump();
+
+    final translatedContent = tester.widget<Transform>(
+      find.byKey(const ValueKey('server-swipe-content-42')),
+    );
+    expect(translatedContent.transform.storage[12], closeTo(96, 0.1));
+
+    await gesture.up();
     await tester.pumpAndSettle();
 
     expect(toggledValue, isFalse);
     expect(find.text('Primary server'), findsOneWidget);
+  });
+
+  testWidgets('row springs back while delete confirmation is pending', (
+    tester,
+  ) async {
+    final confirmation = Completer<bool>();
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (_) async {},
+          onConfirmDelete: () => confirmation.future,
+          onDelete: () async {},
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final translatedContent = tester.widget<Transform>(
+      find.byKey(const ValueKey('server-swipe-content-42')),
+    );
+    expect(translatedContent.transform.storage[12], closeTo(0, 0.1));
+    expect(confirmation.isCompleted, isFalse);
+
+    confirmation.complete(false);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('left swipe requires confirmation before deletion', (
@@ -145,7 +194,10 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(-400, 0));
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
     await tester.pumpAndSettle();
 
     expect(confirmationCount, 1);
@@ -181,7 +233,10 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(-400, 0));
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
     await tester.pumpAndSettle();
 
     expect(deleteCount, 1);
