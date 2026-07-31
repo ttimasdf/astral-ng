@@ -93,7 +93,7 @@ duplicate LICENSE symlink/reference that is removed.
 
 ## [easytier-git-release-dependency]: Pin EasyTier dependency to a git release tag
 
-- **Scope**: `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/ci.yml`, `flake.nix`, `.gitmodules`, `rust/easytier`
+- **Scope**: `rust/Cargo.toml`, `rust/build.rs`, `.github/workflows/build-and-release.yml`, `flake.nix`, `.gitmodules`, `rust/easytier`
 - **Type**: override
 - **Status**: active
 - **Introduced**: `a8e300d`, `30e2353`, `5f664df`, `5fa9f23`; updated during upstream sync to `v2.8.7` and reviewed against upstream `v2.9.9`
@@ -123,7 +123,7 @@ EasyTier dependency source/cache paths for `third_party`. The Nix shell keeps
 - `.gitmodules`: removed EasyTier submodule entry
 - `rust/Cargo.toml`: pin EasyTier git dependency to tag `v2.6.4`; upstream `v2.9.9` uses the same git source without a tag
 - `rust/build.rs`: Npcap search limited to `NPCAP_SDK_LIB` and `third_party/npcap-sdk/Lib/x64`
-- `.github/workflows/ci.yml`: Windows CI installs Npcap SDK and exports `NPCAP_SDK_LIB`
+- `.github/workflows/build-and-release.yml`: Windows CI installs Npcap SDK and exports `NPCAP_SDK_LIB`
 - `flake.nix`: retain `clang` and `libclang` in `buildInputs`
 - `rust/Cargo.lock`: regenerated when the EasyTier source/tag changes
 
@@ -170,16 +170,26 @@ Deletes the upstream collection of per-platform workflow files
 (`android-build-*.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`,
 `windows-build*.yml`, `build-all-platforms.yaml`, `dart.yml`, plus custom
 `install_rust.sh/ps1` and `install_flutter.sh/ps1` scripts) and replaces them
-with a single tiered `.github/workflows/ci.yml`. Pull requests analyze the
+with a single tiered workflow, now located at
+`.github/workflows/build-and-release.yml`. Pull requests analyze the
 application's Dart sources and build Linux; pushes to `main` additionally
 validate Windows and an unsigned multi-ABI Android debug build. Applying the
-`full-ci` label opts a pull request into those platform builds. Superseded
-non-release runs are cancelled, while tag builds are never cancelled.
+`full-ci` label opts a pull request into those platform builds and uploads
+Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for
+testing. Full-CI artifacts use exact output paths and expire after seven days.
+Each package is uploaded as a direct single-file artifact without an additional
+ZIP wrapper. Snapshot and release filenames end with the resolved
+`ASSET_VERSION`, so canary files include their CI build identity and production
+files use the `vX.Y.Z` suffix.
+Superseded non-release runs are cancelled, while tag builds are never
+cancelled.
 
-Only `v*` tag pushes sign, package, and upload release artifacts (linux x64,
-windows x64/setup, android arm64/armv7/universal), then extract release notes
-from `CHANGELOG.md` and publish the GitHub release. Android split APKs are built
-in one invocation. `flutter-actions/setup-flutter@v4` and
+Only `v*` tag pushes access release signing secrets and publish release
+artifacts (linux x64, windows x64/setup, android arm64/armv7/universal), then
+extract release notes from `CHANGELOG.md` and publish the GitHub release.
+Workflow tokens otherwise default to read-only repository contents, and
+checkout credentials are not persisted in the worktree. Android split APKs are
+built in one invocation. `flutter-actions/setup-flutter@v4` and
 `Swatinem/rust-cache` retain SDK, pub, and Rust caching. Linux arm64 remains
 dropped because Flutter does not support it. The Windows installer metadata
 (app name, publisher) is updated for the fork. Windows-specific fixes: install
@@ -190,8 +200,8 @@ mkdir -p` with PowerShell `New-Item` on Windows runners.
 
 ### Files affected
 
-- `.github/workflows/ci.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, tag-only packaging and release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
-- `.github/workflows/release.yml`: added then removed (folded into ci.yml)
+- `.github/workflows/build-and-release.yml`: tiered PR/main/tag/manual validation, stale-run cancellation, direct version-suffixed snapshot and release files, short-lived full-CI test artifacts, read-only default permissions, non-persisted checkout credentials, and tag-only production signing/release; Windows downloads the Npcap SDK from a pinned, SHA-256-verified Wayback Machine capture
+- `.github/workflows/release.yml`: added then removed (folded into the unified workflow, now `build-and-release.yml`)
 - `.github/workflows/android-build-{arm64,armv7,universal}.yaml`, `linux-build.yaml`, `linux-arm-build.yaml`, `windows-build.yml`, `windows-build-Setup.yml`, `build-all-platforms.yaml`, `dart.yml`, `Stop All Workflows.yaml`: deleted
 - `scripts/install_flutter.{sh,ps1}`, `scripts/install_rust.{sh,ps1}`: deleted
 
@@ -344,9 +354,9 @@ and stopped around that state only. Fixes upstream issue #192.
 
 ---
 
-## [docs-readme-changelog-gitignore]: Replace README, add CHANGELOG, comprehensive .gitignore, and CLAUDE.md
+## [docs-readme-changelog-gitignore]: Maintain fork documentation and changelog standards
 
-- **Scope**: `README.md`, `README_en.md`, `CHANGELOG.md`, `.gitignore`, `CLAUDE.md`
+- **Scope**: `README.md`, `README_en.md`, `CHANGELOG.md`, `docs/CHANGELOG_GUIDELINES.md`, `AGENTS.md`, `.gitignore`, `CLAUDE.md`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: `a7aa44c`, `6cd9a8f`, `10543e2`, `73f0551`, `c68cbd0`
@@ -356,18 +366,28 @@ and stopped around that state only. Fixes upstream issue #192.
 
 Replaces the upstream README with fork-specific Chinese and English READMEs
 that credit the original author (`ldoubil`) and document the fork's use cases.
-Adds a `CHANGELOG.md` (v2.7.0 → v2.8.0 entries, later expanded with full CI
-changes and upstream-merge details, and backfilled with v2.7.0–v2.7.3 entries).
-Replaces the minimal `.gitignore` with a comprehensive gitignore.io-generated
-template covering Dart, Flutter, Flatpak, IntelliJ, Android Studio, VS Code,
-direnv, and Claude Code local settings. Adds `CLAUDE.md` with fork-specific
-development guidance.
+Adds and maintains `CHANGELOG.md` as a concise record of Astral-ng release
+impact, with developer provenance kept in links and optional developer notes.
+Each release section starts with English `> **Highlight:** ...` and Chinese
+`> **版本亮点：** ...` summaries separated by a blank blockquote line; the stable
+block grammar supports localized release-manifest generation. Adds
+`docs/CHANGELOG_GUIDELINES.md` as the writing, verification, and release
+standard and references it from `AGENTS.md`. Replaces the minimal `.gitignore`
+with a comprehensive gitignore.io-generated template covering Dart, Flutter,
+Flatpak, IntelliJ, Android Studio, VS Code, direnv, and Claude Code local
+settings. Adds `CLAUDE.md` with fork-specific development guidance.
 
 ### Files affected
 
 - `README.md`: rewritten (zh) with author credit and use cases
 - `README_en.md`: new English README
-- `CHANGELOG.md`: new, with v2.7.0–v2.8.0 entries
+- `CHANGELOG.md`: Astral-ng release history and current `Unreleased` changes,
+  written for users with linked developer provenance and bilingual release
+  highlights
+- `docs/CHANGELOG_GUIDELINES.md`: changelog structure, bilingual highlight
+  grammar, evidence hierarchy, entry style, provenance, release workflow, and
+  checklist
+- `AGENTS.md`: requires changelog updates to follow the guideline
 - `.gitignore`: replaced with comprehensive template
 - `CLAUDE.md`: new, fork dev guidance
 
@@ -426,7 +446,7 @@ encryption setting.
 
 ## [version-source]: Establish Astral-ng-owned release and canary versioning
 
-- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/ci.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
+- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `version-source`
@@ -440,9 +460,62 @@ Makes `VERSION` the only human-edited source for Astral-ng's application version
 
 - `VERSION`, `scripts/version.py`: cross-platform version source management, derivation, bumping, and mirror validation
 - `pubspec.yaml`: Flutter-required mirror of the source version
-- `.github/workflows/ci.yml`: production-tag validation and version-derived build/package metadata
+- `.github/workflows/build-and-release.yml`: production-tag validation and version-derived build/package metadata
 - `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
 - `docs/VERSIONING.md`: maintainer workflow and versioning contract
+
+---
+
+## [main-ci-artifacts]: Publish test artifacts from main-branch builds
+
+- **Scope**: `.github/workflows/build-and-release.yml`
+- **Type**: config
+- **Status**: active
+- **Introduced**: `main-ci-artifacts`
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Renames the unified workflow from `CI` / `ci.yml` to `Build and Release` /
+`build-and-release.yml`. Pushes to `main` now package and retain the same Linux,
+Windows, and Android test outputs as pull requests labeled `full-ci`. Linux and
+Windows use one event-independent upload path because those packages are not
+code-signed. Android debug builds use one short-lived test upload, while
+production keystore setup and signed release APKs remain restricted to `v*` tag
+pushes. Packaged files are uploaded directly without an extra ZIP wrapper, use
+the same naming scheme for every event, and end with `ASSET_VERSION`, identifying
+the exact canary or production build.
+
+### Files affected
+
+- `.github/workflows/build-and-release.yml`: renamed workflow; package and directly upload main-branch test builds with version-suffixed filenames; preserve tag-only Android signing and release publication
+
+---
+
+## [android-vpn-revocation]: Synchronize system VPN revocation with connection state
+
+- **Scope**: `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/TauriVpnService.kt`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`, `lib/core/services/vpn_manager.dart`
+- **Type**: patch
+- **Status**: active
+- **Introduced**: android-vpn-revocation
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Android permits only one active VPN. When another VPN takes ownership, the
+system invokes `VpnService.onRevoke()`. Astral-ng handles that callback on the
+main thread, closes and stops its VPN service, emits one distinct `revoked`
+event even if the TUN is already closed, and disconnects the EasyTier backend
+and UI state. Application-requested stops and route refreshes remain local and
+do not trigger this disconnect path. Route refreshes establish the replacement
+TUN before closing the previous descriptor, and the service does not restart
+without the packet-processing backend after process death.
+
+### Files affected
+
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/TauriVpnService.kt`: serialize system revocation onto the main thread, deduplicate revocation events independently of TUN state, perform seamless TUN replacement, and use a non-sticky lifecycle
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`: stop the service through Android lifecycle APIs, refresh routes without a static service reference, and clear the Flutter callback when the event channel detaches
+- `lib/core/services/vpn_manager.dart`: subscribe to revocation events and disconnect the active connection
 
 ---
 
@@ -467,11 +540,13 @@ successful full-platform build.
 ### Files affected
 
 - `rust-toolchain.toml`, `.fvmrc`: canonical exact Rust and Flutter SDK versions
-- `.github/actions/setup-toolchains/action.yml`, `.github/workflows/ci.yml`: install the root pins for every build job and pin cargo-ndk
+- `.github/actions/setup-toolchains/action.yml`, `.github/workflows/build-and-release.yml`: install the root pins for every build job and pin cargo-ndk
 - `.github/ci-versions.yml`: remove the unused upstream CI-only version reference
 - `flake.nix`: build and develop with the pinned Rust toolchain and reject a Flutter/nixpkgs mismatch
 - `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains and use the active project override
 - `.gitignore`: ignore FVM's generated project directory
 - `CLAUDE.md`, `docs/TOOLCHAINS.md`: document local usage, source ownership, and upgrade procedure
+
+---
 
 <!-- Add new entries below using the format described in AGENTS.md. -->

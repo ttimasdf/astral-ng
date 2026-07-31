@@ -1,4 +1,4 @@
-name: CI
+name: Build and Release
 
 on:
   push:
@@ -16,6 +16,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
+permissions:
+  contents: read
+
 jobs:
   linux:
     if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
@@ -25,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          persist-credentials: false
 
       - name: Resolve build version
         run: |
@@ -62,23 +66,32 @@ jobs:
         run: flutter build linux --release --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
 
       - name: Install Linux packaging dependencies
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: >-
+          (github.event_name == 'push' &&
+           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
         run: |
           sudo apt-get install -y patchelf ruby-dev
           sudo gem install --no-document fpm
 
       - name: Package
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: >-
+          (github.event_name == 'push' &&
+           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
         run: |
           set -e
           mkdir -p release
-          BUNDLE=$GITHUB_WORKSPACE/build/linux/x64/release/bundle
+
+          BUNDLE="$GITHUB_WORKSPACE/build/linux/x64/release/bundle"
           pushd "$BUNDLE"
           patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
-          tar -czf $GITHUB_WORKSPACE/release/astral-linux-x64.tar.gz *
+          tar -czf "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.tar.gz" ./*
           popd
 
-          STAGING=$GITHUB_WORKSPACE/build/linux/pkgroot
+          STAGING="$GITHUB_WORKSPACE/build/linux/pkgroot"
           rm -rf "$STAGING"
           mkdir -p "$STAGING/opt/astral"
           cp -a "$BUNDLE/." "$STAGING/opt/astral/"
@@ -86,19 +99,50 @@ jobs:
           install -Dm644 linux/packaging/astral.desktop "$STAGING/usr/share/applications/astral.desktop"
           install -Dm644 assets/logo.png "$STAGING/usr/share/pixmaps/astral.png"
 
-          fpm -s dir -t deb -n astral -v 1.0.0 -a amd64 -C "$STAGING" .
-          mv *.deb $GITHUB_WORKSPACE/release/astral-linux-x64.deb
+          fpm -s dir -t deb -n astral -v "$PACKAGE_VERSION" -a amd64 -C "$STAGING" .
+          mv -- ./*.deb "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.deb"
 
-          fpm -s dir -t rpm -n astral -v 1.0.0 -a x86_64 -C "$STAGING" .
-          mv *.rpm $GITHUB_WORKSPACE/release/astral-linux-x64.rpm
+          fpm -s dir -t rpm -n astral -v "$PACKAGE_VERSION" -a x86_64 -C "$STAGING" .
+          mv -- ./*.rpm "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.rpm"
 
-      - name: Upload artifacts
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-artifact@v4
+      - name: Upload Linux tarball
+        if: >-
+          (github.event_name == 'push' &&
+           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
+        uses: actions/upload-artifact@v7
         with:
-          name: astral-linux-x64
-          path: release/*
-          retention-days: 30
+          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+
+      - name: Upload Linux DEB
+        if: >-
+          (github.event_name == 'push' &&
+           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
+        uses: actions/upload-artifact@v7
+        with:
+          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.deb
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+
+      - name: Upload Linux RPM
+        if: >-
+          (github.event_name == 'push' &&
+           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
+        uses: actions/upload-artifact@v7
+        with:
+          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.rpm
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
 
   windows:
     if: >-
@@ -111,6 +155,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          persist-credentials: false
 
       - name: Resolve build version
         run: |
@@ -127,7 +172,6 @@ jobs:
           workspaces: "rust -> target"
 
       - name: Install Inno Setup
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: choco install innosetup -y
 
       - name: Install Protobuf compiler
@@ -174,26 +218,15 @@ jobs:
         run: flutter build windows --release --build-name "$env:FLUTTER_BUILD_NAME" --build-number "$env:FLUTTER_BUILD_NUMBER"
 
       - name: Copy DLLs
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
 
       - name: Package zip
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           New-Item -ItemType Directory -Path "release" -Force
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64.zip" -Force
-
-      - name: Upload zip artifact
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-artifact@v4
-        with:
-          name: astral-windows-x64-zip
-          path: release/astral-windows-x64.zip
-          retention-days: 30
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64-$($env:ASSET_VERSION).zip" -Force
 
       - name: Create Inno Setup script
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           $version = (Select-String -Path "pubspec.yaml" -Pattern "version: (.*)").Matches[0].Groups[1].Value
           @"
@@ -240,19 +273,26 @@ jobs:
           curl.exe -fL -o D:\ChineseSimplified.isl https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/ChineseSimplified.isl
 
       - name: Build installer
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           New-Item -ItemType Directory -Path "release" -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
-          Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\" -Force
+          Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\astral-windows-x64-setup-$($env:ASSET_VERSION).exe" -Force
 
-      - name: Upload setup artifact
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows ZIP
+        uses: actions/upload-artifact@v7
         with:
-          name: astral-windows-x64-setup
-          path: release/astral-windows-x64-setup.exe
-          retention-days: 30
+          path: release/astral-windows-x64-${{ env.ASSET_VERSION }}.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v7
+        with:
+          path: release/astral-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
+          archive: false
+          if-no-files-found: error
+          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
 
   android:
     if: >-
@@ -267,6 +307,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          persist-credentials: false
 
       - name: Resolve build version
         run: |
@@ -314,48 +355,70 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Validate Android build
+      - name: Build snapshot APK
         if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
-        run: flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+        run: |
+          flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+          mv build/app/outputs/flutter-apk/app-debug.apk "build/app/outputs/flutter-apk/astral-android-debug-$ASSET_VERSION.apk"
 
-      - name: Setup signing
+      - name: Upload snapshot APK
+        if: >-
+          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+          (github.event_name == 'pull_request' &&
+           contains(github.event.pull_request.labels.*.name, 'full-ci'))
+        uses: actions/upload-artifact@v7
+        with:
+          path: build/app/outputs/flutter-apk/astral-android-debug-${{ env.ASSET_VERSION }}.apk
+          archive: false
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Setup Android release signing
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
-          echo "storeFile=upload-keystore.jks" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}"
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+          } >> android/key.properties
 
-      - name: Build split APKs
+      - name: Build signed release APKs
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
           flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
-          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-arm64.apk"
-          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-armv7.apk"
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/astral-android-arm64-$ASSET_VERSION.apk"
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/astral-android-armv7-$ASSET_VERSION.apk"
 
-      - name: Upload split APK artifacts
+          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/astral-android-universal-$ASSET_VERSION.apk"
+
+      - name: Upload arm64 release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: astral-android-split
-          path: |
-            build/app/outputs/flutter-apk/astral-*-android-arm64.apk
-            build/app/outputs/flutter-apk/astral-*-android-armv7.apk
+          path: build/app/outputs/flutter-apk/astral-android-arm64-${{ env.ASSET_VERSION }}.apk
+          archive: false
+          if-no-files-found: error
           retention-days: 30
 
-      - name: Build universal APK
+      - name: Upload armv7 release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        run: |
-          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
-          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/astral-$ASSET_VERSION-android-universal.apk"
-
-      - name: Upload universal APK artifact
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: astral-android-universal
-          path: build/app/outputs/flutter-apk/astral-*-android-universal.apk
+          path: build/app/outputs/flutter-apk/astral-android-armv7-${{ env.ASSET_VERSION }}.apk
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload universal release APK
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v7
+        with:
+          path: build/app/outputs/flutter-apk/astral-android-universal-${{ env.ASSET_VERSION }}.apk
+          archive: false
+          if-no-files-found: error
           retention-days: 30
 
   create-release:
@@ -367,6 +430,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Resolve production version
         run: |
@@ -386,19 +451,23 @@ jobs:
             $0 ~ "^## " ver { in_section = 1; next }
             in_section { print }
           ' CHANGELOG.md | sed '/^$/d')
-          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Validate changelog entry is present
+        env:
+          CHANGELOG: ${{ steps.extract-changelog.outputs.changelog }}
         run: |
-          if [ -z "${{ steps.extract-changelog.outputs.changelog }}" ]; then
+          if [ -z "$CHANGELOG" ]; then
             echo "ERROR: No changelog entry found for $GITHUB_REF_NAME"
             exit 1
           fi
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
