@@ -69,6 +69,9 @@ class ServerConnectionManager {
     final room = services.roomState.selectedRoom.value;
     if (room == null) return false;
 
+    services.connectionState.activeMissionPreferences.value = null;
+    services.connectionState.activeTrafficEncryption.value = null;
+
     final attemptId = const Uuid().v4().split('-').first.toUpperCase();
     _connectionAttemptId = attemptId;
     return DiagnosticContext.run(
@@ -292,6 +295,8 @@ class ServerConnectionManager {
       _connectionCompleter!.complete(false);
     }
     _connectionCompleter = null;
+    services.connectionState.activeMissionPreferences.value = null;
+    services.connectionState.activeTrafficEncryption.value = null;
     return false;
   }
 
@@ -326,6 +331,8 @@ class ServerConnectionManager {
     batch(() {
       services.connectionState.connectionState.value = CoState.idle;
       services.connectionState.netStatus.value = null;
+      services.connectionState.activeMissionPreferences.value = null;
+      services.connectionState.activeTrafficEncryption.value = null;
       services.serverStatusState.setActiveServers({});
     });
   }
@@ -350,6 +357,9 @@ class ServerConnectionManager {
       }
     }
 
+    final missionPreferences = services.missionControl
+        .resolveWithRecommendations(room, roomConfig);
+
     // 使用Builder构建配置
     final config =
         ServerConfigBuilder(services)
@@ -359,8 +369,14 @@ class ServerConnectionManager {
             .withServers(room, services.serverState.servers.value)
             .withListeners(services.playerState.listenList.value)
             .withCidrs(services.vpnState.customVpn.value)
-            .withFlags()
+            .withFlags(missionPreferences: missionPreferences)
             .build();
+
+    services.connectionState.activeMissionPreferences.value =
+        missionPreferences;
+    services.connectionState.activeTrafficEncryption.value =
+        roomConfig?.enableEncryption ??
+        services.networkConfigState.enableEncryption.value;
 
     // 调用Rust API创建服务器
     await createServer(

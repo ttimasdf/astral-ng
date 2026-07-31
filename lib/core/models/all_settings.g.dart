@@ -83,51 +83,56 @@ const AllSettingsSchema = CollectionSchema(
       name: r'maxRetryCount',
       type: IsarType.long,
     ),
-    r'playerName': PropertySchema(
+    r'missionControlOverridesJson': PropertySchema(
       id: 14,
+      name: r'missionControlOverridesJson',
+      type: IsarType.string,
+    ),
+    r'playerName': PropertySchema(
+      id: 15,
       name: r'playerName',
       type: IsarType.string,
     ),
     r'reduceAnimationUpdates': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'reduceAnimationUpdates',
       type: IsarType.bool,
     ),
-    r'room': PropertySchema(id: 16, name: r'room', type: IsarType.long),
+    r'room': PropertySchema(id: 17, name: r'room', type: IsarType.long),
     r'serverSortField': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'serverSortField',
       type: IsarType.string,
     ),
     r'settingsSchemaVersion': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'settingsSchemaVersion',
       type: IsarType.long,
     ),
     r'sortOption': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'sortOption',
       type: IsarType.long,
     ),
     r'sortOrder': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'sortOrder',
       type: IsarType.long,
     ),
-    r'startup': PropertySchema(id: 21, name: r'startup', type: IsarType.bool),
+    r'startup': PropertySchema(id: 22, name: r'startup', type: IsarType.bool),
     r'startupAutoConnect': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'startupAutoConnect',
       type: IsarType.bool,
     ),
     r'startupMinimize': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'startupMinimize',
       type: IsarType.bool,
     ),
-    r'userId': PropertySchema(id: 24, name: r'userId', type: IsarType.string),
+    r'userId': PropertySchema(id: 25, name: r'userId', type: IsarType.string),
     r'userListSimple': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'userListSimple',
       type: IsarType.bool,
     ),
@@ -180,6 +185,7 @@ int _allSettingsEstimateSize(
       }
     }
   }
+  bytesCount += 3 + object.missionControlOverridesJson.length * 3;
   {
     final value = object.playerName;
     if (value != null) {
@@ -216,18 +222,19 @@ void _allSettingsSerialize(
   writer.writeString(offsets[11], object.latestVersion);
   writer.writeStringList(offsets[12], object.listenList);
   writer.writeLong(offsets[13], object.maxRetryCount);
-  writer.writeString(offsets[14], object.playerName);
-  writer.writeBool(offsets[15], object.reduceAnimationUpdates);
-  writer.writeLong(offsets[16], object.room);
-  writer.writeString(offsets[17], object.serverSortField);
-  writer.writeLong(offsets[18], object.settingsSchemaVersion);
-  writer.writeLong(offsets[19], object.sortOption);
-  writer.writeLong(offsets[20], object.sortOrder);
-  writer.writeBool(offsets[21], object.startup);
-  writer.writeBool(offsets[22], object.startupAutoConnect);
-  writer.writeBool(offsets[23], object.startupMinimize);
-  writer.writeString(offsets[24], object.userId);
-  writer.writeBool(offsets[25], object.userListSimple);
+  writer.writeString(offsets[14], object.missionControlOverridesJson);
+  writer.writeString(offsets[15], object.playerName);
+  writer.writeBool(offsets[16], object.reduceAnimationUpdates);
+  writer.writeLong(offsets[17], object.room);
+  writer.writeString(offsets[18], object.serverSortField);
+  writer.writeLong(offsets[19], object.settingsSchemaVersion);
+  writer.writeLong(offsets[20], object.sortOption);
+  writer.writeLong(offsets[21], object.sortOrder);
+  writer.writeBool(offsets[22], object.startup);
+  writer.writeBool(offsets[23], object.startupAutoConnect);
+  writer.writeBool(offsets[24], object.startupMinimize);
+  writer.writeString(offsets[25], object.userId);
+  writer.writeBool(offsets[26], object.userListSimple);
 }
 
 AllSettings _allSettingsDeserialize(
@@ -252,18 +259,19 @@ AllSettings _allSettingsDeserialize(
   object.latestVersion = reader.readStringOrNull(offsets[11]);
   object.listenList = reader.readStringList(offsets[12]);
   object.maxRetryCount = reader.readLong(offsets[13]);
-  object.playerName = reader.readStringOrNull(offsets[14]);
-  object.reduceAnimationUpdates = reader.readBool(offsets[15]);
-  object.room = reader.readLongOrNull(offsets[16]);
-  object.serverSortField = reader.readString(offsets[17]);
-  object.settingsSchemaVersion = reader.readLong(offsets[18]);
-  object.sortOption = reader.readLong(offsets[19]);
-  object.sortOrder = reader.readLong(offsets[20]);
-  object.startup = reader.readBool(offsets[21]);
-  object.startupAutoConnect = reader.readBool(offsets[22]);
-  object.startupMinimize = reader.readBool(offsets[23]);
-  object.userId = reader.readStringOrNull(offsets[24]);
-  object.userListSimple = reader.readBool(offsets[25]);
+  object.missionControlOverridesJson = reader.readString(offsets[14]);
+  object.playerName = reader.readStringOrNull(offsets[15]);
+  object.reduceAnimationUpdates = reader.readBool(offsets[16]);
+  object.room = reader.readLongOrNull(offsets[17]);
+  object.serverSortField = reader.readString(offsets[18]);
+  object.settingsSchemaVersion = reader.readLong(offsets[19]);
+  object.sortOption = reader.readLong(offsets[20]);
+  object.sortOrder = reader.readLong(offsets[21]);
+  object.startup = reader.readBool(offsets[22]);
+  object.startupAutoConnect = reader.readBool(offsets[23]);
+  object.startupMinimize = reader.readBool(offsets[24]);
+  object.userId = reader.readStringOrNull(offsets[25]);
+  object.userListSimple = reader.readBool(offsets[26]);
   return object;
 }
 
@@ -303,28 +311,30 @@ P _allSettingsDeserializeProp<P>(
     case 13:
       return (reader.readLong(offset)) as P;
     case 14:
-      return (reader.readStringOrNull(offset)) as P;
-    case 15:
-      return (reader.readBool(offset)) as P;
-    case 16:
-      return (reader.readLongOrNull(offset)) as P;
-    case 17:
       return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readBool(offset)) as P;
+    case 17:
+      return (reader.readLongOrNull(offset)) as P;
     case 18:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 19:
       return (reader.readLong(offset)) as P;
     case 20:
       return (reader.readLong(offset)) as P;
     case 21:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 22:
       return (reader.readBool(offset)) as P;
     case 23:
       return (reader.readBool(offset)) as P;
     case 24:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 25:
+      return (reader.readStringOrNull(offset)) as P;
+    case 26:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1386,6 +1396,168 @@ extension AllSettingsQueryFilter
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'missionControlOverridesJson',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'missionControlOverridesJson',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'missionControlOverridesJson',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'missionControlOverridesJson',
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
+  missionControlOverridesJsonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          property: r'missionControlOverridesJson',
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
   playerNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2309,6 +2481,20 @@ extension AllSettingsQuerySortBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortByMissionControlOverridesJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  sortByMissionControlOverridesJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> sortByPlayerName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'playerName', Sort.asc);
@@ -2635,6 +2821,20 @@ extension AllSettingsQuerySortThenBy
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenByMissionControlOverridesJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
+  thenByMissionControlOverridesJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'missionControlOverridesJson', Sort.desc);
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> thenByPlayerName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'playerName', Sort.asc);
@@ -2889,6 +3089,16 @@ extension AllSettingsQueryWhereDistinct
     });
   }
 
+  QueryBuilder<AllSettings, AllSettings, QDistinct>
+  distinctByMissionControlOverridesJson({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(
+        r'missionControlOverridesJson',
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
   QueryBuilder<AllSettings, AllSettings, QDistinct> distinctByPlayerName({
     bool caseSensitive = true,
   }) {
@@ -3071,6 +3281,13 @@ extension AllSettingsQueryProperty
   QueryBuilder<AllSettings, int, QQueryOperations> maxRetryCountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'maxRetryCount');
+    });
+  }
+
+  QueryBuilder<AllSettings, String, QQueryOperations>
+  missionControlOverridesJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'missionControlOverridesJson');
     });
   }
 
