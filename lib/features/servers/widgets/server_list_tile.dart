@@ -27,8 +27,8 @@ class ServerListTile extends StatelessWidget {
     final card = Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        onTap: useMobileActions ? onEdit : null,
-        horizontalTitleGap: 4,
+        onTap: onEdit,
+        horizontalTitleGap: 0,
         leading: Container(
           key: ValueKey('server-state-indicator-${server.id}'),
           width: 4,
@@ -99,68 +99,27 @@ class ServerListTile extends StatelessWidget {
   }
 
   Widget _buildDesktopActions(ColorScheme colorScheme) {
-    final isBlocked = BlockedServers.isBlocked(server.url);
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Transform.scale(
-          scale: 0.8,
-          child: Switch(
-            value: server.enable,
-            onChanged: (value) {
-              onToggle(value);
-            },
+        IconButton(
+          tooltip: server.enable ? '停用' : '启用',
+          onPressed: () {
+            onToggle(!server.enable);
+          },
+          icon: Icon(
+            server.enable
+                ? Icons.toggle_on_outlined
+                : Icons.toggle_off_outlined,
+            color: server.enable ? colorScheme.primary : colorScheme.outline,
           ),
         ),
-        const SizedBox(width: 4),
-        PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'edit') {
-              onEdit();
-            } else if (value == 'delete') {
-              await _deleteIfConfirmed();
-            }
+        IconButton(
+          tooltip: '删除',
+          onPressed: () {
+            _deleteIfConfirmed();
           },
-          itemBuilder:
-              (context) => [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.edit_outlined,
-                        size: 18,
-                        color:
-                            isBlocked
-                                ? colorScheme.outline
-                                : colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '编辑',
-                        style: TextStyle(
-                          color: isBlocked ? colorScheme.outline : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.delete_outline,
-                        size: 18,
-                        color: colorScheme.error,
-                      ),
-                      const SizedBox(width: 12),
-                      Text('删除', style: TextStyle(color: colorScheme.error)),
-                    ],
-                  ),
-                ),
-              ],
+          icon: Icon(Icons.delete_outline, color: colorScheme.error),
         ),
       ],
     );

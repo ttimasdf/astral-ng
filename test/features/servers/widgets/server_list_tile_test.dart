@@ -39,27 +39,55 @@ void main() {
 
     expect(find.byType(Switch), findsNothing);
     expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byType(IconButton), findsNothing);
 
     await tester.tap(find.text('Primary server'));
     expect(editCount, 1);
   });
 
-  testWidgets('desktop row keeps switch and overflow actions', (tester) async {
+  testWidgets('desktop row uses direct toggle and delete icon actions', (
+    tester,
+  ) async {
+    var editCount = 0;
+    bool? toggledValue;
+    var confirmationCount = 0;
+    var deleteCount = 0;
+
     await tester.pumpWidget(
       _testApp(
         ServerListTile(
           server: server,
           useMobileActions: false,
-          onEdit: () {},
-          onToggle: (_) async {},
-          onConfirmDelete: () async => false,
-          onDelete: () async {},
+          onEdit: () {
+            editCount++;
+          },
+          onToggle: (value) async {
+            toggledValue = value;
+          },
+          onConfirmDelete: () async {
+            confirmationCount++;
+            return true;
+          },
+          onDelete: () async {
+            deleteCount++;
+          },
         ),
       ),
     );
 
-    expect(find.byType(Switch), findsOneWidget);
-    expect(find.byType(PopupMenuButton<String>), findsOneWidget);
+    expect(find.byType(Switch), findsNothing);
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byType(IconButton), findsNWidgets(2));
+
+    await tester.tap(find.text('Primary server'));
+    await tester.tap(find.byIcon(Icons.toggle_on_outlined));
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pump();
+
+    expect(editCount, 1);
+    expect(toggledValue, isFalse);
+    expect(confirmationCount, 1);
+    expect(deleteCount, 1);
   });
 
   testWidgets('indicator and text spacing reflect enabled state', (
@@ -84,7 +112,7 @@ void main() {
     final enabledIndicator = tester.widget<Container>(
       find.byKey(const ValueKey('server-state-indicator-42')),
     );
-    expect(tile.horizontalTitleGap, 4);
+    expect(tile.horizontalTitleGap, 0);
     expect((enabledIndicator.decoration! as BoxDecoration).color, Colors.green);
 
     server.enable = false;

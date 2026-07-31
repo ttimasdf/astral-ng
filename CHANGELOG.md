@@ -33,6 +33,8 @@ baseline.
   tap a row to edit, swipe right to enable or disable it, swipe left to request
   confirmed deletion, and identify enabled or disabled rows by their green or
   red indicator. ([#11])
+- Replaced the desktop server switch and overflow menu with direct toggle and
+  delete icon buttons; clicking the row opens editing. ([#11])
 - Added version suffixes to downloadable CI snapshots and release assets, and
   made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
