@@ -57,7 +57,7 @@ class VpnManager {
     _handlingSystemRevocation = true;
 
     try {
-      debugPrint('Android revoked the active VPN; disconnecting Astral-ng.');
+      debugPrint('Android revoked the active VPN; disconnecting AstralNG.');
       await ServiceManager().connection.disconnect();
     } finally {
       _handlingSystemRevocation = false;

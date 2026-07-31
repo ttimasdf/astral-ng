@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Astral
-Comment=Astral desktop client
+Name=AstralNG
+Comment=AstralNG desktop client
 Exec=/usr/bin/astral %u
 TryExec=/usr/bin/astral
 Icon=astral

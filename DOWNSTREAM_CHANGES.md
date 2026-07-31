@@ -10,7 +10,7 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ---
 
-## [rebrand-astral-ng]: Rebrand GUI from Astral to Astral-ng
+## [rebrand-astral-ng]: Rebrand GUI from Astral to AstralNG
 
 - **Scope**: `lib/core/states/`, `lib/features/settings/`, `lib/shared/`, `ios/`, `windows/`, `android/`, `assets/`, `scripts/`
 - **Type**: override
@@ -20,22 +20,25 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ### What this changes
 
-Replaces all user-facing "Astral" branding with "Astral-ng" across the GUI:
-app name in state management, about page title, Android notification channel
-and titles, Windows window title and tray tooltip, iOS display name, and room
-sharing messages. Also ships a new app icon set (squircle design with baked
-drop shadow on macOS, transparent ICO on Windows, plain square on iOS/Android,
-maskable variants on web) plus a `scripts/generate_icons.py` generator that
-rebuilds them from `assets/icon_raw.png`.
+Replaces all user-facing "Astral" branding with "AstralNG" across the GUI:
+app name in state management, Android notification channel and titles, Windows
+window title, tray tooltip, executable metadata, and installer, iOS/macOS
+application display names, Linux desktop and AppImage metadata, Android home
+widgets and Quick Settings tile, and room sharing messages. It preserves the
+stable `pw.rabit.astralng` identifiers, executable/artifact names, and
+`astral://` deep-link scheme. The fork also ships a new app icon set (squircle
+design with baked drop shadow on macOS, transparent ICO on Windows, plain
+square on iOS/Android, maskable variants on web) plus a
+`scripts/generate_icons.py` generator that rebuilds them from
+`assets/icon_raw.png`.
 
 ### Files affected
 
-- `lib/core/states/app_settings_state.dart`, `lib/core/states/ui_state.dart`: app name string
-- `lib/core/services/notification_service.dart`: Android notification channel/titles
-- `lib/features/settings/pages/general/about_page.dart`: about page title
-- `lib/shared/utils/data/room_share_helper.dart`: room sharing message text
-- `lib/shared/widgets/common/windows_controls.dart`: window title
-- `windows/runner/main.cpp`, `ios/Runner/Info.plist`: platform display name
+- `lib/core/states/app_settings_state.dart`, `lib/core/services/notification_service.dart`, `lib/core/room/room_share_codec.dart`, `lib/shared/widgets/common/windows_controls.dart`: GUI, notification, share, and tray branding
+- `android/app/src/main/`: launcher, widget, and Quick Settings tile labels
+- `ios/Runner/Info.plist`, `macos/Runner/Configs/AppInfo.xcconfig`: Apple platform display names
+- `windows/runner/main.cpp`, `windows/runner/Runner.rc`, `.github/workflows/build-and-release.yml`: Windows window, executable metadata, and installer name
+- `linux/runner/my_application.cc`, `linux/packaging/`: Linux window, desktop, and AppImage display names
 - `assets/icon.ico`, `assets/icon_raw.png`, `assets/icon_tray.png`, `assets/logo.png`: new icons
 - `android/app/src/main/res/mipmap-*/ic_launcher.png`, `ios/Runner/Assets.xcassets/AppIcon.appiconset/*`, `macos/Runner/Assets.xcassets/AppIcon.appiconset/*`: platform icon assets
 - `scripts/generate_icons.py`: icon regeneration script

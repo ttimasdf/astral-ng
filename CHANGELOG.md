@@ -7,9 +7,9 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** Clearer rooms and more reliable connections on desktop and Android.
+> **Highlight:** AstralNG unifies the app's name across desktop and mobile.
 >
-> **版本亮点：** 房间设置更清晰，桌面端和 Android 端的连接也更可靠。
+> **版本亮点：** AstralNG 在桌面端和移动端统一使用全新名称。
 
 ### Added
 
@@ -27,6 +27,8 @@ baseline.
 
 ### Changed
 
+- Renamed the visible application, widget, notification, installer, and Quick
+  Settings tile branding to AstralNG across supported platforms.
 - Added version suffixes to downloadable CI snapshots and release assets, and
   made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode

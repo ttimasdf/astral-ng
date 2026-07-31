@@ -18,7 +18,7 @@
     <uses-feature android:name="android.software.vpn" android:required="false"/>
     
     <application
-        android:label="astral"
+        android:label="AstralNG"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
