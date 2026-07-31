@@ -1,0 +1,277 @@
+import 'dart:async';
+
+import 'package:astral/core/models/server_mod.dart';
+import 'package:astral/features/servers/widgets/server_list_tile.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  late ServerMod server;
+
+  setUp(() {
+    server = ServerMod(
+      id: 42,
+      name: 'Primary server',
+      url: 'tcp://example.com:11010',
+      enable: true,
+    );
+  });
+
+  testWidgets('mobile row hides desktop actions and opens edit on tap', (
+    tester,
+  ) async {
+    var editCount = 0;
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {
+            editCount++;
+          },
+          onToggle: (_) async {},
+          onConfirmDelete: () async => false,
+          onDelete: () async {},
+        ),
+      ),
+    );
+
+    expect(find.byType(Switch), findsNothing);
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byType(IconButton), findsNothing);
+
+    await tester.tap(find.text('Primary server'));
+    expect(editCount, 1);
+  });
+
+  testWidgets('desktop row uses direct toggle and delete icon actions', (
+    tester,
+  ) async {
+    var editCount = 0;
+    bool? toggledValue;
+    var confirmationCount = 0;
+    var deleteCount = 0;
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: false,
+          onEdit: () {
+            editCount++;
+          },
+          onToggle: (value) async {
+            toggledValue = value;
+          },
+          onConfirmDelete: () async {
+            confirmationCount++;
+            return true;
+          },
+          onDelete: () async {
+            deleteCount++;
+          },
+        ),
+      ),
+    );
+
+    expect(find.byType(Switch), findsNothing);
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.byType(IconButton), findsNWidgets(2));
+
+    await tester.tap(find.text('Primary server'));
+    await tester.tap(find.byIcon(Icons.toggle_on_outlined));
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pump();
+
+    expect(editCount, 1);
+    expect(toggledValue, isFalse);
+    expect(confirmationCount, 1);
+    expect(deleteCount, 1);
+  });
+
+  testWidgets('indicator and text spacing reflect enabled state', (
+    tester,
+  ) async {
+    Widget buildTile() {
+      return _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (_) async {},
+          onConfirmDelete: () async => false,
+          onDelete: () async {},
+        ),
+      );
+    }
+
+    await tester.pumpWidget(buildTile());
+
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    final enabledIndicator = tester.widget<Container>(
+      find.byKey(const ValueKey('server-state-indicator-42')),
+    );
+    expect(tile.horizontalTitleGap, 0);
+    expect((enabledIndicator.decoration! as BoxDecoration).color, Colors.green);
+
+    server.enable = false;
+    await tester.pumpWidget(buildTile());
+
+    final disabledIndicator = tester.widget<Container>(
+      find.byKey(const ValueKey('server-state-indicator-42')),
+    );
+    expect((disabledIndicator.decoration! as BoxDecoration).color, Colors.red);
+  });
+
+  testWidgets('right swipe toggles state without dismissing the row', (
+    tester,
+  ) async {
+    bool? toggledValue;
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (value) async {
+            toggledValue = value;
+          },
+          onConfirmDelete: () async => false,
+          onDelete: () async {},
+        ),
+      ),
+    );
+
+    final swipe = find.byKey(const ValueKey('server-swipe-42'));
+    final gesture = await tester.startGesture(tester.getCenter(swipe));
+    await gesture.moveBy(const Offset(20, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(400, 0));
+    await tester.pump();
+
+    final translatedContent = tester.widget<Transform>(
+      find.byKey(const ValueKey('server-swipe-content-42')),
+    );
+    expect(translatedContent.transform.storage[12], closeTo(96, 0.1));
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(toggledValue, isFalse);
+    expect(find.text('Primary server'), findsOneWidget);
+  });
+
+  testWidgets('row springs back while delete confirmation is pending', (
+    tester,
+  ) async {
+    final confirmation = Completer<bool>();
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (_) async {},
+          onConfirmDelete: () => confirmation.future,
+          onDelete: () async {},
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final translatedContent = tester.widget<Transform>(
+      find.byKey(const ValueKey('server-swipe-content-42')),
+    );
+    expect(translatedContent.transform.storage[12], closeTo(0, 0.1));
+    expect(confirmation.isCompleted, isFalse);
+
+    confirmation.complete(false);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('left swipe requires confirmation before deletion', (
+    tester,
+  ) async {
+    var confirmationCount = 0;
+    var deleteCount = 0;
+
+    await tester.pumpWidget(
+      _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (_) async {},
+          onConfirmDelete: () async {
+            confirmationCount++;
+            return false;
+          },
+          onDelete: () async {
+            deleteCount++;
+          },
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(confirmationCount, 1);
+    expect(deleteCount, 0);
+    expect(find.text('Primary server'), findsOneWidget);
+  });
+
+  testWidgets('left swipe deletes after confirmation is accepted', (
+    tester,
+  ) async {
+    var showServer = true;
+    var deleteCount = 0;
+
+    await tester.pumpWidget(
+      _testApp(
+        StatefulBuilder(
+          builder:
+              (context, setState) =>
+                  showServer
+                      ? ServerListTile(
+                        server: server,
+                        useMobileActions: true,
+                        onEdit: () {},
+                        onToggle: (_) async {},
+                        onConfirmDelete: () async => true,
+                        onDelete: () async {
+                          deleteCount++;
+                          setState(() => showServer = false);
+                        },
+                      )
+                      : const SizedBox.shrink(),
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('server-swipe-42')),
+      const Offset(-400, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(deleteCount, 1);
+    expect(find.text('Primary server'), findsNothing);
+  });
+}
+
+Widget _testApp(Widget child) {
+  return MaterialApp(home: Scaffold(body: SizedBox(width: 400, child: child)));
+}

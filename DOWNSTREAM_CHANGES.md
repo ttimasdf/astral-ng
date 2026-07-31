@@ -591,4 +591,33 @@ require an attached Activity.
 
 ---
 
+## [mobile-server-swipe-actions]: Optimize mobile server list gestures
+
+- **Scope**: `lib/features/servers/pages/server_page.dart`, `lib/features/servers/widgets/server_list_tile.dart`, `test/features/servers/widgets/server_list_tile_test.dart`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: mobile-server-swipe-actions
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the Android and iOS server row switch and overflow menu with direct
+mobile gestures. Tapping a row opens editing, swiping right toggles its enabled
+state, and swiping left opens a confirmation dialog before deletion. Swipe
+travel is capped to part of the row width and springs back after triggering an
+action. Mobile reordering uses a long press so horizontal actions do not compete
+with row reordering. Each row places its text directly beside a green
+enabled-state indicator or red disabled-state indicator. Desktop rows open
+editing on click and use direct toggle and delete icon buttons instead of a
+switch and overflow menu. Semantic actions keep toggle and deletion available
+to assistive technologies.
+
+### Files affected
+
+- `lib/features/servers/pages/server_page.dart`: select mobile actions by platform, route edit/toggle/delete callbacks, and use long-press mobile reordering
+- `lib/features/servers/widgets/server_list_tile.dart`: render mobile bounded spring-back swipe actions, desktop icon actions, enabled-state indicator and spacing, confirmation flow, and accessibility actions
+- `test/features/servers/widgets/server_list_tile_test.dart`: cover mobile tap/swipe behavior and maximum travel, indicator color and spacing, delete confirmation, and desktop icon actions
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->

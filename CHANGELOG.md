@@ -29,6 +29,12 @@ baseline.
 
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
+- Improved Android and iOS server management with short, spring-back gestures:
+  tap a row to edit, swipe right to enable or disable it, swipe left to request
+  confirmed deletion, and identify enabled or disabled rows by their green or
+  red indicator. ([#11])
+- Replaced the desktop server switch and overflow menu with direct toggle and
+  delete icon buttons; clicking the row opens editing. ([#11])
 - Added version suffixes to downloadable CI snapshots and release assets, and
   made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
@@ -164,6 +170,7 @@ changes. ([upstream-v2.7.3])
 [#6]: https://github.com/ttimasdf/astral-ng/pull/6
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
 [#10]: https://github.com/ttimasdf/astral-ng/pull/10
+[#11]: https://github.com/ttimasdf/astral-ng/pull/11
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
