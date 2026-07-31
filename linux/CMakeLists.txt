@@ -2,12 +2,17 @@
 cmake_minimum_required(VERSION 3.13)
 project(runner LANGUAGES CXX)
 
-# The name of the executable created for the application. Change this to change
-# the on-disk name of your application.
-set(BINARY_NAME "astral")
-# The unique GTK application identifier for this application. See:
-# https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "pw.rabit.astralng")
+# CI exports BUILD_CHANNEL before invoking Flutter. Keep local and production
+# builds on the stable identity unless canary is requested explicitly.
+if("$ENV{BUILD_CHANNEL}" STREQUAL "canary")
+  set(BINARY_NAME "astral-canary")
+  set(APPLICATION_ID "pw.rabit.astralng.canary")
+  set(APP_DISPLAY_NAME "AstralNG Canary")
+else()
+  set(BINARY_NAME "astral")
+  set(APPLICATION_ID "pw.rabit.astralng")
+  set(APP_DISPLAY_NAME "AstralNG")
+endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

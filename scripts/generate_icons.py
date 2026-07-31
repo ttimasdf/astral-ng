@@ -82,6 +82,32 @@ def save_ico(img, path, sizes):
     img.convert("RGBA").save(path, sizes=sizes)
     print(f"  {os.path.relpath(path, ROOT):62s} multi-size ICO [transparent]")
 
+def make_canary_source(img):
+    """Create a grayscale icon with gold highlights for canary packages."""
+    out = Image.new("RGBA", img.size)
+    pixels = []
+    for red, green, blue, alpha in img.getdata():
+        gray = round(0.299 * red + 0.587 * green + 0.114 * blue)
+        saturation = max(red, green, blue) - min(red, green, blue)
+        is_warm_highlight = saturation > 36 and red > blue * 1.2 and red > green * 0.82
+        if is_warm_highlight:
+            shade = max(0.45, min(1.25, gray / 185))
+            color = tuple(min(255, round(channel * shade)) for channel in (246, 195, 68))
+        else:
+            color = (gray, gray, gray)
+        pixels.append((*color, alpha))
+    out.putdata(pixels)
+
+    # Chromium-style channel icons use a strong warm perimeter so snapshots
+    # remain recognizable even at taskbar and launcher sizes.
+    bounds = img.getchannel("A").getbbox()
+    if bounds:
+        inset = max(2, round(min(img.size) * 0.012))
+        width = max(4, round(min(img.size) * 0.018))
+        ring = tuple(value + offset for value, offset in zip(bounds, (inset, inset, -inset, -inset)))
+        ImageDraw.Draw(out).ellipse(ring, outline=(246, 195, 68, 255), width=width)
+    return out
+
 # Work from a large intermediate to keep quality
 src1024 = white_base.resize((1024, 1024), Image.LANCZOS)
 
@@ -147,6 +173,21 @@ save(src1024, "web/favicon.png",                  32)
 # ── Windows runner ICO ────────────────────────────────────────────────────────
 print("\n[windows]")
 save_ico(src_rgba, "windows/runner/resources/app_icon.ico",
+         [(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])
+
+# ── Canary variants ───────────────────────────────────────────────────────────
+print("\n[canary]")
+canary_rgba = make_canary_source(src_rgba)
+canary_rgba.save("assets/icon_canary_raw.png")
+canary_base = Image.new("RGBA", canary_rgba.size, "white")
+canary_base.paste(canary_rgba, mask=canary_rgba.getchannel("A"))
+canary1024 = canary_base.convert("RGB").resize((1024, 1024), Image.LANCZOS)
+save(canary1024, "assets/logo_canary.png", 512, squircle=True)
+save_ico(canary_rgba, "assets/icon_canary.ico",
+         [(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])
+for size, dpi in [(48,"mdpi"),(72,"hdpi"),(96,"xhdpi"),(144,"xxhdpi"),(192,"xxxhdpi")]:
+    save(canary1024, f"android/app/src/main/res/mipmap-{dpi}/ic_launcher_canary.png", size)
+save_ico(canary_rgba, "windows/runner/resources/app_icon_canary.ico",
          [(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])
 
 print("\nDone.")

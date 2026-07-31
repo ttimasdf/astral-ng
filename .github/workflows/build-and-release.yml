@@ -63,7 +63,11 @@ jobs:
         run: flutter analyze lib
 
       - name: Build Linux
-        run: flutter build linux --release --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
+        run: >-
+          flutter build linux --release
+          --build-name "$FLUTTER_BUILD_NAME"
+          --build-number "$FLUTTER_BUILD_NUMBER"
+          --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL"
 
       - name: Install Linux packaging dependencies
         if: >-
@@ -87,23 +91,28 @@ jobs:
 
           BUNDLE="$GITHUB_WORKSPACE/build/linux/x64/release/bundle"
           pushd "$BUNDLE"
-          patchelf astral --add-needed libisar.so --add-needed librust_lib_astral.so
-          tar -czf "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.tar.gz" ./*
+          patchelf "$APP_EXECUTABLE" --add-needed libisar.so --add-needed librust_lib_astral.so
+          tar -czf "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.tar.gz" ./*
           popd
 
           STAGING="$GITHUB_WORKSPACE/build/linux/pkgroot"
           rm -rf "$STAGING"
-          mkdir -p "$STAGING/opt/astral"
-          cp -a "$BUNDLE/." "$STAGING/opt/astral/"
-          install -Dm755 linux/packaging/astral-cli.sh "$STAGING/usr/bin/astral"
-          install -Dm644 linux/packaging/astral.desktop "$STAGING/usr/share/applications/astral.desktop"
-          install -Dm644 assets/logo.png "$STAGING/usr/share/pixmaps/astral.png"
+          mkdir -p "$STAGING/opt/$APP_EXECUTABLE"
+          cp -a "$BUNDLE/." "$STAGING/opt/$APP_EXECUTABLE/"
+          install -Dm755 "linux/packaging/$APP_EXECUTABLE-cli.sh" "$STAGING/usr/bin/$APP_EXECUTABLE"
+          install -Dm644 "linux/packaging/$APP_EXECUTABLE.desktop" "$STAGING/usr/share/applications/$APP_EXECUTABLE.desktop"
+          if [ "$BUILD_CHANNEL" = canary ]; then
+            ICON_SOURCE=assets/logo_canary.png
+          else
+            ICON_SOURCE=assets/logo.png
+          fi
+          install -Dm644 "$ICON_SOURCE" "$STAGING/usr/share/pixmaps/$APP_EXECUTABLE.png"
 
-          fpm -s dir -t deb -n astral -v "$PACKAGE_VERSION" -a amd64 -C "$STAGING" .
-          mv -- ./*.deb "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.deb"
+          fpm -s dir -t deb -n "$LINUX_PACKAGE_NAME" -v "$PACKAGE_VERSION" -a amd64 -C "$STAGING" .
+          mv -- ./*.deb "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.deb"
 
-          fpm -s dir -t rpm -n astral -v "$PACKAGE_VERSION" -a x86_64 -C "$STAGING" .
-          mv -- ./*.rpm "$GITHUB_WORKSPACE/release/astral-linux-x64-$ASSET_VERSION.rpm"
+          fpm -s dir -t rpm -n "$LINUX_PACKAGE_NAME" -v "$PACKAGE_VERSION" -a x86_64 -C "$STAGING" .
+          mv -- ./*.rpm "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.rpm"
 
       - name: Upload Linux tarball
         if: >-
@@ -113,7 +122,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
+          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
           archive: false
           if-no-files-found: error
           retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
@@ -126,7 +135,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.deb
+          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.deb
           archive: false
           if-no-files-found: error
           retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
@@ -139,7 +148,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/astral-linux-x64-${{ env.ASSET_VERSION }}.rpm
+          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.rpm
           archive: false
           if-no-files-found: error
           retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
@@ -215,7 +224,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows
-        run: flutter build windows --release --build-name "$env:FLUTTER_BUILD_NAME" --build-number "$env:FLUTTER_BUILD_NUMBER"
+        run: >-
+          flutter build windows --release
+          --build-name "$env:FLUTTER_BUILD_NAME"
+          --build-number "$env:FLUTTER_BUILD_NUMBER"
+          --dart-define "BUILD_CHANNEL=$env:BUILD_CHANNEL"
 
       - name: Copy DLLs
         run: |
@@ -224,20 +237,20 @@ jobs:
       - name: Package zip
         run: |
           New-Item -ItemType Directory -Path "release" -Force
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\astral-windows-x64-$($env:ASSET_VERSION).zip" -Force
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\$($env:APP_EXECUTABLE)-windows-x64-$($env:ASSET_VERSION).zip" -Force
 
       - name: Create Inno Setup script
         run: |
           $version = (Select-String -Path "pubspec.yaml" -Pattern "version: (.*)").Matches[0].Groups[1].Value
           @"
-          #define MyAppName "AstralNG"
+          #define MyAppName "$env:APP_DISPLAY_NAME"
           #define MyAppVersion "$version"
           #define MyAppPublisher "KnownRabbit"
           #define MyAppURL "https://github.com/ttimasdf/astral-ng"
-          #define MyAppExeName "astral.exe"
+          #define MyAppExeName "$($env:APP_EXECUTABLE).exe"
 
           [Setup]
-          AppId={{9A41EC10-FBE6-4B63-8B18-A466907374B5}
+          AppId={$($env:WINDOWS_APP_ID)
           AppName={#MyAppName}
           AppVersion={#MyAppVersion}
           AppPublisher={#MyAppPublisher}
@@ -250,7 +263,7 @@ jobs:
           ArchitecturesInstallIn64BitMode=x64compatible
           ChangesAssociations=yes
           DisableProgramGroupPage=yes
-          OutputBaseFilename=astral-windows-x64-setup
+          OutputBaseFilename=$($env:APP_EXECUTABLE)-windows-x64-setup
           SolidCompression=yes
           WizardStyle=modern
 
@@ -276,12 +289,12 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path "release" -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
-          Move-Item -Path "Output\astral-windows-x64-setup.exe" -Destination "release\astral-windows-x64-setup-$($env:ASSET_VERSION).exe" -Force
+          Move-Item -Path "Output\$($env:APP_EXECUTABLE)-windows-x64-setup.exe" -Destination "release\$($env:APP_EXECUTABLE)-windows-x64-setup-$($env:ASSET_VERSION).exe" -Force
 
       - name: Upload Windows ZIP
         uses: actions/upload-artifact@v7
         with:
-          path: release/astral-windows-x64-${{ env.ASSET_VERSION }}.zip
+          path: release/${{ env.APP_EXECUTABLE }}-windows-x64-${{ env.ASSET_VERSION }}.zip
           archive: false
           if-no-files-found: error
           retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
@@ -289,7 +302,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v7
         with:
-          path: release/astral-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
+          path: release/${{ env.APP_EXECUTABLE }}-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
           archive: false
           if-no-files-found: error
           retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
@@ -339,8 +352,8 @@ jobs:
       - name: Build snapshot APK
         if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
         run: |
-          flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
-          mv build/app/outputs/flutter-apk/app-debug.apk "build/app/outputs/flutter-apk/astral-android-debug-$ASSET_VERSION.apk"
+          flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL"
+          mv build/app/outputs/flutter-apk/app-debug.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-debug-$ASSET_VERSION.apk"
 
       - name: Upload snapshot APK
         if: >-
@@ -349,7 +362,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/astral-android-debug-${{ env.ASSET_VERSION }}.apk
+          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-debug-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
           retention-days: 7
@@ -368,18 +381,18 @@ jobs:
       - name: Build signed release APKs
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
-          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/astral-android-arm64-$ASSET_VERSION.apk"
-          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/astral-android-armv7-$ASSET_VERSION.apk"
+          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL"
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-arm64-$ASSET_VERSION.apk"
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-armv7-$ASSET_VERSION.apk"
 
-          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER"
-          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/astral-android-universal-$ASSET_VERSION.apk"
+          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL"
+          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-universal-$ASSET_VERSION.apk"
 
       - name: Upload arm64 release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/astral-android-arm64-${{ env.ASSET_VERSION }}.apk
+          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-arm64-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
           retention-days: 30
@@ -388,7 +401,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/astral-android-armv7-${{ env.ASSET_VERSION }}.apk
+          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-armv7-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
           retention-days: 30
@@ -397,7 +410,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/astral-android-universal-${{ env.ASSET_VERSION }}.apk
+          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-universal-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
           retention-days: 30

@@ -116,6 +116,7 @@ def resolve(channel: str) -> BuildVersion:
 
 
 def emit(build: BuildVersion, output_format: str) -> None:
+    is_canary = build.channel == "canary"
     values = {
         "VERSION_BASE": build.source.version,
         "BUILD_CHANNEL": build.channel,
@@ -123,6 +124,15 @@ def emit(build: BuildVersion, output_format: str) -> None:
         "FLUTTER_BUILD_NUMBER": str(build.build_number),
         "PACKAGE_VERSION": build.package_version,
         "ASSET_VERSION": build.asset_version,
+        "APP_DISPLAY_NAME": "AstralNG Canary" if is_canary else "AstralNG",
+        "APP_PACKAGE_ID": "pw.rabit.astralng.canary" if is_canary else "pw.rabit.astralng",
+        "APP_EXECUTABLE": "astral-canary" if is_canary else "astral",
+        "LINUX_PACKAGE_NAME": "astral-canary" if is_canary else "astral",
+        "WINDOWS_APP_ID": (
+            "{E193416A-7545-4559-BB79-95858B8796EB}"
+            if is_canary
+            else "{9A41EC10-FBE6-4B63-8B18-A466907374B5}"
+        ),
     }
     if output_format == "env":
         print("\n".join(f"{key}={value}" for key, value in values.items()))

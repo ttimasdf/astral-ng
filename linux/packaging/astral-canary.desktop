@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=AstralNG Canary
+Comment=AstralNG Canary desktop client
+Exec=/usr/bin/astral-canary %u
+TryExec=/usr/bin/astral-canary
+Icon=astral-canary
+Terminal=false
+Type=Application
+Categories=Network;
+StartupNotify=true
+X-GNOME-UsesNotifications=true
+Keywords=VPN;Network;Proxy;

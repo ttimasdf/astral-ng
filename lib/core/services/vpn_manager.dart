@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/network/ip_utils.dart';
 import 'package:vpn_service_plugin/vpn_service_plugin.dart';
@@ -75,7 +76,7 @@ class VpnManager {
   Future<void> start({
     required String ipv4Addr,
     int mtu = 1300,
-    List<String> disallowedApplications = const ['pw.rabit.astralng'],
+    List<String> disallowedApplications = const [BuildBrand.packageId],
     List<String> proxyCidrs = const [],
   }) async {
     final plugin = _plugin;

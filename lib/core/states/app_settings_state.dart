@@ -1,9 +1,10 @@
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 应用设置状态
 class AppSettingsState {
   // 应用名称
-  final appName = signal('AstralNG');
+  final appName = signal(BuildBrand.appName);
 
   // 启用连接状态栏通知
   final enableConnectionNotification = signal(true);
