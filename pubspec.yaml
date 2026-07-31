@@ -27,7 +27,6 @@ dependencies:
   uuid: ^3.0.7
   flutter_localizations:
     sdk: flutter
-  vyuh_node_flow: ^0.22.2
   device_info_plus: ^11.4.0
   isar_community:
     version: 3.3.0
