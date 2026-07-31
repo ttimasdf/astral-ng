@@ -48,7 +48,7 @@ class AstralQuickSettingsTileService : TileService() {
     override fun onClick() {
         super.onClick()
 
-        val state = widgetData.getString(CONNECTION_STATE_KEY, STATE_IDLE)
+        val state = widgetData.getString(CONNECTION_STATE_KEY, STATE_IDLE) ?: STATE_IDLE
         if (state == STATE_CONNECTING) return
 
         val action = if (state == STATE_CONNECTED) ACTION_DISCONNECT else ACTION_CONNECT
@@ -106,8 +106,8 @@ class AstralQuickSettingsTileService : TileService() {
         tile.updateTile()
     }
 
-    private fun openAppForAction(action: String) {
-        if (action == ACTION_CONNECT) {
+    private fun openAppForAction(toggleAction: String) {
+        if (toggleAction == ACTION_CONNECT) {
             Toast.makeText(
                 this,
                 R.string.quick_settings_tile_vpn_permission_required,
@@ -116,8 +116,8 @@ class AstralQuickSettingsTileService : TileService() {
         }
 
         val launchIntent = Intent(this, MainActivity::class.java).apply {
-            action = Intent.ACTION_VIEW
-            data = Uri.parse("astral://toggle_connection?action=$action")
+            this.action = Intent.ACTION_VIEW
+            data = Uri.parse("astral://toggle_connection?action=$toggleAction")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
 
