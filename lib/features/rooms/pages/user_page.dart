@@ -5,10 +5,12 @@ import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/shared/utils/network/node_utils.dart';
 import 'package:astral/features/rooms/widgets/all_user_card.dart';
 import 'package:astral/features/rooms/widgets/mini_user_card.dart';
-import 'package:astral/features/rooms/widgets/network_topology.dart';
+import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:astral/features/rooms/widgets/room_settings_sheet.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class UserPage extends StatefulWidget {
@@ -19,7 +21,7 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  bool _showTopology = false; // 是否显示拓扑图
+  bool _showConstellation = true;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +35,14 @@ class _UserPageState extends State<UserPage> {
             heroTag: 'topology_toggle',
             onPressed: () {
               setState(() {
-                _showTopology = !_showTopology;
+                _showConstellation = !_showConstellation;
               });
             },
-            tooltip: _showTopology ? '列表视图' : '拓扑图',
-            child: Icon(_showTopology ? Icons.list : Icons.hub),
+            tooltip:
+                _showConstellation
+                    ? LocaleKeys.rooms_list_view.tr()
+                    : LocaleKeys.rooms_constellation_view.tr(),
+            child: Icon(_showConstellation ? Icons.list : Icons.auto_awesome),
           ),
           const SizedBox(height: 16),
           FloatingActionButton(
@@ -52,17 +57,9 @@ class _UserPageState extends State<UserPage> {
         final netStatus = ServiceManager().connectionState.netStatus.watch(
           context,
         );
-        final connectionState = ServiceManager()
-            .connectionState
-            .connectionState
+        final connectionState = ServiceManager().connectionState.connectionState
             .watch(context);
-        final reduceAnimationUpdates = ServiceManager()
-            .appSettingsState
-            .reduceAnimationUpdates
-            .watch(context);
-        final isInBackground = ServiceManager().uiState.isInBackground.watch(
-          context,
-        );
+
         if (connectionState != CoState.connected) {
           return Center(
             child: Column(
@@ -114,12 +111,10 @@ class _UserPageState extends State<UserPage> {
             ),
           );
         } else {
-          // 如果显示拓扑图，直接返回拓扑图视图
-          if (_showTopology) {
-            return NetworkTopologyView(
+          if (_showConstellation) {
+            return MeshConstellation(
               nodes: netStatus.nodes,
-              reduceUpdates: reduceAnimationUpdates,
-              isInBackground: isInBackground,
+              localIp: ServiceManager().networkConfigState.ipv4.value,
             );
           }
 
@@ -166,12 +161,10 @@ class _UserPageState extends State<UserPage> {
           List<KVNodeInfo> filteredNodes = nodes;
           if (displayMode == UserDisplayMode.users) {
             // 仅显示用户（排除服务器）
-            filteredNodes =
-                nodes.where((node) => !isServerNode(node)).toList();
+            filteredNodes = nodes.where((node) => !isServerNode(node)).toList();
           } else if (displayMode == UserDisplayMode.servers) {
             // 仅显示服务器
-            filteredNodes =
-                nodes.where((node) => isServerNode(node)).toList();
+            filteredNodes = nodes.where((node) => isServerNode(node)).toList();
           }
 
           // 返回一个可滚动的视图
