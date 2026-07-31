@@ -82,7 +82,7 @@ void main() {
     final enabledIndicator = tester.widget<Container>(
       find.byKey(const ValueKey('server-state-indicator-42')),
     );
-    expect(tile.horizontalTitleGap, 12);
+    expect(tile.horizontalTitleGap, 4);
     expect((enabledIndicator.decoration! as BoxDecoration).color, Colors.green);
 
     server.enable = false;
@@ -94,7 +94,7 @@ void main() {
     expect((disabledIndicator.decoration! as BoxDecoration).color, Colors.red);
   });
 
-  testWidgets('left swipe toggles state without dismissing the row', (
+  testWidgets('right swipe toggles state without dismissing the row', (
     tester,
   ) async {
     bool? toggledValue;
@@ -114,14 +114,14 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(-400, 0));
+    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
     await tester.pumpAndSettle();
 
     expect(toggledValue, isFalse);
     expect(find.text('Primary server'), findsOneWidget);
   });
 
-  testWidgets('right swipe requires confirmation before deletion', (
+  testWidgets('left swipe requires confirmation before deletion', (
     tester,
   ) async {
     var confirmationCount = 0;
@@ -145,7 +145,7 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
+    await tester.drag(find.byType(Dismissible), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(confirmationCount, 1);
@@ -153,7 +153,7 @@ void main() {
     expect(find.text('Primary server'), findsOneWidget);
   });
 
-  testWidgets('right swipe deletes after confirmation is accepted', (
+  testWidgets('left swipe deletes after confirmation is accepted', (
     tester,
   ) async {
     var showServer = true;
@@ -181,7 +181,7 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
+    await tester.drag(find.byType(Dismissible), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(deleteCount, 1);

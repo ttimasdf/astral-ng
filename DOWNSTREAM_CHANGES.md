@@ -602,8 +602,8 @@ require an attached Activity.
 ### What this changes
 
 Replaces the Android and iOS server row switch and overflow menu with direct
-mobile gestures. Tapping a row opens editing, swiping left toggles its enabled
-state, and swiping right opens a confirmation dialog before deletion. Mobile
+mobile gestures. Tapping a row opens editing, swiping right toggles its enabled
+state, and swiping left opens a confirmation dialog before deletion. Mobile
 reordering uses a long press so horizontal actions do not compete with row
 reordering. Each row places its text close to a green enabled-state indicator or
 red disabled-state indicator. Desktop controls remain unchanged, and semantic

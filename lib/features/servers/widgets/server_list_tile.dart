@@ -28,7 +28,7 @@ class ServerListTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         onTap: useMobileActions ? onEdit : null,
-        horizontalTitleGap: 12,
+        horizontalTitleGap: 4,
         leading: Container(
           key: ValueKey('server-state-indicator-${server.id}'),
           width: 4,
@@ -72,14 +72,6 @@ class ServerListTile extends StatelessWidget {
         background: _buildSwipeBackground(
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.only(left: 24),
-          color: colorScheme.errorContainer,
-          foregroundColor: colorScheme.onErrorContainer,
-          icon: Icons.delete_outline,
-          label: '删除',
-        ),
-        secondaryBackground: _buildSwipeBackground(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 24),
           color:
               server.enable
                   ? colorScheme.secondaryContainer
@@ -94,8 +86,16 @@ class ServerListTile extends StatelessWidget {
                   : Icons.toggle_on_outlined,
           label: server.enable ? '停用' : '启用',
         ),
+        secondaryBackground: _buildSwipeBackground(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 24),
+          color: colorScheme.errorContainer,
+          foregroundColor: colorScheme.onErrorContainer,
+          icon: Icons.delete_outline,
+          label: '删除',
+        ),
         confirmDismiss: (direction) async {
-          if (direction == DismissDirection.endToStart) {
+          if (direction == DismissDirection.startToEnd) {
             await onToggle(!server.enable);
             return false;
           }
