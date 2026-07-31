@@ -605,14 +605,15 @@ Replaces the Android and iOS server row switch and overflow menu with direct
 mobile gestures. Tapping a row opens editing, swiping left toggles its enabled
 state, and swiping right opens a confirmation dialog before deletion. Mobile
 reordering uses a long press so horizontal actions do not compete with row
-reordering. Desktop controls remain unchanged, and semantic actions keep toggle
-and deletion available to assistive technologies.
+reordering. Each row places its text close to a green enabled-state indicator or
+red disabled-state indicator. Desktop controls remain unchanged, and semantic
+actions keep toggle and deletion available to assistive technologies.
 
 ### Files affected
 
 - `lib/features/servers/pages/server_page.dart`: select mobile actions by platform, route edit/toggle/delete callbacks, and use long-press mobile reordering
-- `lib/features/servers/widgets/server_list_tile.dart`: render platform-specific row actions, swipe feedback, confirmation flow, and accessibility actions
-- `test/features/servers/widgets/server_list_tile_test.dart`: cover mobile tap/swipe behavior, delete confirmation, and retained desktop controls
+- `lib/features/servers/widgets/server_list_tile.dart`: render platform-specific row actions, swipe feedback, enabled-state indicator and spacing, confirmation flow, and accessibility actions
+- `test/features/servers/widgets/server_list_tile_test.dart`: cover mobile tap/swipe behavior, indicator color and spacing, delete confirmation, and retained desktop controls
 
 ---
 

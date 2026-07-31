@@ -1,5 +1,4 @@
 import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/states/server_status_state.dart';
 import 'package:astral/features/servers/widgets/server_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,7 +24,6 @@ void main() {
       _testApp(
         ServerListTile(
           server: server,
-          status: ServerStatus.online,
           useMobileActions: true,
           onEdit: () {
             editCount++;
@@ -49,7 +47,6 @@ void main() {
       _testApp(
         ServerListTile(
           server: server,
-          status: ServerStatus.online,
           useMobileActions: false,
           onEdit: () {},
           onToggle: (_) async {},
@@ -63,6 +60,40 @@ void main() {
     expect(find.byType(PopupMenuButton<String>), findsOneWidget);
   });
 
+  testWidgets('indicator and text spacing reflect enabled state', (
+    tester,
+  ) async {
+    Widget buildTile() {
+      return _testApp(
+        ServerListTile(
+          server: server,
+          useMobileActions: true,
+          onEdit: () {},
+          onToggle: (_) async {},
+          onConfirmDelete: () async => false,
+          onDelete: () async {},
+        ),
+      );
+    }
+
+    await tester.pumpWidget(buildTile());
+
+    final tile = tester.widget<ListTile>(find.byType(ListTile));
+    final enabledIndicator = tester.widget<Container>(
+      find.byKey(const ValueKey('server-state-indicator-42')),
+    );
+    expect(tile.horizontalTitleGap, 12);
+    expect((enabledIndicator.decoration! as BoxDecoration).color, Colors.green);
+
+    server.enable = false;
+    await tester.pumpWidget(buildTile());
+
+    final disabledIndicator = tester.widget<Container>(
+      find.byKey(const ValueKey('server-state-indicator-42')),
+    );
+    expect((disabledIndicator.decoration! as BoxDecoration).color, Colors.red);
+  });
+
   testWidgets('left swipe toggles state without dismissing the row', (
     tester,
   ) async {
@@ -72,7 +103,6 @@ void main() {
       _testApp(
         ServerListTile(
           server: server,
-          status: ServerStatus.online,
           useMobileActions: true,
           onEdit: () {},
           onToggle: (value) async {
@@ -101,7 +131,6 @@ void main() {
       _testApp(
         ServerListTile(
           server: server,
-          status: ServerStatus.online,
           useMobileActions: true,
           onEdit: () {},
           onToggle: (_) async {},
@@ -138,7 +167,6 @@ void main() {
                   showServer
                       ? ServerListTile(
                         server: server,
-                        status: ServerStatus.online,
                         useMobileActions: true,
                         onEdit: () {},
                         onToggle: (_) async {},

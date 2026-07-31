@@ -1,6 +1,4 @@
 import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/states/server_status_state.dart';
-import 'package:astral/features/servers/server_status_style.dart';
 import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
@@ -9,7 +7,6 @@ class ServerListTile extends StatelessWidget {
   const ServerListTile({
     super.key,
     required this.server,
-    required this.status,
     required this.useMobileActions,
     required this.onEdit,
     required this.onToggle,
@@ -18,7 +15,6 @@ class ServerListTile extends StatelessWidget {
   });
 
   final ServerMod server;
-  final ServerStatus status;
   final bool useMobileActions;
   final VoidCallback onEdit;
   final Future<void> Function(bool) onToggle;
@@ -32,11 +28,13 @@ class ServerListTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         onTap: useMobileActions ? onEdit : null,
+        horizontalTitleGap: 12,
         leading: Container(
+          key: ValueKey('server-state-indicator-${server.id}'),
           width: 4,
           height: 40,
           decoration: BoxDecoration(
-            color: ServerStatusStyle.color(status, colorScheme),
+            color: server.enable ? Colors.green : Colors.red,
             borderRadius: BorderRadius.circular(2),
           ),
         ),

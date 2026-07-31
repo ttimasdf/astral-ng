@@ -30,7 +30,8 @@ baseline.
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
 - Improved Android and iOS server management: tap a row to edit, swipe left to
-  enable or disable it, and swipe right to request confirmed deletion. ([#11])
+  enable or disable it, swipe right to request confirmed deletion, and identify
+  enabled or disabled rows by their green or red indicator. ([#11])
 - Added version suffixes to downloadable CI snapshots and release assets, and
   made workflow artifacts downloadable without an additional ZIP wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode

@@ -1,6 +1,5 @@
 ﻿import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/states/server_status_state.dart';
 import 'package:astral/shared/utils/network/blocked_servers.dart';
 import 'package:astral/features/servers/dialogs/server_dialog.dart';
 import 'package:astral/features/servers/widgets/server_list_tile.dart';
@@ -63,8 +62,6 @@ class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
 
     return Watch((context) {
       final servers = ServiceManager().serverState.servers.watch(context);
-      final serverStatuses = ServiceManager().serverStatusState.serverStatuses
-          .watch(context);
 
       if (servers.isEmpty) {
         return buildEmptyState(
@@ -95,11 +92,9 @@ class _ServersPageState extends BaseStatefulSettingsPageState<ServersPage> {
         },
         itemBuilder: (context, index) {
           final server = servers[index];
-          final status = serverStatuses[server.id] ?? ServerStatus.unknown;
 
           final row = ServerListTile(
             server: server,
-            status: status,
             useMobileActions: useMobileActions,
             onEdit: () => _editServer(server),
             onToggle:
