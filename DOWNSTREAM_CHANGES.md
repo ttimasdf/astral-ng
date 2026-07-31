@@ -556,7 +556,7 @@ cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
 
 ## [android-quick-settings-tile]: Add an Android Quick Settings connection tile
 
-- **Scope**: `android/app/src/main/`, `lib/core/services/widget_service.dart`, `lib/core/constants/home_widget_keys.dart`, `lib/shared/widgets/common/home_widget_refresh_binder.dart`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`
+- **Scope**: `android/app/src/main/`, `lib/core/app_links/`, `lib/core/services/widget_service.dart`, `lib/core/constants/home_widget_keys.dart`, `lib/shared/widgets/common/home_widget_refresh_binder.dart`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: android-quick-settings-tile
@@ -565,21 +565,24 @@ cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
 ### What this changes
 
 Adds an Android 7.0+ Quick Settings tile that displays Astral-ng's persisted
-connection state and toggles the selected room without opening the Flutter UI.
-The tile uses the home-widget background callback so connection behavior remains
-centralized in Dart, supports both VPN and NO-TUN configurations, and opens the
-app when Android still needs initial VPN consent. Background Flutter engines
-initialize the Rust bridge without applying normal app-start auto-connect
-behavior, while the VPN plugin uses application context after consent so tile
-operations do not require an attached Activity.
+connection state and toggles the selected room. When the primary Flutter engine
+is running, the native tile sends its action directly to that engine so the GUI,
+Rust backend, VPN, and tile share one connection state. When the app is not
+running, the tile opens Astral-ng with the same action as an app link. The tile
+supports both VPN and NO-TUN configurations and opens the app when Android
+still needs initial VPN consent. Home-widget background engines initialize the
+Rust bridge without applying normal app-start auto-connect behavior, while the
+VPN plugin uses application context after consent so widget operations do not
+require an attached Activity.
 
 ### Files affected
 
 - `android/app/src/main/AndroidManifest.xml`: registers the active, toggleable Quick Settings tile service
-- `android/app/src/main/kotlin/pw/rabit/astralng/AstralQuickSettingsTileService.kt`: renders tile state, handles taps, and routes first-time VPN consent through the app
+- `android/app/src/main/kotlin/pw/rabit/astralng/AstralQuickSettingsTileService.kt`: renders tile state and delivers actions to the primary engine or app-link fallback without leaving the tile unavailable
+- `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`, `lib/core/services/widget_service.dart`: establish the native-to-primary-Flutter toggle channel
+- `lib/core/app_links/`: handles the same toggle action when the tile must launch the app
 - `android/app/src/main/res/`: adds the monochrome tile icon and English/Chinese status strings
-- `lib/core/constants/home_widget_keys.dart`, `lib/core/services/widget_service.dart`: persist connection and VPN-mode state for native surfaces and initialize background toggle runtime
-- `lib/shared/widgets/common/home_widget_refresh_binder.dart`: refreshes native state when VPN mode changes
+- `lib/core/constants/home_widget_keys.dart`, `lib/shared/widgets/common/home_widget_refresh_binder.dart`: persist and refresh connection and VPN-mode state for native surfaces
 - `lib/core/services/service_manager.dart`: allows background entry points to skip normal startup actions
 - `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`: allows already-authorized VPN start and stop calls from a background Flutter engine
 
