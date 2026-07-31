@@ -72,8 +72,7 @@ Widget buildRoomShareExportDialogBody({
 }
 
 /// 根据勾选选项构造待分享的房间与网络配置
-({Room roomToShare, bool hasServers, bool hasNetworkConfig})
-buildRoomToShare({
+({Room roomToShare, bool hasServers, bool hasNetworkConfig}) buildRoomToShare({
   required Room room,
   required List<String> selectedServers,
   required Map<String, bool> networkConfigOptions,
@@ -129,7 +128,7 @@ buildRoomToShare({
   final roomToShare = Room(
     id: room.id,
     name: room.name,
-    encrypted: room.encrypted,
+    simpleMode: room.simpleMode,
     roomName: room.roomName,
     messageKey: room.messageKey,
     password: room.password,
@@ -172,9 +171,9 @@ Widget _buildHeader(BuildContext context, Room room, ColorScheme colorScheme) {
             children: [
               Text(
                 '分享房间',
-                style: Theme.of(
-                  context,
-                ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 room.name,
@@ -239,9 +238,9 @@ Widget _buildBasicInfoCard(
                   const SizedBox(height: 4),
                   Text(
                     room.name,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

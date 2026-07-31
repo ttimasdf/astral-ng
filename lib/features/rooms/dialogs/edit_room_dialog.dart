@@ -67,13 +67,13 @@ Future<void> showEditRoomDialog(
             // 显示房间类型（只读）
             ListTile(
               title: const Text('房间类型'),
-              subtitle: Text(RoomMode.label(room.encrypted)),
+              subtitle: Text(RoomMode.label(room.simpleMode)),
               trailing: Tooltip(
                 message: LocaleKeys.room_mode_cannot_change.tr(),
                 child: const Icon(Icons.lock_outline),
               ),
             ),
-            if (!room.encrypted) ...[
+            if (!room.simpleMode) ...[
               TextField(
                 controller: TextEditingController(text: room.roomName),
                 decoration: const InputDecoration(labelText: '房间号'),

@@ -168,9 +168,9 @@ class _RoomCardState extends State<RoomCard> {
                           ),
                         const SizedBox(width: 8),
                         Icon(
-                          room.encrypted ? Icons.auto_awesome : Icons.tune,
+                          room.simpleMode ? Icons.auto_awesome : Icons.tune,
                           color:
-                              room.encrypted
+                              room.simpleMode
                                   ? colorScheme.primary
                                   : colorScheme.secondary,
                           size: 20,
@@ -184,7 +184,7 @@ class _RoomCardState extends State<RoomCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LocaleKeys.room_mode.tr()}: ${RoomMode.label(room.encrypted)}',
+                      '${LocaleKeys.room_mode.tr()}: ${RoomMode.label(room.simpleMode)}',
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     if (room.servers.isNotEmpty)
