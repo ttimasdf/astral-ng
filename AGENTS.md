@@ -13,16 +13,35 @@ When instructed to implement a new feature, use the following workflow:
 2. Create a feature branch named `feature/<slug>` and a linked worktree at
    `.worktrees/<slug>` (for example,
    `git worktree add -b feature/<slug> .worktrees/<slug>`).
-3. Make all feature changes in that worktree. Commit focused, reviewable units
-   of work along the way instead of leaving the implementation uncommitted.
-4. After implementation is complete and you are preparing to wrap up the
-   changes, read `docs/DOWNSTREAM_CHANGES_GUIDELINES.md`, then add or update the
-   corresponding `DOWNSTREAM_CHANGES.md` entry using the same slug.
-5. Read `docs/CI.md`, run the relevant checks, push the feature branch, and
-   create a pull request. The pull request title must begin with `[<slug>]` so
-   the slug is retained in the squash commit message (for example,
-   `[tray-status-icons] Add tray status indicators`).
-6. Merge a pull request only after the user explicitly approves the merge. Once
+3. Enter the project development shell with `nix develop` from the linked
+   worktree. Develop and iterate locally with Flutter tools such as focused
+   analysis, tests, formatting, and `flutter run`. Commit focused, reviewable
+   units along the way instead of leaving the implementation uncommitted.
+4. Reserve `nix build` and remote CI for final validation. During development,
+   use the fastest relevant Flutter feedback loop and exercise the affected
+   behavior locally.
+5. When the implementation appears complete, demonstrate its current state by
+   launching the app on an available target: normally Linux desktop with
+   `flutter run -d linux`, or a connected Android device when mobile behavior
+   is relevant. Ask the user to confirm the result or provide more suggestions.
+   If the user requests changes, continue local development and repeat the
+   demonstration. Do not push or create a pull request until the user confirms
+   that there are no further suggestions.
+6. After the user confirms, begin final wrap-up. Read
+   `docs/DOWNSTREAM_CHANGES_GUIDELINES.md`, then add or update the corresponding
+   `DOWNSTREAM_CHANGES.md` entry using the same slug. Apply the changelog policy
+   below when the change is user-facing.
+7. Run final local validation from the Nix development shell with Flutter tools
+   such as `flutter analyze lib` and `flutter test`, then run
+   `nix build .#astral-ng`. Resolve failures locally, repeat the demonstration
+   if behavior changed, and commit the wrap-up.
+8. Read `docs/CI.md`, push the feature branch, and create a pull request. The
+   pull request title must begin with `[<slug>]` so the slug is retained in the
+   squash commit message (for example,
+   `[tray-status-icons] Add tray status indicators`). Enable `full-ci`, watch
+   the required checks to completion, and then present the passing pull request
+   for review.
+9. Merge a pull request only after the user explicitly approves the merge. Once
    authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
    and cleanup workflow.
 
@@ -53,9 +72,10 @@ daemons retain their startup environment.
 
 ## Pull Request CI
 
-Before running checks, pushing a feature branch, or creating a pull request,
-read `docs/CI.md` for validation scope, `full-ci` label behavior, expected
-runner timing, and bounded waiting instructions.
+Treat remote CI as final cross-platform validation, not as the ordinary local
+iteration loop. After the user accepts the local demonstration and final local
+checks pass, read `docs/CI.md` for `full-ci` label behavior, expected runner
+timing, and bounded waiting instructions.
 
 ## Changelog Maintenance
 
