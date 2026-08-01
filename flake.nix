@@ -164,7 +164,7 @@
               ACT_DISABLE_VERSION_CHECK = 1;
             };
             shellHook = ''
-              export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
+              export LD_LIBRARY_PATH="$PWD/build/linux/x64/debug/bundle/lib:$LD_LIBRARY_PATH"
               export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$(echo "$ANDROID_HOME/build-tools/"*"/aapt2") ''${GRADLE_OPTS:-}"
 
               cat > android/local.properties <<EOF
