@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
+import 'package:astral/core/diagnostics/diagnostic_record.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/features/settings/pages/network/listen_list_page.dart';
 import 'package:astral/features/settings/pages/network/vpn_segment_page.dart';
 import 'package:astral/features/settings/pages/network/network_settings_page.dart';
@@ -79,13 +82,41 @@ class SettingsMainPage extends StatelessWidget {
             onTap: () => _navigateToPage(context, const UpdateSettingsPage()),
           ),
 
-          _buildSettingsCard(
-            context,
-            icon: Icons.article_outlined,
-            title: '日志',
-            subtitle: '查看应用运行日志',
-            onTap: () => _navigateToPage(context, const LogsPage()),
-          ),
+          if (kDebugMode)
+            ValueListenableBuilder<List<DiagnosticRecord>>(
+              valueListenable: Diagnostics.runtime.store,
+              builder: (context, records, _) {
+                final uncaught = records
+                    .where(
+                      (record) =>
+                          record.eventCode == 'flutter.framework.uncaught' ||
+                          record.eventCode == 'dart.async.uncaught',
+                    )
+                    .toList(growable: false);
+                final latestErrorId =
+                    uncaught.isEmpty ? null : uncaught.last.errorId;
+                return _buildSettingsCard(
+                  context,
+                  icon: Icons.article_outlined,
+                  title: '日志',
+                  subtitle: '查看应用运行日志',
+                  badgeCount: uncaught.length,
+                  onTap:
+                      () => _navigateToPage(
+                        context,
+                        LogsPage(initialErrorId: latestErrorId),
+                      ),
+                );
+              },
+            )
+          else
+            _buildSettingsCard(
+              context,
+              icon: Icons.article_outlined,
+              title: '日志',
+              subtitle: '查看应用运行日志',
+              onTap: () => _navigateToPage(context, const LogsPage()),
+            ),
         ],
       ),
     );
@@ -110,11 +141,18 @@ class SettingsMainPage extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    int badgeCount = 0,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        leading:
+            badgeCount == 0
+                ? Icon(icon, color: Theme.of(context).colorScheme.primary)
+                : Badge.count(
+                  count: badgeCount,
+                  child: Icon(icon, color: Theme.of(context).colorScheme.error),
+                ),
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),

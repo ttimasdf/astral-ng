@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
+import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
 import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
@@ -14,6 +15,7 @@ import 'package:astral/core/diagnostics/diagnostic_store.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/diagnostics/log_policy.dart';
 import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:astral/core/diagnostics/support_bundle.dart';
 
 void main() {
   group('LogPolicy', () {
@@ -146,6 +148,41 @@ void main() {
     );
   });
 
+  test('support bundle contains metadata and redacted records', () async {
+    final runtime = DiagnosticsRuntime.bootstrap(
+      initialPolicy: LogPolicy.debugDefaults(),
+    );
+    addTearDown(runtime.close);
+    runtime
+        .logger(DiagnosticModules.connection)
+        .warning(
+          'connect.failed',
+          'Connection failed',
+          fields: {'password': 'hunter2', 'attempt': 'A1'},
+        );
+
+    final encoded = SupportBundle.encode(
+      diagnostics: runtime,
+      records: runtime.store.value,
+      appVersion: '3.0.0',
+      buildNumber: '42',
+      platform: 'test',
+      buildMode: 'debug',
+      generatedAt: DateTime.utc(2026),
+    );
+    final decoded = jsonDecode(encoded) as Map<String, dynamic>;
+    final records = decoded['records'] as List<dynamic>;
+    final fields = (records.single as Map<String, dynamic>)['fields'];
+
+    expect(decoded['support_bundle_schema_version'], 1);
+    expect(
+      (decoded['session'] as Map<String, dynamic>)['app_version'],
+      '3.0.0',
+    );
+    expect(fields['password'], '<redacted>');
+    expect(encoded, isNot(contains('hunter2')));
+  });
+
   test('rotating JSONL sink persists structured bounded records', () async {
     final directory = await Directory.systemTemp.createTemp('astral-logs-');
     addTearDown(() => directory.delete(recursive: true));
@@ -186,6 +223,38 @@ void main() {
     expect(decoded['schema_version'], 1);
     expect(decoded['module'], DiagnosticModules.bootstrap);
     expect(decoded['fields'], isA<Map<String, dynamic>>());
+  });
+
+  testWidgets('LogsPage links to an error and exposes advanced filters', (
+    tester,
+  ) async {
+    await Diagnostics.reset();
+    final runtime = Diagnostics.initialize(
+      initialPolicy: LogPolicy.debugDefaults(),
+    );
+    addTearDown(Diagnostics.reset);
+    runtime
+        .logger(DiagnosticModules.connection)
+        .error(
+          'connect.failed',
+          'Connection failed',
+          error: StateError('offline'),
+        );
+    runtime
+        .logger(DiagnosticModules.updates)
+        .warning('update.failed', 'Update failed');
+    final errorId = runtime.store.value.first.errorId;
+
+    await tester.pumpWidget(
+      MaterialApp(home: LogsPage(initialErrorId: errorId)),
+    );
+
+    expect(find.textContaining('connect.failed'), findsOneWidget);
+    expect(find.textContaining('update.failed'), findsNothing);
+    await tester.tap(find.byTooltip('关联和来源筛选'));
+    await tester.pumpAndSettle();
+    expect(find.text('连接尝试 ID'), findsOneWidget);
+    expect(find.text('错误 ID'), findsOneWidget);
   });
 
   testWidgets('StartupHost renders before bootstrap completes', (tester) async {
