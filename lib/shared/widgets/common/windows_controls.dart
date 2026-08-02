@@ -1,3 +1,4 @@
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/services/server_connection_manager.dart';
 import 'package:astral/core/states/connection_state.dart';
@@ -39,15 +40,13 @@ class _WindowControlsState extends State<WindowControls>
     if (!mounted || ServiceManager().uiState.trayHidden.value) return;
 
     if (Platform.isWindows) {
-      await trayManager.setIcon('assets/icon.ico');
-    } else if (Platform.isMacOS) {
-      await trayManager.setIcon('assets/logo.png');
+      await trayManager.setIcon(BuildBrand.trayIcon);
     } else {
-      await trayManager.setIcon('assets/logo.png');
+      await trayManager.setIcon(BuildBrand.appIcon);
     }
 
     if (!Platform.isLinux) {
-      await trayManager.setToolTip('AstralNG');
+      await trayManager.setToolTip(BuildBrand.appName);
     }
 
     await _updateTrayMenu();

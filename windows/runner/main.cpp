@@ -8,6 +8,14 @@
 #include "flutter_window.h"
 #include "utils.h"
 
+#ifdef ASTRAL_CANARY
+constexpr wchar_t kAppDisplayName[] = L"AstralNG Canary";
+constexpr wchar_t kSingleInstanceMutex[] = L"AstralCanaryAppSingleInstanceMutex";
+#else
+constexpr wchar_t kAppDisplayName[] = L"AstralNG";
+constexpr wchar_t kSingleInstanceMutex[] = L"AstralAppSingleInstanceMutex";
+#endif
+
 struct WindowSearchParams {
     std::wstring targetTitle;
     HWND foundWindow;
@@ -87,12 +95,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   
   
   if (command_line && wcsstr(command_line, L"astral://")) {
-    if (SendAppLinkToInstance(L"AstralNG", command_line)) {
+    if (SendAppLinkToInstance(kAppDisplayName, command_line)) {
       return EXIT_SUCCESS;
     }
   }
 
-  HANDLE hMutex = CreateMutexW(NULL, TRUE, L"AstralAppSingleInstanceMutex");
+  HANDLE hMutex = CreateMutexW(NULL, TRUE, kSingleInstanceMutex);
   if (GetLastError() == ERROR_ALREADY_EXISTS) {
     HWND hWnd = NULL;
     EnumWindows(EnumWindowsProc, (LPARAM)&hWnd);
@@ -123,7 +131,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"AstralNG", origin, size)) {
+  if (!window.Create(kAppDisplayName, origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

@@ -17,7 +17,11 @@ abstract final class HomeWidgetKeys {
   static const themeTextSecondary = 'theme_text_secondary';
   static const themeAccent = 'theme_accent';
 
-  static const widgetSmall = 'AstralWidgetProvider';
-  static const widgetMedium = 'AstralWidgetProviderMedium';
-  static const widgetLarge = 'AstralWidgetProviderLarge';
+  // Keep provider class names tied to the Kotlin namespace rather than the
+  // channel-specific Android application ID.
+  static const widgetProviderPackage = 'pw.rabit.astralng';
+  static const widgetSmall = '$widgetProviderPackage.AstralWidgetProvider';
+  static const widgetMedium =
+      '$widgetProviderPackage.AstralWidgetProviderMedium';
+  static const widgetLarge = '$widgetProviderPackage.AstralWidgetProviderLarge';
 }

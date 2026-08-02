@@ -155,7 +155,7 @@ class WidgetService {
       ip.isEmpty ? '--' : ip,
     );
 
-    await _triggerWidgetUpdate();
+    await updateHomeWidgets();
   }
 
   /// 更新连接时长（由 ServerConnectionManager 定期调用）
@@ -165,12 +165,19 @@ class WidgetService {
       HomeWidgetKeys.durationText,
       duration,
     );
-    await _triggerWidgetUpdate();
+    await updateHomeWidgets();
   }
 
-  Future<void> _triggerWidgetUpdate() async {
-    await HomeWidget.updateWidget(androidName: HomeWidgetKeys.widgetSmall);
-    await HomeWidget.updateWidget(androidName: HomeWidgetKeys.widgetMedium);
-    await HomeWidget.updateWidget(androidName: HomeWidgetKeys.widgetLarge);
+  @visibleForTesting
+  Future<void> updateHomeWidgets() async {
+    await HomeWidget.updateWidget(
+      qualifiedAndroidName: HomeWidgetKeys.widgetSmall,
+    );
+    await HomeWidget.updateWidget(
+      qualifiedAndroidName: HomeWidgetKeys.widgetMedium,
+    );
+    await HomeWidget.updateWidget(
+      qualifiedAndroidName: HomeWidgetKeys.widgetLarge,
+    );
   }
 }

@@ -40,3 +40,10 @@ label such as `v2.8.7-canary.42-abc123`. CI logs the full resolved identity,
 including source version, channel, build number, package version, artifact
 label, Git ref, and commit. Canary artifacts are never attached to a GitHub
 Release.
+
+Canary builds also use a separate install identity so they can coexist with a
+production release. CI brands them as **AstralNG Canary**, uses the
+`astral-canary` executable and Linux package name, assigns Android application
+ID `pw.rabit.astralng.canary`, gives the Windows installer its own application
+ID, and selects the grayscale-and-gold canary icon. Production tags retain the
+`AstralNG`, `astral`, and `pw.rabit.astralng` identities.

@@ -524,7 +524,7 @@ without the packet-processing backend after process death.
 
 ## [toolchain-pinning]: Derive development toolchains from locked nixpkgs
 
-- **Scope**: `flake.nix`, `flake.lock`, `package.nix`, `scripts/sync_toolchains.py`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
+- **Scope**: `flake.nix`, `flake.lock`, `package.nix`, `scripts/`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `AGENTS.md`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `toolchain-pinning`
@@ -542,18 +542,24 @@ JDK 17), exports Android and Java paths, and supports local APK builds.
 Cargokit's default build path respects rustup's active project toolchain instead
 of bypassing the synchronized pin with `stable`, and explicitly uses rustup's
 cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
+On Linux, the Nix shell also provides `flutter-android`, which keeps Flutter's
+normal CLI while removing host desktop compiler flags, configuring bindgen for
+each Android ABI, and restarting compatible Gradle daemons before Android
+builds. The helper defaults local Android commands to the canary identity and
+supports an explicit production override.
 
 ### Files affected
 
-- `flake.nix`, `flake.lock`, `package.nix`: select canonical development packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions only through the synchronization package passthru, add the sync app/check, keep default-system development outputs, and leave the application package dependent only on nixpkgs inputs
+- `flake.nix`, `flake.lock`, `package.nix`: select canonical development packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions only through the synchronization package passthru, add the sync and Android Flutter helpers, keep default-system development outputs, and leave the application package dependent only on nixpkgs inputs
 - `scripts/sync_toolchains.py`: generate or verify deterministic tool-specific mirrors from Nix-provided versions
+- `scripts/flutter_android.sh`: preserve Flutter subcommands while sanitizing Nix host flags, configuring target-specific NDK bindgen arguments, selecting the build channel, warning about low disk space, and avoiding stale Gradle daemon environments
 - `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/toolchain.properties`: generated mirrors consumed outside Nix
 - `android/app/build.gradle.kts`, `android/build.gradle.kts`: consume synchronized platform, build-tools, target, CMake, and NDK versions and apply them consistently to third-party Android subprojects
 - `.github/actions/setup-toolchains/action.yml`, `.github/workflows/build-and-release.yml`: install synchronized Rust/Flutter versions and optionally set up the complete Android toolchain
 - `.github/ci-versions.yml`: remove the unused upstream CI-only version reference
 - `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains, use the active project override, and select rustup's compiler explicitly for cross-target builds inside the Nix shell
 - `.gitignore`: ignore FVM's generated project directory
-- `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup, consumer mirrors, and upgrades
+- `AGENTS.md`, `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup and commands, consumer mirrors, and upgrades
 
 ---
 
@@ -617,6 +623,38 @@ to assistive technologies.
 - `lib/features/servers/pages/server_page.dart`: select mobile actions by platform, route edit/toggle/delete callbacks, and use long-press mobile reordering
 - `lib/features/servers/widgets/server_list_tile.dart`: render mobile bounded spring-back swipe actions, desktop icon actions, enabled-state indicator and spacing, confirmation flow, and accessibility actions
 - `test/features/servers/widgets/server_list_tile_test.dart`: cover mobile tap/swipe behavior and maximum travel, indicator color and spacing, delete confirmation, and desktop icon actions
+
+---
+
+## [canary-branding]: Give canary builds a separate install identity
+
+- **Scope**: `.github/workflows/build-and-release.yml`, `scripts/`, `assets/`, `lib/core/`, `lib/shared/`, `android/`, `linux/`, `windows/`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: canary-branding
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Brands non-tag CI artifacts as AstralNG Canary and gives them identities that
+are separate from production releases. Canary builds use the `astral-canary`
+executable and Linux package, Android application ID
+`pw.rabit.astralng.canary`, an independent Windows installer and single-instance
+mutex, and grayscale-and-gold launcher and tray icons. This allows canary and
+production builds to be installed and launched side by side while production
+tags preserve the existing names and identifiers.
+
+### Files affected
+
+- `scripts/version.py`, `docs/VERSIONING.md`: resolve and document channel-specific display, executable, package, and installer identities
+- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, generate Linux wrapper and desktop entries from the resolved identity, and package canary artifacts separately
+- `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
+- `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
+- `lib/core/constants/home_widget_keys.dart`, `lib/core/services/widget_service.dart`: resolve Android widget providers from their Kotlin namespace so canary startup does not depend on the application ID
+- `scripts/generate_icons.py`, `assets/`, `android/app/src/main/res/mipmap-*`, `windows/runner/resources/`: generate and ship the grayscale-and-gold icon set
+- `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
+- `linux/CMakeLists.txt`, `linux/runner/`: select the canary executable, GTK application ID, and window name
+- `windows/CMakeLists.txt`, `windows/runner/`: select the canary executable, metadata, icon, window title, and single-instance boundary
 
 ---
 

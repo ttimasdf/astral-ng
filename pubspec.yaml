@@ -55,7 +55,9 @@ flutter:
   assets:
     # - assets/dlls/
     - assets/icon.ico
+    - assets/icon_canary.ico
     - assets/logo.png
+    - assets/logo_canary.png
     - assets/translations/
 
   fonts:

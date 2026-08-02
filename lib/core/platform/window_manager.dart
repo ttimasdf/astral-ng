@@ -1,3 +1,4 @@
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
@@ -10,7 +11,7 @@ class WindowManagerUtils {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       // 确保窗口管理器已初始化
       await windowManager.ensureInitialized();
-      windowManager.setIcon('assets/logo.png');
+      windowManager.setIcon(BuildBrand.appIcon);
 
       // 设置窗口标题为当前应用名称
       windowManager.setTitle(ServiceManager().appSettingsState.appName.value);
@@ -46,9 +47,7 @@ class WindowManagerUtils {
 
       await windowManager.setPreventClose(true);
 
-      await handleStartupSetting(
-        ServiceManager().startupState.startup.value,
-      );
+      await handleStartupSetting(ServiceManager().startupState.startup.value);
     }
   }
 }

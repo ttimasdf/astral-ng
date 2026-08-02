@@ -14,10 +14,16 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val buildChannel = System.getenv("BUILD_CHANNEL") ?: "production"
+val isCanary = buildChannel == "canary"
 val resolvedApplicationId =
     System.getenv("ANDROID_APPLICATION_ID")
+        ?: System.getenv("APP_PACKAGE_ID")
         ?: project.findProperty("applicationId") as String?
-        ?: "pw.rabit.astralng"
+        ?: if (isCanary) "pw.rabit.astralng.canary" else "pw.rabit.astralng"
+val resolvedAppLabel = if (isCanary) "AstralNG Canary" else "AstralNG"
+val resolvedAppIcon =
+    if (isCanary) "@mipmap/ic_launcher_canary" else "@mipmap/ic_launcher"
 
 val toolchainProperties = Properties().apply {
     FileInputStream(rootProject.file("toolchain.properties")).use { load(it) }
@@ -59,6 +65,8 @@ android {
 
         // 添加对多窗口模式的配置
         manifestPlaceholders["isResizeableActivity"] = "true"
+        manifestPlaceholders["appLabel"] = resolvedAppLabel
+        manifestPlaceholders["appIcon"] = resolvedAppIcon
     }
 
   signingConfigs {

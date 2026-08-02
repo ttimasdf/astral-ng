@@ -7,9 +7,9 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** AstralNG unifies the app's name across desktop and mobile.
+> **Highlight:** AstralNG Canary snapshots now install separately from production releases.
 >
-> **版本亮点：** AstralNG 在桌面端和移动端统一使用全新名称。
+> **版本亮点：** AstralNG Canary 快照版本现可与正式版本独立安装。
 
 ### Added
 
@@ -27,6 +27,9 @@ baseline.
 
 ### Changed
 
+- Separated canary snapshots from production installs with the AstralNG Canary
+  name, `astral-canary` command, distinct package identities, and a
+  grayscale-and-gold icon on Linux, Windows, and Android.
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
 - Improved Android and iOS server management with short, spring-back gestures:
@@ -52,6 +55,8 @@ baseline.
 
 ### Fixed
 
+- Fixed Android canary snapshots remaining on the white launch screen when
+  startup tried to resolve home-widget providers from the canary package ID.
 - Fixed Android VPN routes not refreshing when a connected peer advertises or
   changes a proxy subnet. ([upstream-#231])
 - Fixed room member filtering when switching between user and server types.
@@ -85,6 +90,9 @@ baseline.
 - Made the locked nixpkgs package set authoritative for development toolchains,
   added a complete local Android SDK/NDK environment, and synchronized versions
   for standard local tools and CI. ([#9])
+- Added a `flutter-android` development command that defaults local Android work
+  to the canary identity and isolates NDK builds from NixOS desktop compiler
+  settings.
 
 ## v2.8.1 - 2026-03-31
 
