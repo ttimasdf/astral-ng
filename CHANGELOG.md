@@ -43,7 +43,7 @@ baseline.
   and cache diagnostics may be removed early by the OS or user.
 - Redesigned Settings with responsive desktop and mobile navigation, searchable
   categories, clearer status and dependency descriptions, and a consolidated
-  Network & Connection workspace.
+  Network & Connection workspace. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.
@@ -204,6 +204,7 @@ changes. ([upstream-v2.7.3])
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
 [#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [#11]: https://github.com/ttimasdf/astral-ng/pull/11
+[#12]: https://github.com/ttimasdf/astral-ng/pull/12
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
