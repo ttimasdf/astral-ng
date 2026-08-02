@@ -177,9 +177,11 @@ pub fn create_forward_server(listen_addr: String, forward_addr: String) -> Resul
                 let mut servers = FORWARD_SERVERS.lock().await;
                 servers.push(server);
                 let index = servers.len() - 1;
-                println!(
-                    "端口转发服务器已启动: {} -> {}, 索引: {}",
-                    listen_addr, forward_addr, index
+                tracing::info!(
+                    target: "astral.connection",
+                    event_code = "forward.server.start",
+                    server_index = index,
+                    "Port-forward server started"
                 );
                 Ok(index)
             }
@@ -198,7 +200,12 @@ pub fn stop_forward_server(index: usize) -> Result<(), String> {
         }
 
         servers[index].stop().await;
-        println!("端口转发服务器已停止，索引: {}", index);
+        tracing::info!(
+            target: "astral.connection",
+            event_code = "forward.server.stop",
+            server_index = index,
+            "Port-forward server stopped"
+        );
         Ok(())
     })
 }
@@ -208,13 +215,18 @@ pub fn stop_all_forward_servers() -> Result<(), String> {
     RT.block_on(async move {
         let mut servers = FORWARD_SERVERS.lock().await;
 
-        for (index, server) in servers.iter_mut().enumerate() {
+        let server_count = servers.len();
+        for server in servers.iter_mut() {
             server.stop().await;
-            println!("端口转发服务器已停止，索引: {}", index);
         }
 
         servers.clear();
-        println!("所有端口转发服务器已停止");
+        tracing::info!(
+            target: "astral.connection",
+            event_code = "forward.servers.stop",
+            server_count,
+            "All port-forward servers stopped"
+        );
         Ok(())
     })
 }

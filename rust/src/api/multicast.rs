@@ -120,9 +120,13 @@ pub fn create_multicast_sender(
                 let mut senders = MULTICAST_SENDERS.lock().await;
                 senders.push(sender);
                 let index = senders.len() - 1;
-                println!(
-                    "组播发送器已启动: {}:{}, 间隔: {}ms, 索引: {}",
-                    multicast_addr, port, interval_ms, index
+                tracing::info!(
+                    target: "astral.connection",
+                    event_code = "multicast.sender.start",
+                    sender_index = index,
+                    interval_ms,
+                    custom_bind = false,
+                    "Multicast sender started"
                 );
                 Ok(index)
             }
@@ -151,9 +155,13 @@ pub fn create_multicast_sender_with_bind(
                 let mut senders = MULTICAST_SENDERS.lock().await;
                 senders.push(sender);
                 let index = senders.len() - 1;
-                println!(
-                    "组播发送器已启动: {}:{}, 绑定: {}, 间隔: {}ms, 索引: {}",
-                    multicast_addr, port, bind_addr, interval_ms, index
+                tracing::info!(
+                    target: "astral.connection",
+                    event_code = "multicast.sender.start",
+                    sender_index = index,
+                    interval_ms,
+                    custom_bind = true,
+                    "Multicast sender started"
                 );
                 Ok(index)
             }
@@ -172,7 +180,12 @@ pub fn stop_multicast_sender(index: usize) -> Result<(), String> {
         }
 
         senders[index].stop().await;
-        println!("组播发送器已停止，索引: {}", index);
+        tracing::info!(
+            target: "astral.connection",
+            event_code = "multicast.sender.stop",
+            sender_index = index,
+            "Multicast sender stopped"
+        );
         Ok(())
     })
 }
@@ -182,13 +195,18 @@ pub fn stop_all_multicast_senders() -> Result<(), String> {
     RT.block_on(async move {
         let mut senders = MULTICAST_SENDERS.lock().await;
 
-        for (index, sender) in senders.iter_mut().enumerate() {
+        let sender_count = senders.len();
+        for sender in senders.iter_mut() {
             sender.stop().await;
-            println!("组播发送器已停止，索引: {}", index);
         }
 
         senders.clear();
-        println!("所有组播发送器已停止");
+        tracing::info!(
+            target: "astral.connection",
+            event_code = "multicast.senders.stop",
+            sender_count,
+            "All multicast senders stopped"
+        );
         Ok(())
     })
 }

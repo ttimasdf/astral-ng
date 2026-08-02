@@ -902,8 +902,6 @@ pub async fn get_network_status() -> KVNetworkStatus {
                         // 使用NatType枚举替代直接匹配数字
                         let nat_type =
                             NatType::try_from(stun.udp_nat_type).unwrap_or(NatType::Unknown);
-                        // println!("udp{:?}", NatType::try_from(stun.udp_nat_type).unwrap_or(NatType::Unknown));
-                        // println!("tcp{:?}", NatType::try_from(stun.tcp_nat_type).unwrap_or(NatType::Unknown));
                         format!("{:?}", nat_type)
                     },
                 ),

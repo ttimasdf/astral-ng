@@ -202,7 +202,11 @@ mod wfp_impl {
                     bail!("无法打开 WFP 引擎，错误代码: {:#x}", result);
                 }
 
-                println!("✓ WFP 动态会话已创建（规则随引擎自动清理）");
+                tracing::debug!(
+                    target: "astral.magic-wall",
+                    event_code = "magic-wall.wfp.session.open",
+                    "WFP dynamic session opened"
+                );
 
                 Ok(Self { engine_handle })
             }
@@ -230,7 +234,12 @@ mod wfp_impl {
                         Ok(filter_ids) => ids.extend(filter_ids),
                         Err(e) => {
                             // 回滚已添加的过滤器
-                            println!("⚠️  添加过滤器失败，回滚已添加的 {} 个过滤器", ids.len());
+                            tracing::warn!(
+                                target: "astral.magic-wall",
+                                event_code = "magic-wall.filters.rollback",
+                                filter_count = ids.len(),
+                                "Rolling back Magic Wall filters"
+                            );
                             for id in &ids {
                                 let _ = self.remove_filter(*id);
                             }
@@ -243,7 +252,12 @@ mod wfp_impl {
                             Ok(filter_ids) => ids.extend(filter_ids),
                             Err(e) => {
                                 // 回滚已添加的过滤器
-                                println!("⚠️  添加过滤器失败，回滚已添加的 {} 个过滤器", ids.len());
+                                tracing::warn!(
+                                    target: "astral.magic-wall",
+                                    event_code = "magic-wall.filters.rollback",
+                                    filter_count = ids.len(),
+                                    "Rolling back Magic Wall filters"
+                                );
                                 for id in &ids {
                                     let _ = self.remove_filter(*id);
                                 }
@@ -259,12 +273,15 @@ mod wfp_impl {
 
         pub fn remove_filter(&mut self, filter_id: u64) -> Result<()> {
             unsafe {
-                println!("🔍 尝试删除过滤器 ID: {}", filter_id);
                 let status = FwpmFilterDeleteById0(self.engine_handle, filter_id);
                 if status != 0 {
                     bail!("删除过滤器失败，错误代码: {:#x}", status);
                 }
-                println!("✅ 过滤器 {} 删除成功", filter_id);
+                tracing::debug!(
+                    target: "astral.magic-wall",
+                    event_code = "magic-wall.filter.remove.complete",
+                    "WFP filter removed"
+                );
                 Ok(())
             }
         }
@@ -287,7 +304,12 @@ mod wfp_impl {
             match self.add_filter(rule, layer_key_v4, protocol, false) {
                 Ok(id) => ids.push(id),
                 Err(err) => {
-                    println!("!  添加 IPv4 过滤器失败: {err}");
+                    tracing::warn!(
+                        target: "astral.magic-wall",
+                        event_code = "magic-wall.filter.ipv4.failed",
+                        error = %err,
+                        "Failed to add IPv4 WFP filter"
+                    );
                     errors.push(format!("IPv4: {}", err));
                 }
             }
@@ -301,7 +323,12 @@ mod wfp_impl {
             match self.add_filter(rule, layer_key_v6, protocol, true) {
                 Ok(id) => ids.push(id),
                 Err(err) => {
-                    println!("!  添加 IPv6 过滤器失败: {err}");
+                    tracing::warn!(
+                        target: "astral.magic-wall",
+                        event_code = "magic-wall.filter.ipv6.failed",
+                        error = %err,
+                        "Failed to add IPv6 WFP filter"
+                    );
                     errors.push(format!("IPv6: {}", err));
                 }
             }
@@ -342,9 +369,12 @@ mod wfp_impl {
         fn drop(&mut self) {
             unsafe {
                 if !self.engine_handle.is_invalid() {
-                    println!("\n正在关闭 WFP 引擎（规则将自动清理）...");
                     FwpmEngineClose0(self.engine_handle);
-                    println!("✓ WFP 引擎已关闭，所有规则已自动清理");
+                    tracing::info!(
+                        target: "astral.magic-wall",
+                        event_code = "magic-wall.wfp.session.close",
+                        "WFP dynamic session closed"
+                    );
                 }
             }
         }
@@ -723,10 +753,12 @@ pub fn start_magic_wall() -> std::result::Result<(), String> {
     }
 
     let firewall = WfpFirewall::new().map_err(|e| e.to_string())?;
-    println!("\n🔥 ============ 魔法墙引擎启动 ============");
-    println!("✓ 引擎状态: 运行中");
-    println!("✓ 平台: Windows Filtering Platform (WFP)");
-    println!("============================================\n");
+    tracing::info!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.engine.start",
+        platform = "wfp",
+        "Magic Wall engine started"
+    );
 
     *firewall_guard = Some(firewall);
     drop(firewall_guard);
@@ -735,7 +767,13 @@ pub fn start_magic_wall() -> std::result::Result<(), String> {
     let rules = RULE_STORE.lock().map_err(|e| e.to_string())?;
     for rule in rules.values().filter(|r| r.enabled) {
         if let Err(err) = apply_rule(rule) {
-            println!("⚠️  规则 {} 应用失败: {}", rule.name, err);
+            tracing::warn!(
+                target: "astral.magic-wall",
+                event_code = "magic-wall.rule.restore.failed",
+                rule_id = %rule.id,
+                error = %err,
+                "Failed to restore a Magic Wall rule"
+            );
         }
     }
 
@@ -761,10 +799,12 @@ pub fn stop_magic_wall() -> std::result::Result<(), String> {
     FILTER_TRACKER.lock().map_err(|e| e.to_string())?.clear();
     RULE_STORE.lock().map_err(|e| e.to_string())?.clear();
 
-    println!("\n🛑 ============ 魔法墙引擎停止 ============");
-    println!("✓ 引擎状态: 已停止");
-    println!("✓ 清理规则: {} 条活跃规则", active_count);
-    println!("============================================\n");
+    tracing::info!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.engine.stop",
+        active_rule_count = active_count,
+        "Magic Wall engine stopped"
+    );
     Ok(())
 }
 
@@ -775,7 +815,12 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
     {
         let rules = RULE_STORE.lock().map_err(|e| e.to_string())?;
         if rules.contains_key(&rule.id) {
-            println!("⚠️  规则已存在，将更新: {}", rule.name);
+            tracing::debug!(
+                target: "astral.magic-wall",
+                event_code = "magic-wall.rule.add.existing",
+                rule_id = %rule.id,
+                "Existing Magic Wall rule will be updated"
+            );
             drop(rules);
             return update_magic_wall_rule(rule);
         }
@@ -785,7 +830,12 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
     if rule.enabled {
         apply_rule(&rule)?;
     } else {
-        println!("⏸️  规则已添加但未启用: {}", rule.name);
+        tracing::debug!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.add.disabled",
+            rule_id = %rule.id,
+            "Disabled Magic Wall rule stored without applying"
+        );
     }
 
     // 只有成功后才添加到存储
@@ -799,76 +849,68 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
 
 #[cfg(target_os = "windows")]
 fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
-    println!("\n➕ ============ 添加防火墙规则 ============");
-    println!("📌 规则名称: {}", rule.name);
-    println!("🔑 规则 ID: {}", rule.id);
-    println!(
-        "🎯 动作: {}",
-        if rule.action == "allow" {
-            "✅ 允许"
-        } else {
-            "🚫 阻止"
-        }
-    );
-    println!("📡 协议: {}", rule.protocol.to_uppercase());
-    println!(
-        "🔄 方向: {}",
-        match rule.direction.as_str() {
-            "inbound" => "⬇️  入站",
-            "outbound" => "⬆️  出站",
-            "both" => "↕️  双向",
-            _ => &rule.direction,
-        }
+    tracing::debug!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.rule.apply.start",
+        rule_id = %rule.id,
+        action = %rule.action,
+        protocol = %rule.protocol,
+        direction = %rule.direction,
+        has_app_path = rule.app_path.is_some(),
+        has_remote_ip = rule.remote_ip.is_some(),
+        has_local_ip = rule.local_ip.is_some(),
+        has_remote_port = rule.remote_port.is_some(),
+        has_local_port = rule.local_port.is_some(),
+        has_description = rule.description.is_some(),
+        "Applying Magic Wall rule"
     );
 
     if let Some(app_path) = &rule.app_path {
-        println!("💻 应用路径 (DOS): {}", app_path);
-        if let Some(nt_path) = crate::api::nt::get_nt_path(app_path) {
-            println!("💻 应用路径 (NT):  {}", nt_path);
-        } else {
-            println!("⚠️  无法转换为 NT 路径");
+        if crate::api::nt::get_nt_path(app_path).is_none() {
+            tracing::warn!(
+                target: "astral.magic-wall",
+                event_code = "magic-wall.rule.path.convert.failed",
+                rule_id = %rule.id,
+                "Failed to convert a Magic Wall application path"
+            );
         }
-    }
-
-    if let Some(remote_ip) = &rule.remote_ip {
-        println!("🌐 远程 IP: {}", remote_ip);
-    }
-
-    if let Some(local_ip) = &rule.local_ip {
-        println!("🏠 本地 IP: {}", local_ip);
-    }
-
-    if let Some(remote_port) = &rule.remote_port {
-        println!("🔌 远程端口: {}", remote_port);
-    }
-
-    if let Some(local_port) = &rule.local_port {
-        println!("🔌 本地端口: {}", local_port);
-    }
-
-    if let Some(description) = &rule.description {
-        println!("📝 说明: {}", description);
     }
 
     let mut firewall_guard = FIREWALL.lock().map_err(|e| e.to_string())?;
     if let Some(ref mut firewall) = *firewall_guard {
         let ids = convert_rule(rule)
             .and_then(|f_rule| firewall.add_rule(&f_rule))
-            .map_err(|e| {
-                println!("!  添加规则失败: {}", e);
-                e.to_string()
+            .map_err(|error| {
+                tracing::error!(
+                    target: "astral.magic-wall",
+                    event_code = "magic-wall.rule.apply.failed",
+                    rule_id = %rule.id,
+                    error = %error,
+                    "Failed to apply Magic Wall rule"
+                );
+                error.to_string()
             })?;
+        let filter_count = ids.len();
 
         FILTER_TRACKER
             .lock()
             .map_err(|e| e.to_string())?
             .insert(rule.id.clone(), ids);
 
-        println!("✅ 状态: 已启用");
-        println!("============================================\n");
+        tracing::info!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.apply.complete",
+            rule_id = %rule.id,
+            filter_count,
+            "Magic Wall rule applied"
+        );
     } else {
-        println!("⚠️  魔法墙尚未启动，规则将在启动后生效");
-        println!("============================================\n");
+        tracing::debug!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.apply.deferred",
+            rule_id = %rule.id,
+            "Magic Wall rule application deferred until engine start"
+        );
     }
 
     Ok(())
@@ -878,16 +920,13 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
 #[cfg(target_os = "windows")]
 pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String> {
     let mut rules = RULE_STORE.lock().map_err(|e| e.to_string())?;
-    if let Some(rule) = rules.remove(&rule_id) {
-        println!("\n➖ ============ 删除防火墙规则 ============");
-        println!("📌 规则名称: {}", rule.name);
-        println!("🔑 规则 ID: {}", rule.id);
-        if let Some(app_path) = &rule.app_path {
-            println!("💻 应用路径 (DOS): {}", app_path);
-            if let Some(nt_path) = crate::api::nt::get_nt_path(app_path) {
-                println!("💻 应用路径 (NT):  {}", nt_path);
-            }
-        }
+    if rules.remove(&rule_id).is_some() {
+        tracing::debug!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.remove.start",
+            rule_id = %rule_id,
+            "Removing Magic Wall rule"
+        );
 
         let mut firewall_guard = FIREWALL.lock().map_err(|e| e.to_string())?;
         if let Some(firewall) = firewall_guard.as_mut() {
@@ -897,22 +936,49 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
             };
 
             if let Some(ids) = ids {
-                println!("📝 找到 {} 个过滤器需要删除", ids.len());
+                let filter_count = ids.len();
                 for id in ids {
                     if let Err(err) = firewall.remove_filter(id) {
-                        println!("⚠️  删除过滤器失败: {}", err);
+                        tracing::warn!(
+                            target: "astral.magic-wall",
+                            event_code = "magic-wall.filter.remove.failed",
+                            rule_id = %rule_id,
+                            error = %err,
+                            "Failed to remove WFP filter"
+                        );
                     }
                 }
+                tracing::debug!(
+                    target: "astral.magic-wall",
+                    event_code = "magic-wall.filters.remove.complete",
+                    rule_id = %rule_id,
+                    filter_count,
+                    "Magic Wall filters removed"
+                );
             } else {
-                println!("⚠️  FILTER_TRACKER 中未找到规则 {} 的过滤器记录", rule_id);
+                tracing::warn!(
+                    target: "astral.magic-wall",
+                    event_code = "magic-wall.filters.tracker.missing",
+                    rule_id = %rule_id,
+                    "No tracked WFP filters found for Magic Wall rule"
+                );
             }
         }
 
-        println!("✅ 规则已从防火墙中移除");
-        println!("============================================\n");
+        tracing::info!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.remove.complete",
+            rule_id = %rule_id,
+            "Magic Wall rule removed"
+        );
         Ok(())
     } else {
-        println!("⚠️  规则不存在: {}", rule_id);
+        tracing::warn!(
+            target: "astral.magic-wall",
+            event_code = "magic-wall.rule.remove.missing",
+            rule_id = %rule_id,
+            "Magic Wall rule was not found"
+        );
         Err("规则不存在".to_string())
     }
 }
@@ -920,15 +986,23 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
 /// 更新规则
 #[cfg(target_os = "windows")]
 pub fn update_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), String> {
-    println!("\n🔄 ============ 更新防火墙规则 ============");
-    println!("📌 规则名称: {}", rule.name);
-    println!("🔑 规则 ID: {}", rule.id);
-    println!("============================================\n");
+    let rule_id = rule.id.clone();
+    tracing::debug!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.rule.update.start",
+        rule_id = %rule_id,
+        "Updating Magic Wall rule"
+    );
 
-    let _ = remove_magic_wall_rule(rule.id.clone());
+    let _ = remove_magic_wall_rule(rule_id.clone());
     add_magic_wall_rule(rule)?;
 
-    println!("✅ 规则更新完成\n");
+    tracing::info!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.rule.update.complete",
+        rule_id = %rule_id,
+        "Magic Wall rule updated"
+    );
     Ok(())
 }
 
@@ -941,16 +1015,14 @@ pub fn get_magic_wall_status() -> std::result::Result<MagicWallStatus, String> {
     let active_rules = rules.values().filter(|r| r.enabled).count();
     let total_rules = rules.len();
 
-    println!("📊 魔法墙状态查询:");
-    println!(
-        "   引擎: {}",
-        if running {
-            "🟢 运行中"
-        } else {
-            "🔴 已停止"
-        }
+    tracing::debug!(
+        target: "astral.magic-wall",
+        event_code = "magic-wall.status.read",
+        running,
+        active_rule_count = active_rules,
+        total_rule_count = total_rules,
+        "Magic Wall status read"
     );
-    println!("   活跃规则: {} / {} 条", active_rules, total_rules);
 
     Ok(MagicWallStatus {
         is_running: running,
