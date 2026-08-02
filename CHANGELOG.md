@@ -90,6 +90,9 @@ baseline.
 - Made the locked nixpkgs package set authoritative for development toolchains,
   added a complete local Android SDK/NDK environment, and synchronized versions
   for standard local tools and CI. ([#9])
+- Added a `flutter-android` development command that defaults local Android work
+  to the canary identity and isolates NDK builds from NixOS desktop compiler
+  settings.
 
 ## v2.8.1 - 2026-03-31
 

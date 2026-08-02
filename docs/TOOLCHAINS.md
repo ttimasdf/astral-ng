@@ -59,6 +59,40 @@ and writes ignored `android/local.properties` paths for Flutter and Android.
 The flake accepts the Android SDK license and enables the unfree Android command
 line tools required by this environment.
 
+### Android Flutter commands on NixOS
+
+Use `flutter-android` for commands that target Android from the Nix development
+shell. Keep Flutter's normal subcommands and arguments:
+
+```bash
+flutter-android run -d <device>
+flutter-android test
+flutter-android build apk --debug
+```
+
+The helper calls the unwrapped Flutter executable with the complete pinned SDK,
+removes Linux desktop compiler paths that would contaminate NDK builds, and
+configures bindgen separately for every Android ABI used by Cargokit. Commands
+that can build Android also stop compatible Gradle daemons first because a
+Gradle daemon retains the environment from its initial invocation. Continue to
+use plain `flutter` for Linux desktop development.
+
+The helper defaults to the canary application identity and passes that channel
+to both Gradle and Dart while leaving all Flutter arguments unchanged. Place an
+explicit production override before the Flutter subcommand when needed:
+
+```bash
+flutter-android run -d <device>
+flutter-android test
+flutter-android --astral-channel production build apk --release
+```
+
+Run `flutter-android --astral-help` for wrapper options or a command-specific
+Flutter help invocation such as `flutter-android run --help`. The helper warns
+when less than 30 GiB is free but never removes generated output automatically;
+use `flutter-android clean` when discarding incremental build artifacts is
+intentional.
+
 `eachDefaultSystem` keeps development-shell and synchronization outputs
 available on the standard Linux and macOS systems. Linux-only GUI dependencies
 are added conditionally. The packaged `astral-ng` derivation remains Linux-only

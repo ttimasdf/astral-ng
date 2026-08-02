@@ -90,12 +90,27 @@
             exec python3 ${./scripts/sync_toolchains.py} ${syncArgs} "$@"
           '';
         };
+        flutterAndroid = pkgs.writeShellApplication {
+          name = "flutter-android";
+          runtimeInputs = [
+            pkgs.coreutils
+            pkgs.gawk
+          ];
+          runtimeEnv = {
+            ASTRAL_FLUTTER_ROOT = "${flutterSdk}";
+            ASTRAL_FLUTTER_BIN = "${flutterSdk.unwrapped}/bin/flutter";
+            ASTRAL_ANDROID_MIN_SDK = "24";
+          };
+          meta.description = "Run Flutter with Astral-ng's Android-safe Nix environment";
+          text = builtins.readFile ./scripts/flutter_android.sh;
+        };
 
         astral-ng = pkgs.callPackage ./package.nix { };
       in
       {
         packages = {
           inherit syncToolchains;
+          flutter-android = flutterAndroid;
         }
         // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
           inherit astral-ng;
@@ -124,6 +139,7 @@
               rustup
               cargo-ndk
               flutterSdk
+              flutterAndroid
               androidSdk
               javaSdk
               protobuf

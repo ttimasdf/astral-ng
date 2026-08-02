@@ -26,6 +26,26 @@ When instructed to implement a new feature, use the following workflow:
    authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
    and cleanup workflow.
 
+## Local Android Builds
+
+Run Android Flutter commands from the Nix development shell with
+`flutter-android`, not the plain `flutter` executable. The helper prevents
+nixpkgs' Linux desktop compiler paths from contaminating NDK compilation and
+configures bindgen for every Android ABI used by Cargokit. Keep normal Flutter
+subcommands and arguments. The helper defaults to the canary identity; place
+Astral-specific overrides before the Flutter subcommand:
+
+```bash
+flutter-android run -d <device>
+flutter-android test
+flutter-android build apk --debug
+flutter-android --astral-channel production build apk --release
+```
+
+Use plain `flutter` for Linux desktop development. The Android helper stops
+compatible Gradle daemons before commands that can build the app because Gradle
+daemons retain their startup environment.
+
 ## Pull Request CI
 
 Before running checks, pushing a feature branch, or creating a pull request,

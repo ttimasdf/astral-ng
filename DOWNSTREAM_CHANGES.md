@@ -524,7 +524,7 @@ without the packet-processing backend after process death.
 
 ## [toolchain-pinning]: Derive development toolchains from locked nixpkgs
 
-- **Scope**: `flake.nix`, `flake.lock`, `package.nix`, `scripts/sync_toolchains.py`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
+- **Scope**: `flake.nix`, `flake.lock`, `package.nix`, `scripts/`, `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/`, `.github/`, `rust_builder/cargokit/`, `.gitignore`, `AGENTS.md`, `CLAUDE.md`, `docs/TOOLCHAINS.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `toolchain-pinning`
@@ -542,18 +542,24 @@ JDK 17), exports Android and Java paths, and supports local APK builds.
 Cargokit's default build path respects rustup's active project toolchain instead
 of bypassing the synchronized pin with `stable`, and explicitly uses rustup's
 cross-target compiler when nixpkgs' host compiler appears first in `PATH`.
+On Linux, the Nix shell also provides `flutter-android`, which keeps Flutter's
+normal CLI while removing host desktop compiler flags, configuring bindgen for
+each Android ABI, and restarting compatible Gradle daemons before Android
+builds. The helper defaults local Android commands to the canary identity and
+supports an explicit production override.
 
 ### Files affected
 
-- `flake.nix`, `flake.lock`, `package.nix`: select canonical development packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions only through the synchronization package passthru, add the sync app/check, keep default-system development outputs, and leave the application package dependent only on nixpkgs inputs
+- `flake.nix`, `flake.lock`, `package.nix`: select canonical development packages from nixpkgs, compose the default Android SDK/NDK, expose resolved versions only through the synchronization package passthru, add the sync and Android Flutter helpers, keep default-system development outputs, and leave the application package dependent only on nixpkgs inputs
 - `scripts/sync_toolchains.py`: generate or verify deterministic tool-specific mirrors from Nix-provided versions
+- `scripts/flutter_android.sh`: preserve Flutter subcommands while sanitizing Nix host flags, configuring target-specific NDK bindgen arguments, selecting the build channel, warning about low disk space, and avoiding stale Gradle daemon environments
 - `rust-toolchain.toml`, `.fvmrc`, `.java-version`, `android/toolchain.properties`: generated mirrors consumed outside Nix
 - `android/app/build.gradle.kts`, `android/build.gradle.kts`: consume synchronized platform, build-tools, target, CMake, and NDK versions and apply them consistently to third-party Android subprojects
 - `.github/actions/setup-toolchains/action.yml`, `.github/workflows/build-and-release.yml`: install synchronized Rust/Flutter versions and optionally set up the complete Android toolchain
 - `.github/ci-versions.yml`: remove the unused upstream CI-only version reference
 - `rust_builder/cargokit/build_tool/lib/src/builder.dart`, `rust_builder/cargokit/build_tool/lib/src/rustup.dart`: preserve exact-version rustup toolchains, use the active project override, and select rustup's compiler explicitly for cross-target builds inside the Nix shell
 - `.gitignore`: ignore FVM's generated project directory
-- `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup, consumer mirrors, and upgrades
+- `AGENTS.md`, `CLAUDE.md`, `docs/TOOLCHAINS.md`: document Nix ownership, local Android setup and commands, consumer mirrors, and upgrades
 
 ---
 
