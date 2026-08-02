@@ -311,6 +311,31 @@ void main() {
     expect(encoded, isNot(contains('hunter2')));
   });
 
+  test('late file sink replays bounded startup records', () async {
+    final directory = await Directory.systemTemp.createTemp('astral-startup-');
+    addTearDown(() => directory.delete(recursive: true));
+    final runtime = DiagnosticsRuntime.bootstrap(
+      initialPolicy: LogPolicy.debugDefaults().withModuleLevel(
+        DiagnosticModules.localization,
+        LogSeverity.debug,
+      ),
+    );
+    addTearDown(runtime.close);
+
+    runtime
+        .logger(DiagnosticModules.localization)
+        .debug('localization.package.debug', 'Localization package event');
+    final sink = await RotatingJsonlSink.open(directory: directory);
+    runtime.attachSink(sink, replayStoredRecords: true);
+    await runtime.flush();
+
+    final records = await File('${directory.path}/astral.jsonl').readAsLines();
+    expect(records, hasLength(1));
+    final decoded = jsonDecode(records.single) as Map<String, dynamic>;
+    expect(decoded['module'], DiagnosticModules.localization);
+    expect(decoded['event_code'], 'localization.package.debug');
+  });
+
   test('rotating JSONL sink persists structured bounded records', () async {
     final directory = await Directory.systemTemp.createTemp('astral-logs-');
     addTearDown(() => directory.delete(recursive: true));

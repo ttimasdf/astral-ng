@@ -84,7 +84,7 @@ final class DiagnosticsRuntime {
     () => ModuleLogger(module: module, policy: () => policy.value),
   );
 
-  void attachSink(DiagnosticSink sink) {
+  void attachSink(DiagnosticSink sink, {bool replayStoredRecords = false}) {
     if (_closed) {
       unawaited(sink.close());
       return;
@@ -95,6 +95,19 @@ final class DiagnosticsRuntime {
       );
     }
     _sinks.add(sink);
+    if (!replayStoredRecords) return;
+
+    for (final record in store.value) {
+      if (!policy.value.allows(record.module, record.level, sink.destination)) {
+        continue;
+      }
+      try {
+        sink.add(record);
+      } catch (error, stack) {
+        _reportSinkFailureOnce(sink.destination, error, stack);
+        break;
+      }
+    }
   }
 
   void _ingest(LogRecord source) {

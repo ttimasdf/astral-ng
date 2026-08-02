@@ -198,7 +198,10 @@ Future<void> _initializeOptionalServices(
   await _optional(
     diagnostics.logger(DiagnosticModules.logging),
     'logging.file.initialize',
-    () async => diagnostics.attachSink(await RotatingJsonlSink.open()),
+    () async => diagnostics.attachSink(
+      await RotatingJsonlSink.open(),
+      replayStoredRecords: true,
+    ),
   );
   if (Platform.isAndroid) {
     await _optional(
