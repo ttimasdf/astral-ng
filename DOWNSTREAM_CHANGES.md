@@ -10,6 +10,36 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ---
 
+## [settings-overhaul]: Redesign the settings experience
+
+- **Scope**: `lib/features/settings/`, `lib/shared/widgets/common/`, `assets/translations/`, `test/features/settings/`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: settings-overhaul
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the upstream settings launcher and disconnected configuration surfaces
+with a responsive settings hub. Wide layouts use persistent category navigation,
+compact layouts use drill-down pages, and search maps common and technical terms
+to the relevant category. Network and connection behavior are consolidated into
+one workspace, while appearance, language, permissions, updates, diagnostics,
+and About information are organized into dedicated categories with current-value
+summaries and clearer dependency and change-effect messaging.
+
+### Files affected
+
+- `lib/features/settings/pages/settings_main_page.dart`: adaptive settings shell, category search, navigation, and summaries
+- `lib/features/settings/pages/general/update_settings_page.dart`: reuse the consolidated update-settings content
+- `lib/features/settings/widgets/*_settings_content.dart`: category content for General, Appearance & Language, Network & Connection, Updates, Permissions, and Support & About
+- `lib/features/settings/widgets/settings_components.dart`: shared section, navigation-row, notice, and value-status components
+- `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`: localized theme shortcuts shared with the new Appearance category
+- `assets/translations/en.json`, `assets/translations/zh.json`: bilingual settings hierarchy, descriptions, statuses, and validation messages
+- `test/features/settings/settings_components_test.dart`: widget coverage for the shared settings presentation components
+
+---
+
 ## [rebrand-astral-ng]: Rebrand GUI from Astral to AstralNG
 
 - **Scope**: `lib/core/states/`, `lib/features/settings/`, `lib/shared/`, `ios/`, `windows/`, `android/`, `assets/`, `scripts/`

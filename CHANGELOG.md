@@ -41,6 +41,9 @@ baseline.
   and move the complete Isar database file set into the new `db` subdirectory,
   while other users must reconfigure the app. Existing logs are not migrated,
   and cache diagnostics may be removed early by the OS or user.
+- Redesigned Settings with responsive desktop and mobile navigation, searchable
+  categories, clearer status and dependency descriptions, and a consolidated
+  Network & Connection workspace.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.
