@@ -12,7 +12,7 @@ import 'package:astral/core/diagnostics/log_policy.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
 import 'package:astral/core/diagnostics/sinks/diagnostic_sink.dart';
 
-final class RotatingJsonlSink implements DiagnosticSink {
+final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
   RotatingJsonlSink._({
     required Directory directory,
     required this.maxBytes,
@@ -60,6 +60,16 @@ final class RotatingJsonlSink implements DiagnosticSink {
   bool get isHealthy => _healthy;
   int get droppedRecords => _droppedRecords;
   String get directoryPath => _directory.path;
+
+  @override
+  Map<String, Object?> get health => {
+    'healthy': _healthy,
+    'queued_records': _queue.length,
+    'queue_capacity': maxQueueRecords,
+    'dropped_records': _droppedRecords,
+    'current_bytes': _currentBytes,
+    'max_bytes': maxBytes,
+  };
 
   @override
   DiagnosticDestination get destination => DiagnosticDestination.file;

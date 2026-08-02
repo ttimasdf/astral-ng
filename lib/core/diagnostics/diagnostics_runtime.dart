@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
 import 'package:astral/core/diagnostics/diagnostic_message.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostic_record.dart';
@@ -56,9 +57,27 @@ final class DiagnosticsRuntime {
   final DiagnosticSanitizer _sanitizer;
   final Map<String, ModuleLogger> _loggers = {};
   final Set<DiagnosticDestination> _failedDestinations = {};
+  final DiagnosticFloodController _floodController =
+      DiagnosticFloodController();
   late final StreamSubscription<LogRecord> _subscription;
+  Timer? _suppressionTimer;
   int _ingestSequence = 0;
   bool _closed = false;
+
+  Map<String, Map<String, Object?>> get sinkHealth {
+    final result = <String, Map<String, Object?>>{};
+    for (final sink in _sinks) {
+      final details = <String, Object?>{
+        'attached': true,
+        'failed': _failedDestinations.contains(sink.destination),
+      };
+      if (sink is DiagnosticSinkHealth) {
+        details.addAll((sink as DiagnosticSinkHealth).health);
+      }
+      result[sink.destination.name] = Map.unmodifiable(details);
+    }
+    return Map.unmodifiable(result);
+  }
 
   ModuleLogger logger(String module) => _loggers.putIfAbsent(
     module,
@@ -179,6 +198,25 @@ final class DiagnosticsRuntime {
   }
 
   void _deliver(DiagnosticRecord record) {
+    if (!_floodController.accepts(record)) {
+      _scheduleSuppressionSummary();
+      return;
+    }
+    _deliverDirect(record);
+  }
+
+  void _scheduleSuppressionSummary() {
+    if (_closed || _suppressionTimer != null) return;
+    _suppressionTimer = Timer(const Duration(seconds: 2), () {
+      _suppressionTimer = null;
+      _emitSuppressionSummaries();
+      if (_floodController.hasPendingSummaries) {
+        _scheduleSuppressionSummary();
+      }
+    });
+  }
+
+  void _deliverDirect(DiagnosticRecord record) {
     for (final sink in _sinks) {
       if (!policy.value.allows(record.module, record.level, sink.destination)) {
         continue;
@@ -188,6 +226,33 @@ final class DiagnosticsRuntime {
       } catch (error, stack) {
         _reportSinkFailureOnce(sink.destination, error, stack);
       }
+    }
+  }
+
+  void _emitSuppressionSummaries({bool force = false}) {
+    if (_closed) return;
+    for (final summary in _floodController.drain(force: force)) {
+      final now = DateTime.now().toUtc();
+      _deliverDirect(
+        DiagnosticRecord(
+          sourceTimestampUtc: now,
+          ingestedTimestampUtc: now,
+          ingestSequence: _ingestSequence++,
+          sourceSequence: null,
+          sessionId: sessionId,
+          origin: 'dart',
+          module: DiagnosticModules.logging,
+          level: LogSeverity.warning,
+          eventCode: 'logging.records.suppressed',
+          message: 'Suppressed repeated diagnostics',
+          fields: {
+            'module': summary.module,
+            'reason': summary.reason,
+            'count': summary.count,
+            'window_ms': summary.window.inMilliseconds,
+          },
+        ),
+      );
     }
   }
 
@@ -220,6 +285,8 @@ final class DiagnosticsRuntime {
 
   Future<void> close() async {
     if (_closed) return;
+    _suppressionTimer?.cancel();
+    _emitSuppressionSummaries(force: true);
     _closed = true;
     await _subscription.cancel();
     for (final sink in _sinks.reversed) {

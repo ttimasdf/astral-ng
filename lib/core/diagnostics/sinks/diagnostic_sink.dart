@@ -10,3 +10,7 @@ abstract interface class DiagnosticSink {
 
   Future<void> close();
 }
+
+abstract interface class DiagnosticSinkHealth {
+  Map<String, Object?> get health;
+}
