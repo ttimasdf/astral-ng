@@ -7,12 +7,18 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** AstralNG Canary snapshots now install separately from production releases.
+> **Highlight:** Troubleshooting is now safer and more consistent with structured diagnostics across desktop and mobile.
 >
-> **版本亮点：** AstralNG Canary 快照版本现可与正式版本独立安装。
+> **版本亮点：** 通过桌面端与移动端统一的结构化诊断，故障排查现更加安全一致。
 
 ### Added
 
+- Added structured, redacted diagnostics across desktop and mobile, including
+  runtime log controls, bounded JSONL persistence, correlation filters, and
+  reviewable support-bundle exports.
+- Added process-only pre-start diagnostic flags for desktop and debuggable
+  Android builds, plus a cross-platform troubleshooting guide covering
+  application, network, routing, and EasyTier inspection tools.
 - Added an Android Quick Settings tile that shows the current connection state
   and connects or disconnects Astral-ng with one tap. ([#10])
 - Added automatic connection retries with a configurable retry limit.
@@ -55,6 +61,8 @@ baseline.
 
 ### Fixed
 
+- Fixed Android VPN startup treating a null VPN interface as revoked permission,
+  preserving the original failure and correlation details for troubleshooting.
 - Fixed Android canary snapshots remaining on the white launch screen when
   startup tried to resolve home-widget providers from the canary package ID.
 - Fixed Android VPN routes not refreshing when a connected peer advertises or

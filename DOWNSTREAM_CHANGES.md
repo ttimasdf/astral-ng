@@ -658,4 +658,38 @@ tags preserve the existing names and identifiers.
 
 ---
 
+## [observability-refactor]: Add cross-platform structured diagnostics
+
+- **Scope**: `lib/core/diagnostics/`, `lib/main.dart`, `lib/features/settings/pages/general/logs_page.dart`, `rust/src/diagnostics/`, `vpn_service_plugin/`, `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`, `docs/TROUBLESHOOTING.md`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: observability-refactor
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the fork's legacy console, UDP, and independent file-log capture paths
+with one privacy-aware diagnostics model shared by desktop and mobile. Dart,
+EasyTier/Rust, and Android VPN events use consistent severity, module, event
+code, session, error, operation, and connection-attempt fields. Runtime policy
+controls, timed diagnostic presets, bounded flood handling, rotating redacted
+JSONL persistence, searchable in-app logs, and reviewable support bundles make
+failures inspectable without recording packet contents, credentials, room
+payloads, executable paths, or user-provided Magic Wall details. Desktop
+entrypoint arguments and debuggable Android Activity extras can activate
+process-only policies before startup; release Android builds ignore those
+extras.
+
+### Files affected
+
+- `lib/core/diagnostics/`, `lib/main.dart`: define the schema, sanitization, policy, sinks, error ownership, startup capture, launch arguments, correlation, and Flutter timeline integration
+- `lib/features/settings/pages/general/logs_page.dart`: add policy controls, timed presets, structured filters, pause and auto-scroll behavior, health counters, and support export
+- `rust/src/diagnostics/`, `rust/src/api/`, generated Flutter Rust Bridge files: install the Astral tracing subscriber, normalize and redact native events, batch the Dart bridge, and propagate correlation identifiers
+- `vpn_service_plugin/`: emit structured Android VPN events to logcat and Flutter, synchronize runtime filtering, and preserve null-interface establishment failures without misclassifying permission state
+- `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`: translate bounded debug/profile Activity extras into Dart pre-start arguments
+- `lib/core/services/`, `lib/core/app_links/`, `lib/features/magic_wall/`, `lib/features/rooms/`: replace legacy call sites and attach safe operation, connection, and error context
+- `docs/TROUBLESHOOTING.md`: document console and logcat use, policy activation, support exports, packet capture, routing inspection, EasyTier state, Flutter DevTools, privacy boundaries, and failure isolation
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->
