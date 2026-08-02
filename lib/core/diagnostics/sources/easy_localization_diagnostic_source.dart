@@ -30,7 +30,7 @@ final class EasyLocalizationDiagnosticSource {
 
     packageLogger
       ..enableBuildModes = List.of(BuildMode.values)
-      ..enableLevels = const [LevelMessages.warning, LevelMessages.error]
+      ..enableLevels = List.of(LevelMessages.values)
       ..printer = (
         Object detail, {
         String? name,
@@ -41,20 +41,33 @@ final class EasyLocalizationDiagnosticSource {
           'package': 'easy_localization',
           'detail': detail.toString(),
         };
-        if (level == LevelMessages.error) {
-          log.error(
-            'localization.package.error',
-            'Localization package reported an error',
-            fields: fields,
-            stackTrace: stackTrace,
-          );
-        } else {
-          log.warning(
-            'localization.package.warning',
-            'Localization package reported a warning',
-            fields: fields,
-            stackTrace: stackTrace,
-          );
+        switch (level) {
+          case LevelMessages.debug:
+            log.debug(
+              'localization.package.debug',
+              'Localization package debug event',
+              fields: fields,
+            );
+          case LevelMessages.info:
+            log.info(
+              'localization.package.info',
+              'Localization package information',
+              fields: fields,
+            );
+          case LevelMessages.error:
+            log.error(
+              'localization.package.error',
+              'Localization package reported an error',
+              fields: fields,
+              stackTrace: stackTrace,
+            );
+          case LevelMessages.warning || null:
+            log.warning(
+              'localization.package.warning',
+              'Localization package reported a warning',
+              fields: fields,
+              stackTrace: stackTrace,
+            );
         }
       };
 

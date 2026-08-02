@@ -9,6 +9,7 @@ import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
 import 'package:astral/core/diagnostics/diagnostic_context.dart';
 import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
@@ -62,6 +63,66 @@ void main() {
       );
     });
   });
+
+  test(
+    'launch options apply a bounded diagnostic preset and overrides',
+    () async {
+      final options = DiagnosticLaunchOptions.parse(const [
+        '--autostart',
+        '--log-preset=diagnostic',
+        '--log-module=astral.connection=info',
+        '--log-module=astral.easytier.peer=trace',
+        '--log-duration=45s',
+      ]);
+      final runtime = DiagnosticsRuntime.bootstrap(
+        initialPolicy: options.initialPolicy(debugBuild: false),
+      );
+      addTearDown(runtime.close);
+      options.applyTo(runtime);
+
+      expect(runtime.policy.value.name, 'diagnostic');
+      expect(runtime.policy.isDiagnosticSession, isTrue);
+      expect(
+        runtime.policy.value.minimumLevel(
+          DiagnosticModules.connection,
+          DiagnosticDestination.console,
+        ),
+        LogSeverity.info,
+      );
+      expect(
+        runtime.policy.value.minimumLevel(
+          DiagnosticModules.easyTierPeer,
+          DiagnosticDestination.console,
+        ),
+        LogSeverity.trace,
+      );
+      expect(options.diagnosticDuration, const Duration(seconds: 45));
+      expect(options.invalidOptionCount, 0);
+    },
+  );
+
+  test(
+    'invalid launch options fall back safely without echoing values',
+    () async {
+      final options = DiagnosticLaunchOptions.parse(const [
+        '--log-preset=everything',
+        '--log-module=other.secret=trace',
+        '--log-duration=7d',
+        '--unrelated=value',
+      ]);
+      final runtime = DiagnosticsRuntime.bootstrap(
+        initialPolicy: options.initialPolicy(debugBuild: false),
+      );
+      addTearDown(runtime.close);
+      options.applyTo(runtime);
+
+      expect(options.invalidOptionCount, 3);
+      expect(runtime.policy.value.name, 'production');
+      final warning = runtime.store.value.single;
+      expect(warning.eventCode, 'launch-options.invalid');
+      expect(warning.fields, {'invalid_option_count': 3});
+    },
+  );
 
   test(
     'runtime normalizes structured records and errors synchronously',
@@ -142,6 +203,13 @@ void main() {
     expect(record.eventCode, 'localization.package.warning');
     expect(record.message, 'Localization package reported a warning');
     expect(record.fields['detail'], 'missing localization key');
+
+    runtime.policy.setModuleLevel(
+      DiagnosticModules.localization,
+      LogSeverity.debug,
+    );
+    EasyLocalization.logger.debug('localization initialized');
+    expect(runtime.store.value.last.eventCode, 'localization.package.debug');
   });
 
   test('flood controller coalesces duplicates and reports suppression', () {

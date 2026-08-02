@@ -48,6 +48,11 @@ final class LogPolicy {
         memory: LogSeverity.debug,
         file: LogSeverity.info,
       ),
+      DiagnosticModules.localization: ModuleThresholds(
+        console: LogSeverity.warning,
+        memory: LogSeverity.warning,
+        file: LogSeverity.warning,
+      ),
       DiagnosticModules.easyTier: ModuleThresholds(
         console: LogSeverity.info,
         memory: LogSeverity.info,
@@ -67,6 +72,11 @@ final class LogPolicy {
       DiagnosticModules.root: ModuleThresholds(
         console: LogSeverity.info,
         memory: LogSeverity.info,
+        file: LogSeverity.warning,
+      ),
+      DiagnosticModules.localization: ModuleThresholds(
+        console: LogSeverity.warning,
+        memory: LogSeverity.warning,
         file: LogSeverity.warning,
       ),
       DiagnosticModules.easyTier: ModuleThresholds(

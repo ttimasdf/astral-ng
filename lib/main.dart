@@ -14,6 +14,7 @@ import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/diagnostics/diagnostic_context.dart';
+import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/diagnostics/error/error_coordinator.dart';
@@ -31,10 +32,14 @@ import 'package:astral/src/rust/api/utils.dart';
 import 'package:astral/src/rust/frb_generated.dart';
 import 'package:uuid/uuid.dart';
 
-void main() {
+void main(List<String> arguments) {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final diagnostics = Diagnostics.initialize();
+  final launchOptions = DiagnosticLaunchOptions.parse(arguments);
+  final diagnostics = Diagnostics.initialize(
+    initialPolicy: launchOptions.initialPolicy(debugBuild: kDebugMode),
+  );
+  launchOptions.applyTo(diagnostics);
   EasyLocalizationDiagnosticSource.install(diagnostics);
   ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
   WidgetsBinding.instance.addObserver(
@@ -50,6 +55,7 @@ void main() {
           'build_mode': kDebugMode ? 'debug' : 'release',
           'policy': diagnostics.policy.value.name,
           'platform': defaultTargetPlatform.name,
+          ...launchOptions.safeSummary,
         },
       );
 
