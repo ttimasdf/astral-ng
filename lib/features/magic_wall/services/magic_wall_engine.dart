@@ -1,9 +1,10 @@
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
 import 'package:astral/features/magic_wall/services/magic_wall_store.dart';
 import 'package:astral/src/rust/api/magic_wall.dart' as rust_api;
-import 'package:flutter/foundation.dart';
 
 /// Rust Magic Wall engine sync: convert models, start/stop, add/remove/update.
 class MagicWallEngine {
@@ -88,12 +89,20 @@ class MagicWallEngine {
       }
 
       // 重新加载更新后的规则
-      final updatedRules = await store.dao.getRulesByGroup(bundle.group.groupId);
+      final updatedRules = await store.dao.getRulesByGroup(
+        bundle.group.groupId,
+      );
       for (final rule in updatedRules.where((r) => r.enabled)) {
         try {
           await addRuleToEngine(rule, fallbackAppPath: groupExecutable);
-        } catch (e) {
-          debugPrint('⚠️  应用规则失败: ${rule.name}, 错误: $e');
+        } catch (e, stack) {
+          Diagnostics.logger(DiagnosticModules.magicWall).warning(
+            'magic-wall.rule.apply.failed',
+            'Failed to apply a Magic Wall rule',
+            fields: {'rule_id': rule.ruleId},
+            error: e,
+            stackTrace: stack,
+          );
         }
       }
     }
@@ -123,8 +132,14 @@ class MagicWallEngine {
     for (final rule in updatedRules.where((rule) => rule.enabled)) {
       try {
         await addRuleToEngine(rule, fallbackAppPath: groupAppPath);
-      } catch (e) {
-        debugPrint('⚠️  添加规则失败: ${rule.name}, 错误: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.magicWall).warning(
+          'magic-wall.rule.add.failed',
+          'Failed to add a Magic Wall rule',
+          fields: {'rule_id': rule.ruleId},
+          error: e,
+          stackTrace: stack,
+        );
       }
     }
   }
@@ -141,8 +156,14 @@ class MagicWallEngine {
 
       try {
         await removeRuleFromEngine(rule.ruleId);
-      } catch (e) {
-        debugPrint('⚠️  移除规则失败: ${rule.name}, 错误: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.magicWall).warning(
+          'magic-wall.rule.remove.failed',
+          'Failed to remove a Magic Wall rule',
+          fields: {'rule_id': rule.ruleId},
+          error: e,
+          stackTrace: stack,
+        );
       }
     }
   }
@@ -154,8 +175,14 @@ class MagicWallEngine {
   }) async {
     try {
       await removeRuleFromEngine(ruleId);
-    } catch (e) {
-      debugPrint('⚠️  $contextLabel: $ruleName, 错误: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).warning(
+        'magic-wall.rule.remove.failed',
+        'Failed to remove a Magic Wall rule',
+        fields: {'rule_id': ruleId, 'context': contextLabel},
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -194,8 +221,14 @@ class MagicWallEngine {
     if (isRunning && groupEnabled && updatedRule.enabled) {
       try {
         await addRuleToEngine(updatedRule, fallbackAppPath: groupAppPath);
-      } catch (e) {
-        debugPrint('⚠️  添加规则到防火墙失败: ${updatedRule.name}, 错误: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.magicWall).error(
+          'magic-wall.rule.sync.failed',
+          'Failed to synchronize a Magic Wall rule',
+          fields: {'rule_id': updatedRule.ruleId},
+          error: e,
+          stackTrace: stack,
+        );
         rethrow;
       }
     }

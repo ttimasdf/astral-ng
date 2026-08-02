@@ -2,7 +2,8 @@
 
 import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
-import 'package:flutter/foundation.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 
 // States
 import 'package:astral/core/states/theme_state.dart';
@@ -161,7 +162,11 @@ class ServiceManager {
 
     final failedServices = results.where((r) => !r).length;
     if (failedServices > 0) {
-      debugPrint('警告: $failedServices 个服务初始化失败，但应用将继续运行');
+      Diagnostics.logger(DiagnosticModules.bootstrap).warning(
+        'services.hydration.degraded',
+        'Service hydration completed with failures',
+        fields: {'failed_service_count': failedServices},
+      );
     }
 
     if (Platform.isAndroid && initializePlatformHooks) {
@@ -180,8 +185,13 @@ class ServiceManager {
       await init();
       return true;
     } catch (e, stack) {
-      debugPrint('$name 服务初始化失败: $e');
-      debugPrint('堆栈: $stack');
+      Diagnostics.logger(DiagnosticModules.bootstrap).error(
+        'service.initialize.failed',
+        'Service initialization failed',
+        fields: {'service': name},
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }

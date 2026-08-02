@@ -14,6 +14,7 @@ abstract final class DiagnosticModules {
   static const appLinks = 'astral.app-links';
   static const updates = 'astral.updates';
   static const magicWall = 'astral.magic-wall';
+  static const firewall = 'astral.firewall';
   static const window = 'astral.window';
   static const logging = 'astral.logging';
 
@@ -33,6 +34,7 @@ abstract final class DiagnosticModules {
     appLinks,
     updates,
     magicWall,
+    firewall,
     window,
     logging,
   ];

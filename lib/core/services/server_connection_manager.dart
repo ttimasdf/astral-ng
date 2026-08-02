@@ -12,7 +12,6 @@ import 'package:astral/core/states/connection_state.dart';
 import 'package:astral/core/services/notification_service.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/src/rust/api/hops.dart';
-import 'package:flutter/foundation.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:isar_community/isar.dart';
 
@@ -271,8 +270,14 @@ class ServerConnectionManager {
     if (room.networkConfigJson.isNotEmpty) {
       try {
         roomConfig = NetworkConfigShare.fromJsonString(room.networkConfigJson);
-      } catch (e) {
-        debugPrint('⚠️ 解析房间配置失败: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.connection).warning(
+          'connect.room-config.invalid',
+          'Room network configuration could not be parsed',
+          fields: {'attempt': _connectionAttemptId ?? 'unknown'},
+          error: e,
+          stackTrace: stack,
+        );
       }
     }
 

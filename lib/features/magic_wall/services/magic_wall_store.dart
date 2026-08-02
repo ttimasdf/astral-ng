@@ -1,16 +1,16 @@
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
-import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 /// Magic Wall 领域逻辑：加载/迁移、打包、事件、路径回写。
 ///
 /// CRUD 请直接使用 [dao]，不要在此再包一层转发。
 class MagicWallStore {
-  MagicWallStore([MagicWallDao? dao])
-    : dao = dao ?? ServiceManager().magicWall;
+  MagicWallStore([MagicWallDao? dao]) : dao = dao ?? ServiceManager().magicWall;
 
   final MagicWallDao dao;
 
@@ -38,8 +38,9 @@ class MagicWallStore {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final orphanRules =
-        rules.where((rule) => rule.groupId.isEmpty).toList(growable: false);
+    final orphanRules = rules
+        .where((rule) => rule.groupId.isEmpty)
+        .toList(growable: false);
     if (orphanRules.isEmpty) {
       return;
     }
@@ -146,8 +147,14 @@ class MagicWallStore {
             ..message = message
             ..timestamp = DateTime.now().millisecondsSinceEpoch;
       await dao.addEvent(log);
-    } catch (e) {
-      debugPrint('记录事件失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).warning(
+        'magic-wall.event.persist.failed',
+        'Failed to persist a Magic Wall event',
+        fields: {'target_type': targetType, 'action': action},
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
