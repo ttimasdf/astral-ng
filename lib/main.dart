@@ -9,7 +9,6 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
 import 'package:path/path.dart' as p;
 import 'package:astral/app.dart';
 import 'package:astral/core/app_links/app_link_registry.dart';
-import 'package:astral/core/bootstrap/log_capture.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
@@ -18,6 +17,7 @@ import 'package:astral/core/diagnostics/error/error_coordinator.dart';
 import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/diagnostics/module_logger.dart';
 import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:astral/core/diagnostics/sources/rust_diagnostic_source.dart';
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
 import 'package:astral/core/platform/window_manager.dart';
@@ -76,6 +76,11 @@ Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) async {
   log.info('bootstrap.start', 'Application bootstrap started');
 
   await _criticalStage(log, 'rust', _initRustLib);
+  await _optional(
+    diagnostics.logger(DiagnosticModules.logging),
+    'rust-diagnostics.initialize',
+    () => RustDiagnosticSource(diagnostics).start(),
+  );
 
   if (Platform.isMacOS) {
     final elevated = await _criticalStage(log, 'macos.elevation', checkSudo);
@@ -170,11 +175,6 @@ Future<void> _initializeOptionalServices(
     diagnostics.logger(DiagnosticModules.bootstrap),
     'metadata.initialize',
     () => AppInfoUtil.init().timeout(const Duration(seconds: 3)),
-  );
-  await _optional(
-    diagnostics.logger(DiagnosticModules.easyTier),
-    'legacy-log-capture.start',
-    LogCapture().startCapture,
   );
   await _optional(
     diagnostics.logger(DiagnosticModules.appLinks),

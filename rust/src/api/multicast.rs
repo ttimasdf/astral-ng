@@ -1,13 +1,13 @@
 use flutter_rust_bridge::frb;
+use lazy_static::lazy_static;
+use std::net::SocketAddr;
 use tokio::io;
 use tokio::net::UdpSocket;
+use tokio::runtime::Runtime;
+use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
 use tokio::time::{interval, Duration};
 use tokio_util::sync::CancellationToken;
-use std::net::SocketAddr;
-use tokio::sync::Mutex;
-use lazy_static::lazy_static;
-use tokio::runtime::Runtime;
 
 lazy_static! {
     static ref RT: Runtime = Runtime::new().expect("创建 Tokio 运行时失败");
@@ -109,20 +109,24 @@ pub fn create_multicast_sender(
     interval_ms: u64,
 ) -> Result<usize, String> {
     RT.block_on(async move {
-        let mut sender = match MulticastSender::new(multicast_addr.clone(), port, data, interval_ms) {
+        let mut sender = match MulticastSender::new(multicast_addr.clone(), port, data, interval_ms)
+        {
             Ok(s) => s,
             Err(e) => return Err(format!("创建组播发送器失败: {}", e)),
         };
-        
+
         match sender.start().await {
             Ok(_) => {
                 let mut senders = MULTICAST_SENDERS.lock().await;
                 senders.push(sender);
                 let index = senders.len() - 1;
-                println!("组播发送器已启动: {}:{}, 间隔: {}ms, 索引: {}", multicast_addr, port, interval_ms, index);
+                println!(
+                    "组播发送器已启动: {}:{}, 间隔: {}ms, 索引: {}",
+                    multicast_addr, port, interval_ms, index
+                );
                 Ok(index)
             }
-            Err(e) => Err(format!("启动组播发送器失败: {}", e))
+            Err(e) => Err(format!("启动组播发送器失败: {}", e)),
         }
     })
 }
@@ -136,21 +140,24 @@ pub fn create_multicast_sender_with_bind(
     interval_ms: u64,
 ) -> Result<usize, String> {
     RT.block_on(async move {
-        let mut sender = match MulticastSender::new(multicast_addr.clone(), port, data, interval_ms) {
+        let mut sender = match MulticastSender::new(multicast_addr.clone(), port, data, interval_ms)
+        {
             Ok(s) => s.with_bind_addr(bind_addr.clone()),
             Err(e) => return Err(format!("创建组播发送器失败: {}", e)),
         };
-        
+
         match sender.start().await {
             Ok(_) => {
                 let mut senders = MULTICAST_SENDERS.lock().await;
                 senders.push(sender);
                 let index = senders.len() - 1;
-                println!("组播发送器已启动: {}:{}, 绑定: {}, 间隔: {}ms, 索引: {}",
-                    multicast_addr, port, bind_addr, interval_ms, index);
+                println!(
+                    "组播发送器已启动: {}:{}, 绑定: {}, 间隔: {}ms, 索引: {}",
+                    multicast_addr, port, bind_addr, interval_ms, index
+                );
                 Ok(index)
             }
-            Err(e) => Err(format!("启动组播发送器失败: {}", e))
+            Err(e) => Err(format!("启动组播发送器失败: {}", e)),
         }
     })
 }
@@ -159,11 +166,11 @@ pub fn create_multicast_sender_with_bind(
 pub fn stop_multicast_sender(index: usize) -> Result<(), String> {
     RT.block_on(async move {
         let mut senders = MULTICAST_SENDERS.lock().await;
-        
+
         if index >= senders.len() {
             return Err(format!("无效的发送器索引: {}", index));
         }
-        
+
         senders[index].stop().await;
         println!("组播发送器已停止，索引: {}", index);
         Ok(())
@@ -174,12 +181,12 @@ pub fn stop_multicast_sender(index: usize) -> Result<(), String> {
 pub fn stop_all_multicast_senders() -> Result<(), String> {
     RT.block_on(async move {
         let mut senders = MULTICAST_SENDERS.lock().await;
-        
+
         for (index, sender) in senders.iter_mut().enumerate() {
             sender.stop().await;
             println!("组播发送器已停止，索引: {}", index);
         }
-        
+
         senders.clear();
         println!("所有组播发送器已停止");
         Ok(())
@@ -198,11 +205,11 @@ pub fn get_multicast_sender_count() -> usize {
 pub fn is_multicast_sender_running(index: usize) -> bool {
     RT.block_on(async move {
         let senders = MULTICAST_SENDERS.lock().await;
-        
+
         if index >= senders.len() {
             return false;
         }
-        
+
         senders[index].is_running()
     })
 }

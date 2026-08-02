@@ -1,5 +1,5 @@
 //! 魔法墙 (Magic Wall) - WFP 防火墙管理模块
-//! 
+//!
 //! 简化版实现，提供基本的防火墙规则管理接口
 
 use serde::{Deserialize, Serialize};
@@ -17,9 +17,9 @@ pub struct MagicWallRule {
     pub id: String,
     pub name: String,
     pub enabled: bool,
-    pub action: String,           // "allow" or "block"
-    pub protocol: String,          // "tcp", "udp", "both", "any"
-    pub direction: String,         // "inbound", "outbound", "both"
+    pub action: String,    // "allow" or "block"
+    pub protocol: String,  // "tcp", "udp", "both", "any"
+    pub direction: String, // "inbound", "outbound", "both"
     pub app_path: Option<String>,
     pub remote_ip: Option<String>,
     pub local_ip: Option<String>,
@@ -325,12 +325,7 @@ mod wfp_impl {
 
             let mut filter_id: u64 = 0;
             let result = unsafe {
-                FwpmFilterAdd0(
-                    self.engine_handle,
-                    &data.filter,
-                    None,
-                    Some(&mut filter_id),
-                )
+                FwpmFilterAdd0(self.engine_handle, &data.filter, None, Some(&mut filter_id))
             };
 
             drop(data);
@@ -447,21 +442,11 @@ mod wfp_impl {
         }
 
         if let Some(ref remote_port) = rule.remote_port {
-            add_port_condition(
-                &mut conditions,
-                remote_port,
-                true,
-                &mut ranges,
-            )?;
+            add_port_condition(&mut conditions, remote_port, true, &mut ranges)?;
         }
 
         if let Some(ref local_port) = rule.local_port {
-            add_port_condition(
-                &mut conditions,
-                local_port,
-                false,
-                &mut ranges,
-            )?;
+            add_port_condition(&mut conditions, local_port, false, &mut ranges)?;
         }
 
         let mut conditions_box = conditions.into_boxed_slice();
@@ -619,9 +604,8 @@ mod wfp_impl {
         let app_path_w = to_wstring(app_path);
         let mut app_id_ptr: *mut FWP_BYTE_BLOB = std::ptr::null_mut();
 
-        let result = unsafe {
-            FwpmGetAppIdFromFileName0(PCWSTR(app_path_w.as_ptr()), &mut app_id_ptr)
-        };
+        let result =
+            unsafe { FwpmGetAppIdFromFileName0(PCWSTR(app_path_w.as_ptr()), &mut app_id_ptr) };
 
         if result != 0 {
             bail!("获取应用 ID 失败，错误代码: {:#x}", result);
@@ -632,7 +616,8 @@ mod wfp_impl {
         }
 
         let app_id = unsafe { &*app_id_ptr };
-        let bytes = unsafe { std::slice::from_raw_parts(app_id.data, app_id.size as usize) }.to_vec();
+        let bytes =
+            unsafe { std::slice::from_raw_parts(app_id.data, app_id.size as usize) }.to_vec();
 
         unsafe {
             FwpmFreeMemory0(&mut app_id_ptr as *mut _ as *mut *mut _);
@@ -817,14 +802,24 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
     println!("\n➕ ============ 添加防火墙规则 ============");
     println!("📌 规则名称: {}", rule.name);
     println!("🔑 规则 ID: {}", rule.id);
-    println!("🎯 动作: {}", if rule.action == "allow" { "✅ 允许" } else { "🚫 阻止" });
+    println!(
+        "🎯 动作: {}",
+        if rule.action == "allow" {
+            "✅ 允许"
+        } else {
+            "🚫 阻止"
+        }
+    );
     println!("📡 协议: {}", rule.protocol.to_uppercase());
-    println!("🔄 方向: {}", match rule.direction.as_str() {
-        "inbound" => "⬇️  入站",
-        "outbound" => "⬆️  出站",
-        "both" => "↕️  双向",
-        _ => &rule.direction,
-    });
+    println!(
+        "🔄 方向: {}",
+        match rule.direction.as_str() {
+            "inbound" => "⬇️  入站",
+            "outbound" => "⬆️  出站",
+            "both" => "↕️  双向",
+            _ => &rule.direction,
+        }
+    );
 
     if let Some(app_path) = &rule.app_path {
         println!("💻 应用路径 (DOS): {}", app_path);
@@ -947,7 +942,14 @@ pub fn get_magic_wall_status() -> std::result::Result<MagicWallStatus, String> {
     let total_rules = rules.len();
 
     println!("📊 魔法墙状态查询:");
-    println!("   引擎: {}", if running { "🟢 运行中" } else { "🔴 已停止" });
+    println!(
+        "   引擎: {}",
+        if running {
+            "🟢 运行中"
+        } else {
+            "🔴 已停止"
+        }
+    );
     println!("   活跃规则: {} / {} 条", active_rules, total_rules);
 
     Ok(MagicWallStatus {
@@ -998,7 +1000,7 @@ pub fn get_magic_wall_status() -> std::result::Result<MagicWallStatus, String> {
 /// 创建默认规则示例
 pub fn create_default_magic_wall_rules() -> Vec<MagicWallRule> {
     let now = chrono::Utc::now().timestamp();
-    
+
     vec![
         MagicWallRule {
             id: uuid::Uuid::new_v4().to_string(),

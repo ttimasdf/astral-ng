@@ -7,12 +7,9 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'simple.dart';
 
-// These functions are ignored because they are not marked as `pub`: `get_instance_info`, `parse_instance_id`, `peer_conn_info_to_string`
+// These functions are ignored because they are not marked as `pub`: `get_instance_info`, `parse_instance_id`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `MANAGER`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `deref`, `deref`, `initialize`, `initialize`
-
-Future<void> sendUdpToLocalhost({required String message}) =>
-    RustLib.instance.api.crateApiP2PSendUdpToLocalhost(message: message);
 
 Future<JoinHandle> handleEvent({required EventBusSubscriber events}) =>
     RustLib.instance.api.crateApiP2PHandleEvent(events: events);

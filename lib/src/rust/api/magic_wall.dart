@@ -6,31 +6,23 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `apply_rule`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `FILTER_TRACKER`, `FIREWALL`, `RULE_STORE`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `deref`, `deref`, `deref`, `fmt`, `fmt`, `initialize`, `initialize`, `initialize`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `fmt`, `fmt`
 
-/// 启动魔法墙引擎
 Future<void> startMagicWall() =>
     RustLib.instance.api.crateApiMagicWallStartMagicWall();
 
-/// 停止魔法墙引擎
 Future<void> stopMagicWall() =>
     RustLib.instance.api.crateApiMagicWallStopMagicWall();
 
-/// 添加规则
 Future<void> addMagicWallRule({required MagicWallRule rule}) =>
     RustLib.instance.api.crateApiMagicWallAddMagicWallRule(rule: rule);
 
-/// 删除规则
 Future<void> removeMagicWallRule({required String ruleId}) =>
     RustLib.instance.api.crateApiMagicWallRemoveMagicWallRule(ruleId: ruleId);
 
-/// 更新规则
 Future<void> updateMagicWallRule({required MagicWallRule rule}) =>
     RustLib.instance.api.crateApiMagicWallUpdateMagicWallRule(rule: rule);
 
-/// 获取魔法墙状态
 Future<MagicWallStatus> getMagicWallStatus() =>
     RustLib.instance.api.crateApiMagicWallGetMagicWallStatus();
 

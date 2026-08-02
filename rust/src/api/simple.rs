@@ -33,184 +33,151 @@ lazy_static! {
     static ref RT: Runtime = Runtime::new().expect("创建 Tokio 运行时失败");
 }
 
-fn peer_conn_info_to_string(p: proto::api::instance::PeerConnInfo) -> String {
-    format!(
-        "my_peer_id: {}, dst_peer_id: {}, tunnel_info: {:?}",
-        p.my_peer_id, p.peer_id, p.tunnel
-    )
-}
-
-pub fn send_udp_to_localhost(message: &str) -> Result<(), String> {
-    use std::net::UdpSocket;
-
-    let socket = match UdpSocket::bind("0.0.0.0:0") {
-        Ok(s) => s,
-        Err(e) => return Err(format!("绑定UDP套接字失败: {}", e)),
-    };
-
-    match socket.send_to(message.as_bytes(), "127.0.0.1:9999") {
-        Ok(_) => Ok(()),
-        Err(e) => Err(format!("发送UDP数据失败: {}", e)),
-    }
-}
-
 pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<()> {
     tokio::spawn(async move {
         loop {
             match events.recv().await {
-                Ok(e) => {
-                    //  println!("Received event: {:?}", e);
-                    match e {
-                        GlobalCtxEvent::PeerAdded(p) => {
-                            println!("{}", format!("新节点已添加。节点ID: {}", p));
-                            let _ = send_udp_to_localhost(&format!("新节点已添加。节点ID: {}", p));
-                        }
-                        GlobalCtxEvent::PeerRemoved(p) => {
-                            println!("{}", format!("节点已移除。节点ID: {}", p));
-                            let _ = send_udp_to_localhost(&format!("节点已移除。节点ID: {}", p));
-                        }
-                        GlobalCtxEvent::PeerConnAdded(p) => {
-                            let conn_info = peer_conn_info_to_string(p);
-                            let msg = format!("新节点连接已添加。连接信息: {}", conn_info);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::PeerConnRemoved(p) => {
-                            let msg = format!(
-                                "节点连接已移除。连接信息: {}",
-                                peer_conn_info_to_string(p)
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ListenerAddFailed(p, msg) => {
-                            let msg = format!("监听器添加失败。监听器: {}, 消息: {}", p, msg);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ListenerAcceptFailed(p, msg) => {
-                            let msg = format!("监听器接受失败。监听器: {}, 消息: {}", p, msg);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ListenerAdded(p) => {
-                            if p.scheme() == "ring" {
-                                continue;
-                            }
-                            let msg = format!("新监听器已添加。监听器: {}", p);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ConnectionAccepted(local, remote) => {
-                            let msg = format!("新连接已接受。本地: {}, 远程: {}", local, remote);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ConnectionError(local, remote, err) => {
-                            let msg = format!(
-                                "连接错误。本地: {}, 远程: {}, 错误: {}",
-                                local, remote, err
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::TunDeviceReady(dev) => {
-                            let msg = format!("TUN 设备就绪。设备: {}", dev);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::TunDeviceError(err) => {
-                            let msg = format!("TUN 设备错误。错误: {}", err);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::Connecting(dst) => {
-                            let msg = format!("正在连接到节点。目标: {}", dst);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ConnectError(dst, ip_version, err) => {
-                            let msg = format!(
-                                "连接到节点错误。目标: {}, IP版本: {}, 错误: {}",
-                                dst, ip_version, err
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::VpnPortalStarted(portal) => {
-                            let msg = format!("VPN 门户已启动。门户: {}", portal);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::VpnPortalClientConnected(portal, client_addr) => {
-                            let msg = format!(
-                                "VPN 门户客户端已连接。门户: {}, 客户端地址: {}",
-                                portal, client_addr
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::VpnPortalClientDisconnected(portal, client_addr) => {
-                            let msg = format!(
-                                "VPN 门户客户端已断开连接。门户: {}, 客户端地址: {}",
-                                portal, client_addr
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::DhcpIpv4Changed(old, new) => {
-                            let msg = format!("DHCP IP 已更改。旧: {:?}, 新: {:?}", old, new);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::DhcpIpv4Conflicted(ip) => {
-                            let msg = format!("DHCP IP 冲突。IP: {:?}", ip);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::PortForwardAdded(port_forward_config_pb) => {
-                            let msg = format!("端口转发已添加。配置: {:?}", port_forward_config_pb);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ConfigPatched(patch) => {
-                            let msg = format!("配置已更新。补丁: {:?}", patch);
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::ProxyCidrsUpdated(cidrs, cidrs1) => {
-                            let msg = format!(
-                                "代理 CIDR 已更新。CIDRs: {:?}, CIDRs1: {:?}",
-                                cidrs, cidrs1
-                            );
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                        }
-                        GlobalCtxEvent::CredentialChanged => {
-                            let msg = "credential changed";
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(msg);
-                        }
-                        _ => {}
+                Ok(event) => match event {
+                    GlobalCtxEvent::PeerAdded(peer_id) => tracing::info!(
+                        target: "astral.easytier.peer",
+                        event_code = "easytier.peer.add",
+                        peer_id,
+                        "Peer added"
+                    ),
+                    GlobalCtxEvent::PeerRemoved(peer_id) => tracing::info!(
+                        target: "astral.easytier.peer",
+                        event_code = "easytier.peer.remove",
+                        peer_id,
+                        "Peer removed"
+                    ),
+                    GlobalCtxEvent::PeerConnAdded(connection) => tracing::info!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.add",
+                        my_peer_id = connection.my_peer_id,
+                        peer_id = connection.peer_id,
+                        "Peer connection added"
+                    ),
+                    GlobalCtxEvent::PeerConnRemoved(connection) => tracing::info!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.remove",
+                        my_peer_id = connection.my_peer_id,
+                        peer_id = connection.peer_id,
+                        "Peer connection removed"
+                    ),
+                    GlobalCtxEvent::ListenerAdded(listener) if listener.scheme() != "ring" => {
+                        tracing::debug!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.listener.add",
+                            scheme = listener.scheme(),
+                            "Listener added"
+                        );
                     }
+                    GlobalCtxEvent::ListenerAddFailed(listener, error)
+                    | GlobalCtxEvent::ListenerAcceptFailed(listener, error) => tracing::warn!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.listener.failed",
+                        scheme = listener.scheme(),
+                        error,
+                        "Listener operation failed"
+                    ),
+                    GlobalCtxEvent::ConnectionAccepted(_, _) => tracing::debug!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.accept",
+                        "Connection accepted"
+                    ),
+                    GlobalCtxEvent::ConnectionError(_, _, error) => tracing::warn!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.failed",
+                        error,
+                        "Connection failed"
+                    ),
+                    GlobalCtxEvent::TunDeviceReady(device) => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.tun.ready",
+                        device,
+                        "TUN device ready"
+                    ),
+                    GlobalCtxEvent::TunDeviceError(error) => tracing::error!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.tun.failed",
+                        error,
+                        "TUN device failed"
+                    ),
+                    GlobalCtxEvent::Connecting(destination) => tracing::debug!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.start",
+                        scheme = destination.scheme(),
+                        "Connecting to peer"
+                    ),
+                    GlobalCtxEvent::ConnectError(_, ip_version, error) => tracing::warn!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.connection.failed",
+                        ip_version,
+                        error,
+                        "Peer connection attempt failed"
+                    ),
+                    GlobalCtxEvent::VpnPortalStarted(_) => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.vpn-portal.start",
+                        "VPN portal started"
+                    ),
+                    GlobalCtxEvent::VpnPortalClientConnected(_, _) => tracing::debug!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.vpn-portal.client.add",
+                        "VPN portal client connected"
+                    ),
+                    GlobalCtxEvent::VpnPortalClientDisconnected(_, _) => tracing::debug!(
+                        target: "astral.easytier.connection",
+                        event_code = "easytier.vpn-portal.client.remove",
+                        "VPN portal client disconnected"
+                    ),
+                    GlobalCtxEvent::DhcpIpv4Changed(_, _) => tracing::info!(
+                        target: "astral.easytier.nat",
+                        event_code = "easytier.dhcp.changed",
+                        "DHCP address changed"
+                    ),
+                    GlobalCtxEvent::DhcpIpv4Conflicted(_) => tracing::warn!(
+                        target: "astral.easytier.nat",
+                        event_code = "easytier.dhcp.conflict",
+                        "DHCP address conflict"
+                    ),
+                    GlobalCtxEvent::PortForwardAdded(_) => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.port-forward.add",
+                        "Port forward added"
+                    ),
+                    GlobalCtxEvent::ConfigPatched(_) => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.config.changed",
+                        "Instance configuration changed"
+                    ),
+                    GlobalCtxEvent::ProxyCidrsUpdated(_, _) => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.proxy-cidrs.changed",
+                        "Proxy CIDRs changed"
+                    ),
+                    GlobalCtxEvent::CredentialChanged => tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.credential.changed",
+                        "Network credential changed"
+                    ),
+                    _ => {}
+                },
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    tracing::info!(
+                        target: "astral.easytier.instance",
+                        event_code = "easytier.events.closed",
+                        "EasyTier event channel closed"
+                    );
+                    break;
                 }
-                Err(err) => {
-                    eprintln!("接收事件错误: {:?}", err);
-                    // 根据错误类型决定是否中断循环
-                    match err {
-                        tokio::sync::broadcast::error::RecvError::Closed => {
-                            let msg = "事件通道已关闭，停止事件处理。";
-                            println!("{}", msg);
-                            let _ = send_udp_to_localhost(msg);
-                            break; // Exit the loop if the channel is closed
-                        }
-                        tokio::sync::broadcast::error::RecvError::Lagged(n) => {
-                            let msg = format!("事件处理滞后，丢失了 {} 个事件。", n);
-                            eprintln!("{}", msg);
-                            let _ = send_udp_to_localhost(&msg);
-                            // Decide if lagging is critical enough to break or just log
-                        }
-                    }
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(count)) => {
+                    tracing::warn!(
+                        target: "astral.easytier",
+                        event_code = "easytier.events.lagged",
+                        dropped = count,
+                        "EasyTier event subscriber lagged"
+                    );
                 }
             }
         }
@@ -218,29 +185,25 @@ pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<(
 }
 
 async fn create_and_store_network_instance(cfg: TomlConfigLoader) -> Result<(), String> {
-    println!("{:?}", cfg);
-
-    // 在移动 cfg 之前先获取 ID
-    let name = cfg.get_id().to_string();
-    let had_instance = {
+    let instance_id = cfg.get_id().to_string();
+    let replaced_existing = {
         let mut instance_guard = INSTANCE.write().await;
         instance_guard.take().is_some()
     };
-    // 创建网络实例
     let mut network = NetworkInstance::new(cfg, ConfigFileControl::STATIC_CONFIG);
-    // 启动网络实例，并处理可能的错误
-    handle_event(network.start().unwrap());
-    println!("instance {} started", name);
-    // 将实例存储到 INSTANCE 中
+    let events = network
+        .start()
+        .map_err(|error| format!("failed to start EasyTier instance: {error}"))?;
+    handle_event(events);
     let mut instance_guard = INSTANCE.write().await;
     *instance_guard = Some(network);
-    if !had_instance {
-        println!("实例已成功储存");
-    } else {
-        println!("网络实例已存在");
-    }
-    print!("成功储存");
-
+    tracing::info!(
+        target: "astral.easytier.instance",
+        event_code = "easytier.instance.start",
+        instance_id,
+        replaced_existing,
+        "EasyTier instance started"
+    );
     Ok(())
 }
 

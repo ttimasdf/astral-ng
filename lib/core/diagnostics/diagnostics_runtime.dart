@@ -122,8 +122,65 @@ final class DiagnosticsRuntime {
       consoleAlreadyReported: message.consoleAlreadyReported,
     );
 
+    _deliver(record);
+  }
+
+  void ingestExternal({
+    required DateTime sourceTimestampUtc,
+    required int? sourceSequence,
+    required String origin,
+    required String module,
+    required String? rawTarget,
+    required LogSeverity level,
+    required String eventCode,
+    required String message,
+    Map<String, Object?> fields = const {},
+    String? operationId,
+    String? connectionAttemptId,
+    String? easyTierInstanceId,
+    String? errorId,
+    String? errorType,
+    String? errorMessage,
+    String? stackTrace,
+    bool consoleAlreadyReported = false,
+  }) {
+    if (_closed) return;
+    _deliver(
+      DiagnosticRecord(
+        sourceTimestampUtc: sourceTimestampUtc.toUtc(),
+        ingestedTimestampUtc: DateTime.now().toUtc(),
+        ingestSequence: _ingestSequence++,
+        sourceSequence: sourceSequence,
+        sessionId: sessionId,
+        origin: origin,
+        module: module,
+        rawTarget: rawTarget,
+        level: level,
+        eventCode: _sanitizer.text(eventCode, maxLength: 128),
+        message: _sanitizer.text(message),
+        fields: _sanitizer.fields(fields),
+        operationId: operationId,
+        connectionAttemptId: connectionAttemptId,
+        easyTierInstanceId: easyTierInstanceId,
+        errorId: errorId,
+        errorType: errorType,
+        errorMessage:
+            errorMessage == null ? null : _sanitizer.text(errorMessage),
+        stackTrace:
+            stackTrace == null
+                ? null
+                : _sanitizer.text(
+                  stackTrace,
+                  maxLength: DiagnosticSanitizer.maxStackLength,
+                ),
+        consoleAlreadyReported: consoleAlreadyReported,
+      ),
+    );
+  }
+
+  void _deliver(DiagnosticRecord record) {
     for (final sink in _sinks) {
-      if (!policy.value.allows(record.module, level, sink.destination)) {
+      if (!policy.value.allows(record.module, record.level, sink.destination)) {
         continue;
       }
       try {
