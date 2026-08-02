@@ -145,6 +145,9 @@
               protobuf
               clang
               libclang
+              gradle
+              gh
+              jq
               act
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [
@@ -166,6 +169,12 @@
             shellHook = ''
               export LD_LIBRARY_PATH="$PWD/build/linux/x64/debug/bundle/lib:$LD_LIBRARY_PATH"
               export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$(echo "$ANDROID_HOME/build-tools/"*"/aapt2") ''${GRADLE_OPTS:-}"
+
+              cat > android/gradlew <<'EOF'
+              #!${runtimeShell}
+              exec ${gradle}/bin/gradle "$@"
+              EOF
+              chmod +x android/gradlew
 
               cat > android/local.properties <<EOF
               flutter.sdk=${flutterSdk}
