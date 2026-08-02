@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
@@ -11,6 +12,7 @@ import 'package:astral/app.dart';
 import 'package:astral/core/app_links/app_link_registry.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/core/database/app_data.dart';
+import 'package:astral/core/diagnostics/diagnostic_context.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/diagnostics/error/error_coordinator.dart';
@@ -25,6 +27,7 @@ import 'package:astral/core/services/connection_connect_guard.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/src/rust/api/utils.dart';
 import 'package:astral/src/rust/frb_generated.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,7 +74,17 @@ Future<void> _initRustLib() async {
   await RustLib.init();
 }
 
-Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) async {
+Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) {
+  final operationId = const Uuid().v4().split('-').first.toUpperCase();
+  return DiagnosticContext.run(
+    DiagnosticContext(operationId: operationId),
+    () => _bootstrapAppWithinContext(diagnostics),
+  );
+}
+
+Future<Widget> _bootstrapAppWithinContext(
+  DiagnosticsRuntime diagnostics,
+) async {
   final log = diagnostics.logger(DiagnosticModules.bootstrap);
   log.info('bootstrap.start', 'Application bootstrap started');
 
@@ -100,10 +113,8 @@ Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) async {
   await _criticalStage(
     log,
     'services',
-    () => services.init(
-      runStartupActions: false,
-      initializePlatformHooks: false,
-    ),
+    () =>
+        services.init(runStartupActions: false, initializePlatformHooks: false),
   );
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
@@ -127,6 +138,9 @@ Future<T> _criticalStage<T>(
   Future<T> Function() action,
 ) async {
   final stopwatch = Stopwatch()..start();
+  final timeline =
+      developer.TimelineTask()
+        ..start('bootstrap.$stage', arguments: {'stage': stage});
   log.debug(
     'bootstrap.stage.start',
     'Bootstrap stage started',
@@ -149,6 +163,8 @@ Future<T> _criticalStage<T>(
       stackTrace: stack,
     );
     rethrow;
+  } finally {
+    timeline.finish(arguments: {'duration_ms': stopwatch.elapsedMilliseconds});
   }
 }
 
@@ -212,8 +228,23 @@ Future<void> _optional(
   ModuleLogger log,
   String operation,
   Future<void> Function() action,
+) {
+  final operationId = const Uuid().v4().split('-').first.toUpperCase();
+  return DiagnosticContext.run(
+    DiagnosticContext(operationId: operationId),
+    () => _optionalWithinContext(log, operation, action),
+  );
+}
+
+Future<void> _optionalWithinContext(
+  ModuleLogger log,
+  String operation,
+  Future<void> Function() action,
 ) async {
   final stopwatch = Stopwatch()..start();
+  final timeline =
+      developer.TimelineTask()
+        ..start('optional.$operation', arguments: {'operation': operation});
   try {
     await action();
     log.info(
@@ -235,5 +266,7 @@ Future<void> _optional(
       error: error,
       stackTrace: stack,
     );
+  } finally {
+    timeline.finish(arguments: {'duration_ms': stopwatch.elapsedMilliseconds});
   }
 }

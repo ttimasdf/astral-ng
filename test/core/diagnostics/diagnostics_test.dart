@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:astral/core/diagnostics/diagnostic_context.dart';
 import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostic_record.dart';
@@ -84,6 +85,27 @@ void main() {
       expect(record.stackTrace, contains('#0 connect'));
     },
   );
+
+  test('runtime carries operation and connection correlation from context', () {
+    final runtime = DiagnosticsRuntime.bootstrap(
+      initialPolicy: LogPolicy.debugDefaults(),
+    );
+    addTearDown(runtime.close);
+
+    DiagnosticContext.run(
+      const DiagnosticContext(
+        operationId: 'OP1',
+        connectionAttemptId: 'ATTEMPT1',
+      ),
+      () => runtime
+          .logger(DiagnosticModules.connection)
+          .info('connect.start', 'Connection started'),
+    );
+
+    final record = runtime.store.value.single;
+    expect(record.operationId, 'OP1');
+    expect(record.connectionAttemptId, 'ATTEMPT1');
+  });
 
   test('flood controller coalesces duplicates and reports suppression', () {
     var now = DateTime.utc(2026);

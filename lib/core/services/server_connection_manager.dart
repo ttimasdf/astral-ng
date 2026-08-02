@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'package:astral/core/builders/server_config_builder.dart';
+import 'package:astral/core/diagnostics/diagnostic_context.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/module_logger.dart';
 import 'package:astral/core/models/network_config_share.dart';
 import 'package:astral/core/services/connection_network_monitor.dart';
 import 'package:astral/core/services/connection_status_tracker.dart';
@@ -67,13 +70,89 @@ class ServerConnectionManager {
 
     final attemptId = const Uuid().v4().split('-').first.toUpperCase();
     _connectionAttemptId = attemptId;
+    return DiagnosticContext.run(
+      DiagnosticContext(connectionAttemptId: attemptId),
+      () => _runCorrelatedConnectionAttempt(
+        services: services,
+        room: room,
+        isManual: isManual,
+        attemptId: attemptId,
+      ),
+    );
+  }
+
+  Future<bool?> _runCorrelatedConnectionAttempt({
+    required ServiceManager services,
+    required dynamic room,
+    required bool isManual,
+    required String attemptId,
+  }) async {
     final log = Diagnostics.logger(DiagnosticModules.connection);
+    final stopwatch = Stopwatch()..start();
+    final timeline =
+        developer.TimelineTask()..start(
+          'connection.attempt',
+          arguments: {'attempt': attemptId, 'manual': isManual},
+        );
     log.info(
       'connect.start',
       'Connection attempt started',
-      fields: {'attempt': attemptId, 'manual': isManual},
+      fields: {'manual': isManual},
     );
+    try {
+      final result = await _executeConnectionAttempt(
+        services: services,
+        room: room,
+        isManual: isManual,
+        log: log,
+      );
+      final fields = {
+        'duration_ms': stopwatch.elapsedMilliseconds,
+        'retries': _currentRetryCount,
+      };
+      if (result == true) {
+        log.info(
+          'connect.complete',
+          'Connection attempt completed',
+          fields: fields,
+        );
+        _currentRetryCount = 0;
+      } else if (result == null) {
+        log.info(
+          'connect.cancelled',
+          'Connection attempt was cancelled',
+          fields: fields,
+        );
+      } else {
+        log.warning(
+          'connect.failed',
+          'Connection attempt failed',
+          fields: fields,
+        );
+      }
+      return result;
+    } catch (error, stack) {
+      log.error(
+        'connect.failed',
+        'Connection attempt failed unexpectedly',
+        fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+        error: error,
+        stackTrace: stack,
+      );
+      rethrow;
+    } finally {
+      timeline.finish(
+        arguments: {'duration_ms': stopwatch.elapsedMilliseconds},
+      );
+    }
+  }
 
+  Future<bool?> _executeConnectionAttempt({
+    required ServiceManager services,
+    required dynamic room,
+    required bool isManual,
+    required ModuleLogger log,
+  }) async {
     // 如果是手动连接，清空重试次数
     if (isManual) {
       _currentRetryCount = 0;
@@ -143,17 +222,11 @@ class ServerConnectionManager {
         }
 
         if (success) {
-          _currentRetryCount = 0; // 连接成功，重置计数器
           if (_connectionCompleter != null &&
               !_connectionCompleter!.isCompleted) {
             _connectionCompleter!.complete(true);
           }
           _connectionCompleter = null;
-          log.info(
-            'connect.complete',
-            'Connection attempt completed',
-            fields: {'attempt': attemptId},
-          );
           return true;
         }
 
@@ -180,7 +253,7 @@ class ServerConnectionManager {
         log.warning(
           'connect.retry.failed',
           'Connection attempt iteration failed',
-          fields: {'attempt': attemptId, 'retry': _currentRetryCount},
+          fields: {'retry': _currentRetryCount},
           error: e,
           stackTrace: stack,
         );
@@ -218,11 +291,6 @@ class ServerConnectionManager {
       _connectionCompleter!.complete(false);
     }
     _connectionCompleter = null;
-    log.warning(
-      'connect.failed',
-      'Connection attempt exhausted retries',
-      fields: {'attempt': attemptId, 'retries': _currentRetryCount},
-    );
     return false;
   }
 
