@@ -65,6 +65,29 @@ void main() {
     expect(tapped, isTrue);
   });
 
+  testWidgets('disabled settings link tile does not invoke its action', (
+    tester,
+  ) async {
+    var tapped = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsLinkTile(
+            icon: Icons.vpn_lock,
+            title: 'Custom VPN segments',
+            subtitle: 'Available on Android only',
+            enabled: false,
+            onTap: () => tapped = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Custom VPN segments'));
+    expect(tapped, isFalse);
+  });
+
   testWidgets('segmented choice reports the selected close behavior', (
     tester,
   ) async {

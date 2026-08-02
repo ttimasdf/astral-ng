@@ -151,6 +151,7 @@ class SettingsLinkTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? value;
+  final bool enabled;
   final VoidCallback onTap;
 
   const SettingsLinkTile({
@@ -159,6 +160,7 @@ class SettingsLinkTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.value,
+    this.enabled = true,
     required this.onTap,
   });
 
@@ -167,8 +169,15 @@ class SettingsLinkTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ListTile(
+      enabled: enabled,
       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
-      leading: Icon(icon, color: colorScheme.onSurfaceVariant),
+      leading: Icon(
+        icon,
+        color:
+            enabled
+                ? colorScheme.onSurfaceVariant
+                : colorScheme.onSurface.withValues(alpha: 0.38),
+      ),
       title: Text(title),
       subtitle: Text(subtitle),
       trailing: Row(
@@ -180,14 +189,25 @@ class SettingsLinkTile extends StatelessWidget {
               child: Text(
                 value!,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: colorScheme.primary),
+                style: TextStyle(
+                  color:
+                      enabled
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withValues(alpha: 0.38),
+                ),
               ),
             ),
           const SizedBox(width: 8),
-          Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.chevron_right,
+            color:
+                enabled
+                    ? colorScheme.onSurfaceVariant
+                    : colorScheme.onSurface.withValues(alpha: 0.38),
+          ),
         ],
       ),
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
     );
   }
 }

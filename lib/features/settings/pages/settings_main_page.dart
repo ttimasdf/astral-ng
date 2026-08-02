@@ -1,5 +1,6 @@
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/appearance_settings_content.dart';
 import 'package:astral/features/settings/widgets/general_settings_content.dart';
 import 'package:astral/features/settings/widgets/network_connection_settings_content.dart';
@@ -15,12 +16,14 @@ class _SettingsCategory {
   final String descriptionKey;
   final IconData icon;
   final List<String> keywords;
+  final SettingsAvailability availability;
 
   const _SettingsCategory({
     required this.titleKey,
     required this.descriptionKey,
     required this.icon,
     required this.keywords,
+    this.availability = SettingsAvailability.all,
   });
 }
 
@@ -99,6 +102,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         '权限',
         '通知',
       ],
+      availability: SettingsAvailability.androidOnly,
     ),
     _SettingsCategory(
       titleKey: 'settings_support_about',
@@ -124,11 +128,14 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
 
   List<int> get _filteredIndices {
     final query = _query.trim().toLowerCase();
-    if (query.isEmpty) {
-      return List.generate(_categories.length, (index) => index);
-    }
+    final visibleIndices = List.generate(
+      _categories.length,
+      (index) => index,
+    ).where((index) => _categories[index].availability.isVisible);
 
-    return List.generate(_categories.length, (index) => index).where((index) {
+    if (query.isEmpty) return visibleIndices.toList();
+
+    return visibleIndices.where((index) {
       final category = _categories[index];
       final searchable =
           [

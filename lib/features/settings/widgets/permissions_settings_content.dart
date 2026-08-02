@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -43,7 +42,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
   }
 
   Future<void> _refreshPermissions() async {
-    if (!Platform.isAndroid) {
+    if (!SettingsAvailability.androidOnly.isSupported) {
       if (mounted) setState(() => _checking = false);
       return;
     }
@@ -111,7 +110,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
 
   @override
   Widget build(BuildContext context) {
-    if (!Platform.isAndroid) {
+    if (!SettingsAvailability.androidOnly.isSupported) {
       return SettingsContentView(
         title: 'settings_permissions'.tr(),
         description: 'settings_permissions_desc'.tr(),

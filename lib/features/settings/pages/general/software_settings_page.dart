@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -6,6 +5,7 @@ import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/window_state.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -29,7 +29,7 @@ class _SoftwareSettingsPageState
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) {
+    if (SettingsAvailability.androidOnly.isSupported) {
       _checkInstallPermission();
       _checkNotificationPermission();
     }
@@ -203,7 +203,7 @@ class _SoftwareSettingsPageState
               leading: const Icon(Icons.settings),
             ),
             buildDivider(),
-            if (Platform.isAndroid)
+            if (SettingsAvailability.androidOnly.isVisible)
               ListTile(
                 leading: const Icon(Icons.install_mobile),
                 title: Text(LocaleKeys.get_install_permission.tr()),
@@ -218,7 +218,7 @@ class _SoftwareSettingsPageState
                         : const Icon(Icons.warning, color: Colors.orange),
                 onTap: _hasInstallPermission ? null : _requestInstallPermission,
               ),
-            if (!Platform.isAndroid)
+            if (SettingsAvailability.desktopOnly.isVisible)
               SettingsSegmentedChoice<WindowCloseBehavior>(
                 title: 'settings_close_behavior'.tr(),
                 description:
@@ -318,7 +318,7 @@ class _SoftwareSettingsPageState
               ),
           ],
         ),
-        if (Platform.isAndroid)
+        if (SettingsAvailability.androidOnly.isVisible)
           buildSettingsCard(
             context: context,
             children: [

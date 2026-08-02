@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/connection_state.dart';
 import 'package:astral/features/settings/pages/network/listen_list_page.dart';
 import 'package:astral/features/settings/pages/network/port_whitelist_page.dart';
 import 'package:astral/features/settings/pages/network/vpn_segment_page.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/network_settings_sections.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -112,6 +111,7 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = ServiceManager();
+    const customVpnAvailability = SettingsAvailability.androidOnlyDiscoverable;
 
     return Watch((context) {
       final network = services.networkConfigState;
@@ -274,14 +274,20 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
                 ),
                 onTap: () => _open(context, const ListenListPage()),
               ),
-              if (Platform.isAndroid)
+              if (customVpnAvailability.isVisible)
                 SettingsLinkTile(
                   icon: Icons.vpn_lock_outlined,
                   title: 'custom_vpn_segment'.tr(),
-                  subtitle: 'custom_vpn_segment_desc'.tr(),
-                  value: 'item_count'.tr(
-                    namedArgs: {'count': vpnCount.toString()},
-                  ),
+                  subtitle:
+                      customVpnAvailability.currentUnavailableReasonKey?.tr() ??
+                      'custom_vpn_segment_desc'.tr(),
+                  value:
+                      customVpnAvailability.isEnabled
+                          ? 'item_count'.tr(
+                            namedArgs: {'count': vpnCount.toString()},
+                          )
+                          : null,
+                  enabled: customVpnAvailability.isEnabled,
                   onTap: () => _open(context, const VpnSegmentPage()),
                 ),
               SettingsLinkTile(

@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/window_state.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +27,7 @@ class GeneralSettingsContent extends StatelessWidget {
         title: 'settings_general'.tr(),
         description: 'settings_general_desc'.tr(),
         children: [
-          if (!Platform.isAndroid)
+          if (SettingsAvailability.desktopOnly.isVisible)
             SettingsSection(
               title: 'settings_startup'.tr(),
               description: 'settings_startup_desc'.tr(),
@@ -62,7 +61,7 @@ class GeneralSettingsContent extends StatelessWidget {
                 ),
               ],
             ),
-          if (!Platform.isAndroid)
+          if (SettingsAvailability.desktopOnly.isVisible)
             SettingsSection(
               title: 'settings_window_behavior'.tr(),
               description: 'settings_window_behavior_desc'.tr(),
@@ -91,10 +90,10 @@ class GeneralSettingsContent extends StatelessWidget {
                 ),
               ],
             ),
-          if (Platform.isAndroid)
+          if (SettingsAvailability.mobileOnly.isVisible)
             SettingsNotice(
               icon: Icons.phone_android,
-              message: 'settings_android_general_notice'.tr(),
+              message: 'settings_mobile_general_notice'.tr(),
             ),
         ],
       );
