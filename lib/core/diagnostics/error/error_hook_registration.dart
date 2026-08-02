@@ -10,11 +10,16 @@ final class ErrorHookRegistration {
   }) : _previousFlutterHandler = previousFlutterHandler,
        _previousPlatformHandler = previousPlatformHandler;
 
+  static ErrorHookRegistration? _installed;
+
   final FlutterExceptionHandler? _previousFlutterHandler;
   final bool Function(Object, StackTrace)? _previousPlatformHandler;
   bool _disposed = false;
 
   static ErrorHookRegistration install(ErrorCoordinator coordinator) {
+    final existing = _installed;
+    if (existing != null && !existing._disposed) return existing;
+
     final previousFlutterHandler = FlutterError.onError;
     final previousPlatformHandler = PlatformDispatcher.instance.onError;
 
@@ -60,7 +65,7 @@ final class ErrorHookRegistration {
       return true;
     };
 
-    return ErrorHookRegistration._(
+    return _installed = ErrorHookRegistration._(
       previousFlutterHandler: previousFlutterHandler,
       previousPlatformHandler: previousPlatformHandler,
     );
@@ -71,5 +76,6 @@ final class ErrorHookRegistration {
     _disposed = true;
     FlutterError.onError = _previousFlutterHandler;
     PlatformDispatcher.instance.onError = _previousPlatformHandler;
+    if (identical(_installed, this)) _installed = null;
   }
 }

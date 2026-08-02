@@ -34,6 +34,9 @@ void main() {
 
   final diagnostics = Diagnostics.initialize();
   ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
+  WidgetsBinding.instance.addObserver(
+    _DiagnosticsLifecycleObserver(diagnostics),
+  );
   diagnostics
       .logger(DiagnosticModules.bootstrap)
       .info(
@@ -222,6 +225,21 @@ Future<void> _initializeOptionalServices(
     'startup-auto-connect',
     ConnectionConnectGuard.tryStartupAutoConnect,
   );
+}
+
+final class _DiagnosticsLifecycleObserver with WidgetsBindingObserver {
+  _DiagnosticsLifecycleObserver(this.diagnostics);
+
+  final DiagnosticsRuntime diagnostics;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      unawaited(diagnostics.flush());
+    }
+  }
 }
 
 Future<void> _optional(

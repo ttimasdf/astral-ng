@@ -14,6 +14,8 @@ import 'package:astral/core/diagnostics/diagnostic_record.dart';
 import 'package:astral/core/diagnostics/diagnostic_sanitizer.dart';
 import 'package:astral/core/diagnostics/diagnostic_store.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/diagnostics/log_policy.dart';
 import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
 import 'package:astral/core/diagnostics/support_bundle.dart';
@@ -105,6 +107,17 @@ void main() {
     final record = runtime.store.value.single;
     expect(record.operationId, 'OP1');
     expect(record.connectionAttemptId, 'ATTEMPT1');
+  });
+
+  test('global error hooks install once and dispose cleanly', () async {
+    final runtime = DiagnosticsRuntime.bootstrap();
+    addTearDown(runtime.close);
+    final coordinator = ErrorCoordinator(runtime);
+
+    final first = ErrorHookRegistration.install(coordinator);
+    final second = ErrorHookRegistration.install(coordinator);
+    expect(identical(first, second), isTrue);
+    first.dispose();
   });
 
   test('flood controller coalesces duplicates and reports suppression', () {
