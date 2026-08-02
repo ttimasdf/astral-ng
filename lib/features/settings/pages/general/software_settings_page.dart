@@ -4,7 +4,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/window_state.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -217,15 +219,30 @@ class _SoftwareSettingsPageState
                 onTap: _hasInstallPermission ? null : _requestInstallPermission,
               ),
             if (!Platform.isAndroid)
-              SwitchListTile(
-                title: Text(LocaleKeys.minimize.tr()),
-                subtitle: Text(LocaleKeys.minimize_desc.tr()),
-                value: ServiceManager().windowState.closeMinimize.watch(
+              SettingsSegmentedChoice<WindowCloseBehavior>(
+                title: 'settings_close_behavior'.tr(),
+                description:
+                    ServiceManager().windowState.closeBehavior.watch(context) ==
+                            WindowCloseBehavior.closeToTray
+                        ? 'settings_close_to_tray_desc'.tr()
+                        : 'settings_exit_program_desc'.tr(),
+                value: ServiceManager().windowState.closeBehavior.watch(
                   context,
                 ),
-                onChanged: (value) {
-                  ServiceManager().appSettings.updateCloseMinimize(value);
-                },
+                segments: [
+                  ButtonSegment(
+                    value: WindowCloseBehavior.closeToTray,
+                    icon: const Icon(Icons.move_to_inbox_outlined),
+                    label: Text('settings_close_to_tray'.tr()),
+                  ),
+                  ButtonSegment(
+                    value: WindowCloseBehavior.exitProgram,
+                    icon: const Icon(Icons.logout),
+                    label: Text('settings_exit_program'.tr()),
+                  ),
+                ],
+                onChanged:
+                    ServiceManager().appSettings.updateWindowCloseBehavior,
               ),
             SwitchListTile(
               title: Text(LocaleKeys.player_list_card.tr()),

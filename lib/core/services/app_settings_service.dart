@@ -46,7 +46,9 @@ class AppSettingsService {
     displayState.setUserListSimple(settings.userListSimple);
     displayState.setSortOption(UserSortOption.fromIndex(settings.sortOption));
     displayState.setSortOrder(UserSortOrder.fromIndex(settings.sortOrder));
-    displayState.setDisplayMode(UserDisplayMode.fromIndex(settings.displayMode));
+    displayState.setDisplayMode(
+      UserDisplayMode.fromIndex(settings.displayMode),
+    );
 
     startupState.updateAll(
       startup: settings.startup,
@@ -74,7 +76,11 @@ class AppSettingsService {
     appSettingsState.updateAutoRetryOnFailure(settings.autoRetryOnFailure);
     appSettingsState.updateMaxRetryCount(settings.maxRetryCount);
 
-    windowState.setCloseMinimize(settings.closeMinimize);
+    windowState.setCloseBehavior(
+      settings.closeMinimize
+          ? WindowCloseBehavior.closeToTray
+          : WindowCloseBehavior.exitProgram,
+    );
     vpnState.setCustomVpn(List<String>.from(settings.customVpn));
   }
 
@@ -186,9 +192,11 @@ class AppSettingsService {
     await _repo.update((s) => s.maxRetryCount = count);
   }
 
-  Future<void> updateCloseMinimize(bool value) async {
-    windowState.setCloseMinimize(value);
-    await _repo.update((s) => s.closeMinimize = value);
+  Future<void> updateWindowCloseBehavior(WindowCloseBehavior value) async {
+    windowState.setCloseBehavior(value);
+    await _repo.update(
+      (s) => s.closeMinimize = value == WindowCloseBehavior.closeToTray,
+    );
   }
 
   Future<void> addCustomVpn(String value) async {

@@ -285,53 +285,55 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final indices = _filteredIndices;
 
-    return Container(
-      width: 270,
+    return Material(
       color: colorScheme.surfaceContainerLowest,
-      child:
-          indices.isEmpty
-              ? _emptySearch(context)
-              : ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: indices.length,
-                itemBuilder: (context, position) {
-                  final index = indices[position];
-                  final category = _categories[index];
-                  final selected = _selectedIndex == index;
+      child: SizedBox(
+        width: 270,
+        child:
+            indices.isEmpty
+                ? _emptySearch(context)
+                : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: indices.length,
+                  itemBuilder: (context, position) {
+                    final index = indices[position];
+                    final category = _categories[index];
+                    final selected = _selectedIndex == index;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: ListTile(
-                      selected: selected,
-                      selectedTileColor: colorScheme.primaryContainer,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: ListTile(
+                        selected: selected,
+                        selectedTileColor: colorScheme.primaryContainer,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
+                        leading: Icon(
+                          category.icon,
+                          color:
+                              selected
+                                  ? colorScheme.onPrimaryContainer
+                                  : colorScheme.onSurfaceVariant,
+                        ),
+                        title: Text(
+                          category.titleKey.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(
+                          category.descriptionKey.tr(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => _openCategory(context, index, true),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 5,
-                      ),
-                      leading: Icon(
-                        category.icon,
-                        color:
-                            selected
-                                ? colorScheme.onPrimaryContainer
-                                : colorScheme.onSurfaceVariant,
-                      ),
-                      title: Text(
-                        category.titleKey.tr(),
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                        category.descriptionKey.tr(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () => _openCategory(context, index, true),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
+      ),
     );
   }
 
@@ -348,52 +350,58 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         final index = indices[position];
         final category = _categories[index];
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Material(
             color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: colorScheme.outlineVariant),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 9,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(17),
+              side: BorderSide(color: colorScheme.outlineVariant),
             ),
-            leading: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 9,
               ),
-              child: Icon(category.icon, color: colorScheme.onPrimaryContainer),
-            ),
-            title: Text(
-              category.titleKey.tr(),
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            subtitle: Text(category.descriptionKey.tr()),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 82),
-                  child: Text(
-                    _categoryValue(index),
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+              leading: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  category.icon,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+              title: Text(
+                category.titleKey.tr(),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(category.descriptionKey.tr()),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 82),
+                    child: Text(
+                      _categoryValue(index),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                ),
-                const Icon(Icons.chevron_right, size: 20),
-              ],
+                  const Icon(Icons.chevron_right, size: 20),
+                ],
+              ),
+              onTap: () => _openCategory(context, index, false),
             ),
-            onTap: () => _openCategory(context, index, false),
           ),
         );
       },

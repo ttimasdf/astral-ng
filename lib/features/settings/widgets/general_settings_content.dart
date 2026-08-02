@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/window_state.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class GeneralSettingsContent extends StatelessWidget {
       final startupAutoConnect = services.startupState.startupAutoConnect.watch(
         context,
       );
-      final closeMinimize = services.windowState.closeMinimize.watch(context);
+      final closeBehavior = services.windowState.closeBehavior.watch(context);
 
       return SettingsContentView(
         title: 'settings_general'.tr(),
@@ -67,12 +68,26 @@ class GeneralSettingsContent extends StatelessWidget {
               description: 'settings_window_behavior_desc'.tr(),
               icon: Icons.web_asset_outlined,
               children: [
-                SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text('minimize'.tr()),
-                  subtitle: Text('minimize_desc'.tr()),
-                  value: closeMinimize,
-                  onChanged: services.appSettings.updateCloseMinimize,
+                SettingsSegmentedChoice<WindowCloseBehavior>(
+                  title: 'settings_close_behavior'.tr(),
+                  description:
+                      closeBehavior == WindowCloseBehavior.closeToTray
+                          ? 'settings_close_to_tray_desc'.tr()
+                          : 'settings_exit_program_desc'.tr(),
+                  value: closeBehavior,
+                  segments: [
+                    ButtonSegment(
+                      value: WindowCloseBehavior.closeToTray,
+                      icon: const Icon(Icons.move_to_inbox_outlined),
+                      label: Text('settings_close_to_tray'.tr()),
+                    ),
+                    ButtonSegment(
+                      value: WindowCloseBehavior.exitProgram,
+                      icon: const Icon(Icons.logout),
+                      label: Text('settings_exit_program'.tr()),
+                    ),
+                  ],
+                  onChanged: services.appSettings.updateWindowCloseBehavior,
                 ),
               ],
             ),

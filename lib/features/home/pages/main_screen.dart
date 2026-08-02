@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:astral/core/services/update_service.dart';
 import 'package:astral/shared/widgets/common/update_check_ui.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/window_state.dart';
 import 'package:astral/core/platform/small_window_adapter.dart';
 import 'package:astral/features/home/pages/home_page.dart';
 import 'package:astral/features/rooms/pages/room_page.dart';
@@ -137,9 +138,12 @@ class _MainScreenState extends State<MainScreen>
     if (!isPreventClose) return;
 
     final services = ServiceManager();
-    // 隐藏托盘后，或开启「关闭时最小化」：只隐藏窗口
-    if (services.uiState.trayHidden.value ||
-        services.windowState.closeMinimize.value) {
+    final closeToTray =
+        services.windowState.closeBehavior.value ==
+        WindowCloseBehavior.closeToTray;
+
+    // 仅在托盘可用时隐藏窗口，否则退出以免窗口无法恢复。
+    if (closeToTray && !services.uiState.trayHidden.value) {
       _setAppBackground(true);
       await windowManager.hide();
       return;
@@ -218,7 +222,9 @@ class _MainScreenState extends State<MainScreen>
                   if (isSmallWindow)
                     Container(
                       height: 36,
-                      color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                      color: colorScheme.primaryContainer.withValues(
+                        alpha: 0.4,
+                      ),
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -233,10 +239,7 @@ class _MainScreenState extends State<MainScreen>
                       ),
                     ),
                   Expanded(
-                    child: IndexedStack(
-                      index: safeIndex,
-                      children: _pages,
-                    ),
+                    child: IndexedStack(index: safeIndex, children: _pages),
                   ),
                 ],
               ),

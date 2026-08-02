@@ -1,3 +1,4 @@
+import 'package:astral/core/states/window_state.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,5 +63,41 @@ void main() {
     expect(find.text('English'), findsOneWidget);
     await tester.tap(find.text('Language'));
     expect(tapped, isTrue);
+  });
+
+  testWidgets('segmented choice reports the selected close behavior', (
+    tester,
+  ) async {
+    var selected = WindowCloseBehavior.closeToTray;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsSegmentedChoice<WindowCloseBehavior>(
+            title: 'When closing the window',
+            description: 'Keep running in the tray',
+            value: selected,
+            segments: const [
+              ButtonSegment(
+                value: WindowCloseBehavior.closeToTray,
+                label: Text('Close to tray'),
+              ),
+              ButtonSegment(
+                value: WindowCloseBehavior.exitProgram,
+                label: Text('Exit program'),
+              ),
+            ],
+            onChanged: (value) => selected = value,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Exit program'));
+    expect(selected, WindowCloseBehavior.exitProgram);
+  });
+
+  test('window close behavior defaults to close to tray', () {
+    expect(WindowState().closeBehavior.value, WindowCloseBehavior.closeToTray);
   });
 }
