@@ -60,16 +60,26 @@ void main() {
 
 /// Initializes the FRB dynamic library.
 ///
-/// Generated code prefers `rust/target/release/`. A stale separately-built DLL
-/// there can mismatch the current Dart bindings, so Windows desktop first tries
-/// the Cargokit library bundled beside the executable.
+/// Desktop builds open the Cargokit library beside the running executable.
+/// This prevents a stale development library on `LD_LIBRARY_PATH` or under
+/// `rust/target/release` from being paired with current Dart bindings.
 Future<void> _initRustLib() async {
-  if (!kIsWeb && Platform.isWindows) {
-    final bundledPath = p.join(
-      File(Platform.resolvedExecutable).parent.path,
-      'rust_lib_astral.dll',
-    );
-    if (File(bundledPath).existsSync()) {
+  if (!kIsWeb) {
+    final executableDirectory = File(Platform.resolvedExecutable).parent.path;
+    final bundledPath = switch (Platform.operatingSystem) {
+      'windows' => p.join(executableDirectory, 'rust_lib_astral.dll'),
+      'linux' => p.join(executableDirectory, 'lib', 'librust_lib_astral.so'),
+      'macos' => p.normalize(
+        p.join(
+          executableDirectory,
+          '..',
+          'Frameworks',
+          'librust_lib_astral.dylib',
+        ),
+      ),
+      _ => null,
+    };
+    if (bundledPath != null && File(bundledPath).existsSync()) {
       await RustLib.init(externalLibrary: ExternalLibrary.open(bundledPath));
       return;
     }
