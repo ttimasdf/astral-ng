@@ -145,7 +145,10 @@ class ServiceManager {
     );
   }
 
-  Future<void> init({bool runStartupActions = true}) async {
+  Future<void> init({
+    bool runStartupActions = true,
+    bool initializePlatformHooks = true,
+  }) async {
     if (_initialized) return;
     final results = await Future.wait([
       _initService('Theme', () => theme.init()),
@@ -161,7 +164,7 @@ class ServiceManager {
       debugPrint('警告: $failedServices 个服务初始化失败，但应用将继续运行');
     }
 
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid && initializePlatformHooks) {
       await vpn.initAndroidHooks();
     }
 

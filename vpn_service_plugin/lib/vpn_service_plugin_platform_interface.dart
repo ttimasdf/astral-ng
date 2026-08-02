@@ -24,11 +24,16 @@ abstract class VpnServicePluginPlatform extends PlatformInterface {
     String? dns,
     List<String>? disallowedApplications,
     int? mtu,
+    String? connectionAttemptId,
   }) {
     throw UnimplementedError('startVpn() 未实现.');
   }
 
   Future<void> stopVpn() {
     throw UnimplementedError('stopVpn() 未实现.');
+  }
+
+  Future<void> configureLogging({required String minimumLevel}) {
+    throw UnimplementedError('configureLogging() is not implemented.');
   }
 }

@@ -42,7 +42,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1859172704;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -645029836;
 
 // Section: executor
 
@@ -1056,6 +1056,7 @@ fn wire__crate__api__simple__create_server_impl(
             let api_cidrs = <Vec<String>>::sse_decode(&mut deserializer);
             let api_forwards = <Vec<crate::api::simple::Forward>>::sse_decode(&mut deserializer);
             let api_flag = <crate::api::simple::FlagsC>::sse_decode(&mut deserializer);
+            let api_connection_attempt_id = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
@@ -1070,6 +1071,7 @@ fn wire__crate__api__simple__create_server_impl(
                         api_cidrs,
                         api_forwards,
                         api_flag,
+                        api_connection_attempt_id,
                     ))?;
                     Ok(output_ok)
                 })())
@@ -1751,73 +1753,6 @@ fn wire__crate__api__simple__get_running_info_impl(
                     })()
                     .await,
                 )
-            }
-        },
-    )
-}
-fn wire__crate__api__p2p__handle_event_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "handle_event",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_events = <EventBusSubscriber>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, ()>((move || {
-                    let output_ok = Result::<_, ()>::Ok(crate::api::p2p::handle_event(api_events))?;
-                    Ok(output_ok)
-                })())
-            }
-        },
-    )
-}
-fn wire__crate__api__simple__handle_event_impl(
-    port_: flutter_rust_bridge::for_generated::MessagePort,
-    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
-    rust_vec_len_: i32,
-    data_len_: i32,
-) {
-    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
-        flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "handle_event",
-            port: Some(port_),
-            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
-        },
-        move || {
-            let message = unsafe {
-                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
-                    ptr_,
-                    rust_vec_len_,
-                    data_len_,
-                )
-            };
-            let mut deserializer =
-                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_events = <EventBusSubscriber>::sse_decode(&mut deserializer);
-            deserializer.end();
-            move |context| {
-                transform_result_sse::<_, ()>((move || {
-                    let output_ok =
-                        Result::<_, ()>::Ok(crate::api::simple::handle_event(api_events))?;
-                    Ok(output_ok)
-                })())
             }
         },
     )
@@ -2587,13 +2522,7 @@ fn wire__crate__api__magic_wall__update_magic_wall_rule_impl(
 // Section: related_funcs
 
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle<()>>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle<Result<(), String>>>
@@ -2621,31 +2550,11 @@ impl SseDecode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
-impl SseDecode for EventBusSubscriber {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
 impl SseDecode for ForwardServer {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
             flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
-impl SseDecode for JoinHandle<()> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle<()>>,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -2712,27 +2621,7 @@ impl SseDecode for std::collections::HashMap<String, String> {
 }
 
 impl SseDecode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle<()>>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3507,86 +3396,84 @@ fn pde_ffi_dispatcher_primary_impl(
         }
         41 => wire__crate__api__p2p__get_running_info_impl(port, ptr, rust_vec_len, data_len),
         42 => wire__crate__api__simple__get_running_info_impl(port, ptr, rust_vec_len, data_len),
-        43 => wire__crate__api__p2p__handle_event_impl(port, ptr, rust_vec_len, data_len),
-        44 => wire__crate__api__simple__handle_event_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__p2p__init_app_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        47 => wire__crate__api__diagnostics__initialize_rust_diagnostics_impl(
+        43 => wire__crate__api__p2p__init_app_impl(port, ptr, rust_vec_len, data_len),
+        44 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        45 => wire__crate__api__diagnostics__initialize_rust_diagnostics_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__p2p__is_easytier_running_impl(port, ptr, rust_vec_len, data_len),
-        49 => wire__crate__api__simple__is_easytier_running_impl(port, ptr, rust_vec_len, data_len),
-        50 => wire__crate__api__forward__is_forward_server_running_impl(
+        46 => wire__crate__api__p2p__is_easytier_running_impl(port, ptr, rust_vec_len, data_len),
+        47 => wire__crate__api__simple__is_easytier_running_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__forward__is_forward_server_running_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__multicast__is_multicast_sender_running_impl(
+        49 => wire__crate__api__multicast__is_multicast_sender_running_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__nat_test__nat_type_get_description_impl(
+        50 => wire__crate__api__nat_test__nat_type_get_description_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__magic_wall__remove_magic_wall_rule_impl(
+        51 => wire__crate__api__magic_wall__remove_magic_wall_rule_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => {
+        52 => {
             wire__crate__api__firewall__set_firewall_status_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__hops__set_interface_metric_impl(port, ptr, rust_vec_len, data_len),
-        56 => wire__crate__api__diagnostics__set_rust_diagnostic_filter_impl(
+        53 => wire__crate__api__hops__set_interface_metric_impl(port, ptr, rust_vec_len, data_len),
+        54 => wire__crate__api__diagnostics__set_rust_diagnostic_filter_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__p2p__set_tun_fd_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__simple__set_tun_fd_impl(port, ptr, rust_vec_len, data_len),
-        59 => {
+        55 => wire__crate__api__p2p__set_tun_fd_impl(port, ptr, rust_vec_len, data_len),
+        56 => wire__crate__api__simple__set_tun_fd_impl(port, ptr, rust_vec_len, data_len),
+        57 => {
             wire__crate__api__magic_wall__start_magic_wall_impl(port, ptr, rust_vec_len, data_len)
         }
-        60 => wire__crate__api__forward__stop_all_forward_servers_impl(
+        58 => wire__crate__api__forward__stop_all_forward_servers_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        61 => wire__crate__api__multicast__stop_all_multicast_senders_impl(
+        59 => wire__crate__api__multicast__stop_all_multicast_senders_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        62 => {
+        60 => {
             wire__crate__api__forward__stop_forward_server_impl(port, ptr, rust_vec_len, data_len)
         }
-        63 => wire__crate__api__magic_wall__stop_magic_wall_impl(port, ptr, rust_vec_len, data_len),
-        64 => wire__crate__api__multicast__stop_multicast_sender_impl(
+        61 => wire__crate__api__magic_wall__stop_magic_wall_impl(port, ptr, rust_vec_len, data_len),
+        62 => wire__crate__api__multicast__stop_multicast_sender_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        65 => wire__crate__api__nat_test__test_network_connectivity_impl(
+        63 => wire__crate__api__nat_test__test_network_connectivity_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        66 => wire__crate__api__magic_wall__update_magic_wall_rule_impl(
+        64 => wire__crate__api__magic_wall__update_magic_wall_rule_impl(
             port,
             ptr,
             rust_vec_len,
@@ -3621,24 +3508,6 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<EventBusSubscriber> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<EventBusSubscriber>
-{
-}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<EventBusSubscriber>> for EventBusSubscriber {
-    fn into_into_dart(self) -> FrbWrapper<EventBusSubscriber> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<ForwardServer> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
@@ -3649,21 +3518,6 @@ impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<
 
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<ForwardServer>> for ForwardServer {
     fn into_into_dart(self) -> FrbWrapper<ForwardServer> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<JoinHandle<()>> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<JoinHandle<()>> {}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<JoinHandle<()>>> for JoinHandle<()> {
-    fn into_into_dart(self) -> FrbWrapper<JoinHandle<()>> {
         self.into()
     }
 }
@@ -4073,24 +3927,10 @@ impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     }
 }
 
-impl SseEncode for EventBusSubscriber {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
-    }
-}
-
 impl SseEncode for ForwardServer {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
-    }
-}
-
-impl SseEncode for JoinHandle<()> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>>::sse_encode(flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self), serializer);
     }
 }
 
@@ -4149,29 +3989,7 @@ impl SseEncode for std::collections::HashMap<String, String> {
 }
 
 impl SseEncode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle<()>>>
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4693,20 +4511,6 @@ mod io {
     flutter_rust_bridge::frb_generated_boilerplate_io!();
 
     #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_astral_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEventBusSubscriber(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>::increment_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_astral_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEventBusSubscriber(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>::decrement_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
     pub extern "C" fn frbgen_astral_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerForwardServer(
         ptr: *const std::ffi::c_void,
     ) {
@@ -4718,20 +4522,6 @@ mod io {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>>::decrement_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_astral_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinHandle(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>::increment_strong_count(ptr as _);
-    }
-
-    #[unsafe(no_mangle)]
-    pub extern "C" fn frbgen_astral_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinHandle(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>::decrement_strong_count(ptr as _);
     }
 
     #[unsafe(no_mangle)]
@@ -4845,20 +4635,6 @@ mod web {
     flutter_rust_bridge::frb_generated_boilerplate_web!();
 
     #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEventBusSubscriber(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerEventBusSubscriber(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
     pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerForwardServer(
         ptr: *const std::ffi::c_void,
     ) {
@@ -4870,20 +4646,6 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ForwardServer>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinHandle(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerJoinHandle(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

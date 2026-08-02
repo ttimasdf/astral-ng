@@ -100,7 +100,10 @@ Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) async {
   await _criticalStage(
     log,
     'services',
-    () => services.init(runStartupActions: false),
+    () => services.init(
+      runStartupActions: false,
+      initializePlatformHooks: false,
+    ),
   );
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
@@ -158,6 +161,13 @@ Future<void> _initializeOptionalServices(
     'logging.file.initialize',
     () async => diagnostics.attachSink(await RotatingJsonlSink.open()),
   );
+  if (Platform.isAndroid) {
+    await _optional(
+      diagnostics.logger(DiagnosticModules.vpn),
+      'vpn.hooks.initialize',
+      services.vpn.initAndroidHooks,
+    );
+  }
   await _optional(
     diagnostics.logger(DiagnosticModules.widgets),
     'widgets.initialize',

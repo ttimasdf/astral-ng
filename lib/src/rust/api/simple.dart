@@ -7,12 +7,9 @@ import '../frb_generated.dart';
 import 'p2p.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `create_and_store_network_instance`
+// These functions are ignored because they are not marked as `pub`: `create_and_store_network_instance`, `handle_event`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `INSTANCE`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `deref`, `deref`, `initialize`, `initialize`
-
-Future<JoinHandle> handleEvent({required EventBusSubscriber events}) =>
-    RustLib.instance.api.crateApiSimpleHandleEvent(events: events);
 
 Future<String> easytierVersion() =>
     RustLib.instance.api.crateApiSimpleEasytierVersion();
@@ -39,6 +36,7 @@ Future<JoinHandleResultString> createServer({
   required List<String> cidrs,
   required List<Forward> forwards,
   required FlagsC flag,
+  required String connectionAttemptId,
 }) => RustLib.instance.api.crateApiSimpleCreateServer(
   username: username,
   enableDhcp: enableDhcp,
@@ -50,6 +48,7 @@ Future<JoinHandleResultString> createServer({
   cidrs: cidrs,
   forwards: forwards,
   flag: flag,
+  connectionAttemptId: connectionAttemptId,
 );
 
 Future<void> closeServer() => RustLib.instance.api.crateApiSimpleCloseServer();

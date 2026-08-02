@@ -11,9 +11,6 @@ import 'simple.dart';
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `MANAGER`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `deref`, `deref`, `initialize`, `initialize`
 
-Future<JoinHandle> handleEvent({required EventBusSubscriber events}) =>
-    RustLib.instance.api.crateApiP2PHandleEvent(events: events);
-
 Future<String> easytierVersion() =>
     RustLib.instance.api.crateApiP2PEasytierVersion();
 
@@ -71,12 +68,6 @@ Future<KVNetworkStatus> getNetworkStatus({required String instanceId}) =>
     RustLib.instance.api.crateApiP2PGetNetworkStatus(instanceId: instanceId);
 
 Future<void> initApp() => RustLib.instance.api.crateApiP2PInitApp();
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<EventBusSubscriber>>
-abstract class EventBusSubscriber implements RustOpaqueInterface {}
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner< JoinHandle < () >>>
-abstract class JoinHandle implements RustOpaqueInterface {}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<JoinHandle < Result < String , String > >>>
 abstract class JoinHandleResultStringString implements RustOpaqueInterface {}

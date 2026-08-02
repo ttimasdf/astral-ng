@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{mpsc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tracing::field::{Field, Visit};
+use tracing::span::{Attributes, Id};
 use tracing::{Event, Metadata, Subscriber};
 use tracing_subscriber::filter::EnvFilter;
 use tracing_subscriber::layer::{Context, SubscriberExt};
@@ -135,16 +136,36 @@ impl<S> Layer<S> for AstralDiagnosticLayer
 where
     S: Subscriber + for<'lookup> LookupSpan<'lookup>,
 {
-    fn on_event(&self, event: &Event<'_>, _ctx: Context<'_, S>) {
-        let diagnostic = normalize_event(event);
+    fn on_new_span(&self, attributes: &Attributes<'_>, id: &Id, ctx: Context<'_, S>) {
+        let Some(span) = ctx.span(id) else {
+            return;
+        };
+        let mut visitor = FieldVisitor::default();
+        attributes.record(&mut visitor);
+        span.extensions_mut().insert(SpanFields(visitor.fields));
+    }
+
+    fn on_event(&self, event: &Event<'_>, ctx: Context<'_, S>) {
+        let diagnostic = normalize_event(event, &ctx);
         write_native(&diagnostic);
         enqueue_bridge(diagnostic);
     }
 }
 
-fn normalize_event(event: &Event<'_>) -> RustDiagnosticEvent {
+fn normalize_event<S>(event: &Event<'_>, ctx: &Context<'_, S>) -> RustDiagnosticEvent
+where
+    S: Subscriber + for<'lookup> LookupSpan<'lookup>,
+{
     let metadata = event.metadata();
-    let mut visitor = FieldVisitor::default();
+    let mut fields = BTreeMap::new();
+    if let Some(scope) = ctx.event_scope(event) {
+        for span in scope.from_root() {
+            if let Some(span_fields) = span.extensions().get::<SpanFields>() {
+                fields.extend(span_fields.0.clone());
+            }
+        }
+    }
+    let mut visitor = FieldVisitor { fields };
     event.record(&mut visitor);
     let mut fields = visitor.fields;
     let message = truncate(
@@ -201,6 +222,9 @@ fn try_send(event: RustDiagnosticEvent) -> bool {
         .get()
         .is_some_and(|sender| sender.try_send(event).is_ok())
 }
+
+#[derive(Clone)]
+struct SpanFields(BTreeMap<String, String>);
 
 #[derive(Default)]
 struct FieldVisitor {
@@ -380,7 +404,11 @@ fn write_native_line(priority: i32, message: &str) {
 #[cfg(target_os = "android")]
 #[link(name = "log")]
 unsafe extern "C" {
-    fn __android_log_write(priority: i32, tag: *const i8, text: *const i8) -> i32;
+    fn __android_log_write(
+        priority: i32,
+        tag: *const std::ffi::c_char,
+        text: *const std::ffi::c_char,
+    ) -> i32;
 }
 
 fn android_priority(level: &str) -> i32 {

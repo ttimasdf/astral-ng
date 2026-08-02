@@ -66,6 +66,8 @@ final class RustDiagnosticSource {
       eventCode: event.eventCode,
       message: event.message,
       fields: event.fields,
+      connectionAttemptId: event.fields['connection_attempt_id'],
+      easyTierInstanceId: event.fields['instance_id'],
       consoleAlreadyReported: event.consoleAlreadyReported,
     );
   }

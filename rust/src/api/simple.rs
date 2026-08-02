@@ -22,6 +22,7 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
 pub use tokio::task::JoinHandle;
+use tracing::Instrument;
 
 pub static DEFAULT_ET_DNS_ZONE: &str = "as.net.";
 
@@ -33,158 +34,172 @@ lazy_static! {
     static ref RT: Runtime = Runtime::new().expect("创建 Tokio 运行时失败");
 }
 
-pub fn handle_event(mut events: EventBusSubscriber) -> tokio::task::JoinHandle<()> {
-    tokio::spawn(async move {
-        loop {
-            match events.recv().await {
-                Ok(event) => match event {
-                    GlobalCtxEvent::PeerAdded(peer_id) => tracing::info!(
-                        target: "astral.easytier.peer",
-                        event_code = "easytier.peer.add",
-                        peer_id,
-                        "Peer added"
-                    ),
-                    GlobalCtxEvent::PeerRemoved(peer_id) => tracing::info!(
-                        target: "astral.easytier.peer",
-                        event_code = "easytier.peer.remove",
-                        peer_id,
-                        "Peer removed"
-                    ),
-                    GlobalCtxEvent::PeerConnAdded(connection) => tracing::info!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.add",
-                        my_peer_id = connection.my_peer_id,
-                        peer_id = connection.peer_id,
-                        "Peer connection added"
-                    ),
-                    GlobalCtxEvent::PeerConnRemoved(connection) => tracing::info!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.remove",
-                        my_peer_id = connection.my_peer_id,
-                        peer_id = connection.peer_id,
-                        "Peer connection removed"
-                    ),
-                    GlobalCtxEvent::ListenerAdded(listener) if listener.scheme() != "ring" => {
-                        tracing::debug!(
+pub(crate) fn handle_event(
+    mut events: EventBusSubscriber,
+    connection_attempt_id: String,
+) -> tokio::task::JoinHandle<()> {
+    let span = tracing::info_span!(
+        target: "astral.easytier.connection",
+        "easytier.events",
+        connection_attempt_id
+    );
+    tokio::spawn(
+        async move {
+            loop {
+                match events.recv().await {
+                    Ok(event) => match event {
+                        GlobalCtxEvent::PeerAdded(peer_id) => tracing::info!(
+                            target: "astral.easytier.peer",
+                            event_code = "easytier.peer.add",
+                            peer_id,
+                            "Peer added"
+                        ),
+                        GlobalCtxEvent::PeerRemoved(peer_id) => tracing::info!(
+                            target: "astral.easytier.peer",
+                            event_code = "easytier.peer.remove",
+                            peer_id,
+                            "Peer removed"
+                        ),
+                        GlobalCtxEvent::PeerConnAdded(connection) => tracing::info!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.add",
+                            my_peer_id = connection.my_peer_id,
+                            peer_id = connection.peer_id,
+                            "Peer connection added"
+                        ),
+                        GlobalCtxEvent::PeerConnRemoved(connection) => tracing::info!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.remove",
+                            my_peer_id = connection.my_peer_id,
+                            peer_id = connection.peer_id,
+                            "Peer connection removed"
+                        ),
+                        GlobalCtxEvent::ListenerAdded(listener) if listener.scheme() != "ring" => {
+                            tracing::debug!(
+                                target: "astral.easytier.instance",
+                                event_code = "easytier.listener.add",
+                                scheme = listener.scheme(),
+                                "Listener added"
+                            );
+                        }
+                        GlobalCtxEvent::ListenerAddFailed(listener, error)
+                        | GlobalCtxEvent::ListenerAcceptFailed(listener, error) => tracing::warn!(
                             target: "astral.easytier.instance",
-                            event_code = "easytier.listener.add",
+                            event_code = "easytier.listener.failed",
                             scheme = listener.scheme(),
-                            "Listener added"
+                            error,
+                            "Listener operation failed"
+                        ),
+                        GlobalCtxEvent::ConnectionAccepted(_, _) => tracing::debug!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.accept",
+                            "Connection accepted"
+                        ),
+                        GlobalCtxEvent::ConnectionError(_, _, error) => tracing::warn!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.failed",
+                            error,
+                            "Connection failed"
+                        ),
+                        GlobalCtxEvent::TunDeviceReady(device) => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.tun.ready",
+                            device,
+                            "TUN device ready"
+                        ),
+                        GlobalCtxEvent::TunDeviceError(error) => tracing::error!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.tun.failed",
+                            error,
+                            "TUN device failed"
+                        ),
+                        GlobalCtxEvent::Connecting(destination) => tracing::debug!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.start",
+                            scheme = destination.scheme(),
+                            "Connecting to peer"
+                        ),
+                        GlobalCtxEvent::ConnectError(_, ip_version, error) => tracing::warn!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.connection.failed",
+                            ip_version,
+                            error,
+                            "Peer connection attempt failed"
+                        ),
+                        GlobalCtxEvent::VpnPortalStarted(_) => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.vpn-portal.start",
+                            "VPN portal started"
+                        ),
+                        GlobalCtxEvent::VpnPortalClientConnected(_, _) => tracing::debug!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.vpn-portal.client.add",
+                            "VPN portal client connected"
+                        ),
+                        GlobalCtxEvent::VpnPortalClientDisconnected(_, _) => tracing::debug!(
+                            target: "astral.easytier.connection",
+                            event_code = "easytier.vpn-portal.client.remove",
+                            "VPN portal client disconnected"
+                        ),
+                        GlobalCtxEvent::DhcpIpv4Changed(_, _) => tracing::info!(
+                            target: "astral.easytier.nat",
+                            event_code = "easytier.dhcp.changed",
+                            "DHCP address changed"
+                        ),
+                        GlobalCtxEvent::DhcpIpv4Conflicted(_) => tracing::warn!(
+                            target: "astral.easytier.nat",
+                            event_code = "easytier.dhcp.conflict",
+                            "DHCP address conflict"
+                        ),
+                        GlobalCtxEvent::PortForwardAdded(_) => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.port-forward.add",
+                            "Port forward added"
+                        ),
+                        GlobalCtxEvent::ConfigPatched(_) => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.config.changed",
+                            "Instance configuration changed"
+                        ),
+                        GlobalCtxEvent::ProxyCidrsUpdated(_, _) => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.proxy-cidrs.changed",
+                            "Proxy CIDRs changed"
+                        ),
+                        GlobalCtxEvent::CredentialChanged => tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.credential.changed",
+                            "Network credential changed"
+                        ),
+                        _ => {}
+                    },
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        tracing::info!(
+                            target: "astral.easytier.instance",
+                            event_code = "easytier.events.closed",
+                            "EasyTier event channel closed"
+                        );
+                        break;
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(count)) => {
+                        tracing::warn!(
+                            target: "astral.easytier",
+                            event_code = "easytier.events.lagged",
+                            dropped = count,
+                            "EasyTier event subscriber lagged"
                         );
                     }
-                    GlobalCtxEvent::ListenerAddFailed(listener, error)
-                    | GlobalCtxEvent::ListenerAcceptFailed(listener, error) => tracing::warn!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.listener.failed",
-                        scheme = listener.scheme(),
-                        error,
-                        "Listener operation failed"
-                    ),
-                    GlobalCtxEvent::ConnectionAccepted(_, _) => tracing::debug!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.accept",
-                        "Connection accepted"
-                    ),
-                    GlobalCtxEvent::ConnectionError(_, _, error) => tracing::warn!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.failed",
-                        error,
-                        "Connection failed"
-                    ),
-                    GlobalCtxEvent::TunDeviceReady(device) => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.tun.ready",
-                        device,
-                        "TUN device ready"
-                    ),
-                    GlobalCtxEvent::TunDeviceError(error) => tracing::error!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.tun.failed",
-                        error,
-                        "TUN device failed"
-                    ),
-                    GlobalCtxEvent::Connecting(destination) => tracing::debug!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.start",
-                        scheme = destination.scheme(),
-                        "Connecting to peer"
-                    ),
-                    GlobalCtxEvent::ConnectError(_, ip_version, error) => tracing::warn!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.connection.failed",
-                        ip_version,
-                        error,
-                        "Peer connection attempt failed"
-                    ),
-                    GlobalCtxEvent::VpnPortalStarted(_) => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.vpn-portal.start",
-                        "VPN portal started"
-                    ),
-                    GlobalCtxEvent::VpnPortalClientConnected(_, _) => tracing::debug!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.vpn-portal.client.add",
-                        "VPN portal client connected"
-                    ),
-                    GlobalCtxEvent::VpnPortalClientDisconnected(_, _) => tracing::debug!(
-                        target: "astral.easytier.connection",
-                        event_code = "easytier.vpn-portal.client.remove",
-                        "VPN portal client disconnected"
-                    ),
-                    GlobalCtxEvent::DhcpIpv4Changed(_, _) => tracing::info!(
-                        target: "astral.easytier.nat",
-                        event_code = "easytier.dhcp.changed",
-                        "DHCP address changed"
-                    ),
-                    GlobalCtxEvent::DhcpIpv4Conflicted(_) => tracing::warn!(
-                        target: "astral.easytier.nat",
-                        event_code = "easytier.dhcp.conflict",
-                        "DHCP address conflict"
-                    ),
-                    GlobalCtxEvent::PortForwardAdded(_) => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.port-forward.add",
-                        "Port forward added"
-                    ),
-                    GlobalCtxEvent::ConfigPatched(_) => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.config.changed",
-                        "Instance configuration changed"
-                    ),
-                    GlobalCtxEvent::ProxyCidrsUpdated(_, _) => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.proxy-cidrs.changed",
-                        "Proxy CIDRs changed"
-                    ),
-                    GlobalCtxEvent::CredentialChanged => tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.credential.changed",
-                        "Network credential changed"
-                    ),
-                    _ => {}
-                },
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    tracing::info!(
-                        target: "astral.easytier.instance",
-                        event_code = "easytier.events.closed",
-                        "EasyTier event channel closed"
-                    );
-                    break;
-                }
-                Err(tokio::sync::broadcast::error::RecvError::Lagged(count)) => {
-                    tracing::warn!(
-                        target: "astral.easytier",
-                        event_code = "easytier.events.lagged",
-                        dropped = count,
-                        "EasyTier event subscriber lagged"
-                    );
                 }
             }
         }
-    })
+        .instrument(span),
+    )
 }
 
-async fn create_and_store_network_instance(cfg: TomlConfigLoader) -> Result<(), String> {
+async fn create_and_store_network_instance(
+    cfg: TomlConfigLoader,
+    connection_attempt_id: String,
+) -> Result<(), String> {
     let instance_id = cfg.get_id().to_string();
     let replaced_existing = {
         let mut instance_guard = INSTANCE.write().await;
@@ -194,7 +209,7 @@ async fn create_and_store_network_instance(cfg: TomlConfigLoader) -> Result<(), 
     let events = network
         .start()
         .map_err(|error| format!("failed to start EasyTier instance: {error}"))?;
-    handle_event(events);
+    handle_event(events, connection_attempt_id.clone());
     let mut instance_guard = INSTANCE.write().await;
     *instance_guard = Some(network);
     tracing::info!(
@@ -202,6 +217,7 @@ async fn create_and_store_network_instance(cfg: TomlConfigLoader) -> Result<(), 
         event_code = "easytier.instance.start",
         instance_id,
         replaced_existing,
+        connection_attempt_id,
         "EasyTier instance started"
     );
     Ok(())
@@ -383,9 +399,20 @@ pub fn create_server(
     cidrs: Vec<String>,
     forwards: Vec<Forward>,
     flag: FlagsC,
+    connection_attempt_id: String,
 ) -> JoinHandle<Result<(), String>> {
-    print!("{}", format!("创建服务器: {}，启用DHCP: {}, 指定IP: {}, 房间名称: {}, 房间密码: {}, 服务器URL: {:?}, 监听器URL: {:?}", username, enable_dhcp, specified_ip, room_name, room_password, severurl, onurl));
     RT.spawn(async move {
+        tracing::info!(
+            target: "astral.easytier.instance",
+            event_code = "easytier.instance.configure",
+            connection_attempt_id,
+            enable_dhcp,
+            peer_count = severurl.len(),
+            listener_count = onurl.len(),
+            proxy_cidr_count = cidrs.len(),
+            forward_count = forwards.len(),
+            "Configuring EasyTier instance"
+        );
         // Create config with better error handling
         let cfg = TomlConfigLoader::default();
 
@@ -408,14 +435,6 @@ pub fn create_server(
         let mut old = cfg.get_port_forwards();
 
         for c in forwards {
-            // 打印
-            println!(
-                "{}",
-                format!(
-                    "添加端口转发: {} -> {} -{}",
-                    c.bind_addr, c.dst_addr, c.proto
-                )
-            );
             let port_forward_item = PortForwardConfig {
                 bind_addr: c.bind_addr.parse().unwrap(),
                 dst_addr: c.dst_addr.parse().unwrap(),
@@ -515,43 +534,24 @@ pub fn create_server(
         cfg.set_network_identity(NetworkIdentity::new(room_name, room_password));
 
         // 直接启动网络实例，无需嵌套 spawn
-        create_and_store_network_instance(cfg).await
+        create_and_store_network_instance(cfg, connection_attempt_id).await
     })
 }
 
 // 关闭服务器实例
 pub fn close_server() {
     RT.spawn(async {
-        // 获取mutex锁
         let mut locked_instance = INSTANCE.write().await;
-
-        println!(
-            "关闭前实例状态: {}",
-            if locked_instance.is_some() {
-                "存在"
-            } else {
-                "不存在"
-            }
-        ); // 添加关闭前日志
-
-        // 如果实例存在，则丢弃它
+        let existed = locked_instance.is_some();
         if let Some(instance) = locked_instance.take() {
-            println!("正在关闭实例");
-            // 丢弃实例
             drop(instance);
-            println!("实例已成功关闭");
-        } else {
-            println!("没有找到需要关闭的实例");
         }
-
-        println!(
-            "关闭后实例状态: {}",
-            if locked_instance.is_some() {
-                "存在"
-            } else {
-                "不存在"
-            }
-        ); // 添加关闭后日志
+        tracing::info!(
+            target: "astral.easytier.instance",
+            event_code = "easytier.instance.stop",
+            existed,
+            "EasyTier instance stopped"
+        );
     });
 }
 

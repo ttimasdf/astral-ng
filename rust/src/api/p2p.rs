@@ -32,10 +32,6 @@ async fn get_instance_info(
         .ok_or_else(|| "instance not found".to_string())
 }
 
-pub fn handle_event(events: EventBusSubscriber) -> tokio::task::JoinHandle<()> {
-    super::simple::handle_event(events)
-}
-
 pub fn easytier_version() -> Result<String, String> {
     Ok(easytier::VERSION.to_string())
 }

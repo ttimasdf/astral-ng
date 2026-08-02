@@ -41,18 +41,41 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                 TauriVpnService.triggerCallback = { event, data ->
                     eventSink?.success(mapOf("event" to event, "data" to data))
                 }
+                NativeLogger.eventCallback = { data ->
+                    eventSink?.success(mapOf("event" to "diagnostic", "data" to data))
+                }
             }
 
             override fun onCancel(arguments: Any?) {
                 eventSink = null
                 TauriVpnService.triggerCallback = { _, _ -> }
+                NativeLogger.eventCallback = {}
             }
         })
     }
 
     // 处理来自Flutter的方法调用
     override fun onMethodCall(call: MethodCall, result: Result) {
+        try {
+            handleMethodCall(call, result)
+        } catch (error: Exception) {
+            NativeLogger.error(
+                "vpn.plugin.call.failed",
+                "VPN plugin method call failed",
+                mapOf("method" to call.method),
+                error,
+            )
+            result.error("vpn_native_error", error.message, null)
+        }
+    }
+
+    private fun handleMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
+            "configureLogging" -> {
+                val level = call.argument<String>("minimumLevel") ?: "info"
+                NativeLogger.configure(level)
+                result.success(null)
+            }
             // 准备VPN服务
             "prepareVpn" -> {
                 val currentActivity = activity
@@ -107,6 +130,10 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                     if (mtu is Int) {
                         serviceIntent.putExtra("MTU", mtu)
                     }
+                    serviceIntent.putExtra(
+                        TauriVpnService.CONNECTION_ATTEMPT_ID,
+                        args?.get("connectionAttemptId") as? String,
+                    )
 
                     serviceContext.startService(serviceIntent)
                     result.success(mapOf<String, Any>())
@@ -128,6 +155,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         eventChannel.setStreamHandler(null)
         eventSink = null
         TauriVpnService.triggerCallback = { _, _ -> }
+        NativeLogger.eventCallback = {}
     }
 
     // 插件附加到Activity时调用
