@@ -10,6 +10,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
 import 'package:path/path.dart' as p;
 import 'package:astral/app.dart';
 import 'package:astral/core/app_links/app_link_registry.dart';
+import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/diagnostics/diagnostic_context.dart';
@@ -168,14 +169,15 @@ Future<T> _criticalStage<T>(
     );
     return result;
   } catch (error, stack) {
-    log.error(
-      'bootstrap.stage.failed',
-      'Bootstrap stage failed',
-      fields: {'stage': stage, 'duration_ms': stopwatch.elapsedMilliseconds},
-      error: error,
-      stackTrace: stack,
+    Error.throwWithStackTrace(
+      BootstrapStageFailure(
+        stage: stage,
+        durationMilliseconds: stopwatch.elapsedMilliseconds,
+        error: error,
+        stackTrace: stack,
+      ),
+      stack,
     );
-    rethrow;
   } finally {
     timeline.finish(arguments: {'duration_ms': stopwatch.elapsedMilliseconds});
   }

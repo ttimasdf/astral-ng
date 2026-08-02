@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
 import 'package:astral/core/bootstrap/startup_host.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/core/diagnostics/log_severity.dart';
@@ -308,6 +309,39 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.text('Ready'), findsOneWidget);
+  });
+
+  testWidgets('StartupHost owns a staged bootstrap failure once', (
+    tester,
+  ) async {
+    final runtime = DiagnosticsRuntime.bootstrap();
+    addTearDown(runtime.close);
+    final original = StateError('Rust unavailable');
+    final originalStack = StackTrace.fromString('#0 rustInit');
+
+    await tester.pumpWidget(
+      StartupHost(
+        diagnostics: runtime,
+        bootstrap:
+            () async =>
+                throw BootstrapStageFailure(
+                  stage: 'rust',
+                  durationMilliseconds: 42,
+                  error: original,
+                  stackTrace: originalStack,
+                ),
+      ),
+    );
+    await tester.pump();
+
+    final errors =
+        runtime.store.value.where((record) => record.isError).toList();
+    expect(errors, hasLength(1));
+    expect(errors.single.eventCode, 'bootstrap.failed');
+    expect(errors.single.fields, containsPair('stage', 'rust'));
+    expect(errors.single.fields, containsPair('duration_ms', 42));
+    expect(errors.single.errorMessage, contains('Rust unavailable'));
+    expect(errors.single.stackTrace, contains('#0 rustInit'));
   });
 
   testWidgets('StartupHost renders diagnostics for a critical failure', (

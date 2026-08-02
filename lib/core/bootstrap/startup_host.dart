@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
 import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
@@ -38,20 +39,29 @@ final class _StartupHostState extends State<StartupHost> {
       if (!mounted) return;
       setState(() => _readyApp = app);
     } catch (error, stack) {
+      final stageFailure = error is BootstrapStageFailure ? error : null;
+      final capturedError = stageFailure?.error ?? error;
+      final capturedStack = stageFailure?.stackTrace ?? stack;
       final errorId = ErrorCoordinator(widget.diagnostics).capture(
         DiagnosticModules.bootstrap,
         AppFailure(
           eventCode: 'bootstrap.failed',
           message: 'Application bootstrap failed',
-          error: error,
-          stackTrace: stack,
+          error: capturedError,
+          stackTrace: capturedStack,
           impact: FailureImpact.startupBlocked,
+          fields: {
+            if (stageFailure != null) ...{
+              'stage': stageFailure.stage,
+              'duration_ms': stageFailure.durationMilliseconds,
+            },
+          },
         ),
       );
       if (!mounted) return;
       setState(() {
-        _failure = error;
-        _stackTrace = stack;
+        _failure = capturedError;
+        _stackTrace = capturedStack;
         _errorId = errorId;
       });
     }
