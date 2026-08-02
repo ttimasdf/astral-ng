@@ -9,12 +9,27 @@ final class DiagnosticSanitizer {
     if (value == null) return '';
     var result = value.toString();
     result = result.replaceAll(RegExp(r'\x1B\[[0-?]*[ -/]*[@-~]'), '');
+    result = result.replaceAll(RegExp(r'\x1B\][\s\S]*?(?:\x07|\x1B\\)'), '');
     result = result.replaceAllMapped(
       RegExp(
         r'(password|token|authorization|cookie|private[_-]?key)\s*[:=]\s*[^\s,;]+',
         caseSensitive: false,
       ),
       (match) => '${match.group(1)}=<redacted>',
+    );
+    result = result.replaceAll(
+      RegExp(r'astral://room\?[^\s]*', caseSensitive: false),
+      '<redacted-room-link>',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'(^|[^A-Za-z0-9_-])(H4sI[A-Za-z0-9_-]{44,})(?=$|[^A-Za-z0-9_-])'),
+      (match) => '${match.group(1)}<redacted-room-payload>',
+    );
+    result = result.replaceAll(
+      RegExp(
+        r'(?:file:/{2,3}[^\s]+|(?<![A-Za-z0-9/:])(?:[A-Za-z]:[\\/]|/)(?:[^\\/\s]+[\\/])*[^\\/\s]+)',
+      ),
+      '<redacted-path>',
     );
     if (result.length > maxLength) {
       result = '${result.substring(0, maxLength)}…<truncated>';

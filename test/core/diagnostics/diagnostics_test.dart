@@ -227,6 +227,44 @@ void main() {
     expect(summary.count, 1);
   });
 
+  test('flood controller preserves records with distinct details', () {
+    final now = DateTime.utc(2026);
+    final controller = DiagnosticFloodController(clock: () => now);
+
+    expect(
+      controller.accepts(
+        _record(
+          now,
+          eventCode: 'peer.state',
+          fields: const {'peer_id': 'peer-a'},
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      controller.accepts(
+        _record(
+          now,
+          eventCode: 'peer.state',
+          fields: const {'peer_id': 'peer-b'},
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      controller.accepts(
+        _record(now, eventCode: 'peer.failed', errorId: 'ERROR-A'),
+      ),
+      isTrue,
+    );
+    expect(
+      controller.accepts(
+        _record(now, eventCode: 'peer.failed', errorId: 'ERROR-B'),
+      ),
+      isTrue,
+    );
+  });
+
   test('flood controller rate-limits low-level module noise', () {
     final now = DateTime.utc(2026);
     final controller = DiagnosticFloodController(clock: () => now);
@@ -274,6 +312,30 @@ void main() {
       {'password': '<redacted>', 'detail': 'Authorization=<redacted>'},
     );
     expect(sanitizer.text('\u001b[31mfailed\u001b[0m'), 'failed');
+    expect(
+      sanitizer.text('at file:///home/alice/private/app.dart:42'),
+      contains('<redacted-path>'),
+    );
+    expect(
+      sanitizer.text('server https://example.test:443 is reachable'),
+      contains('https://example.test:443'),
+    );
+    expect(
+      sanitizer.text(
+        'astral://room?code=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      ),
+      '<redacted-room-link>',
+    );
+    expect(
+      sanitizer.text(
+        'payload H4sIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      ),
+      contains('<redacted-room-payload>'),
+    );
+    const sha256 =
+        'a3f1c9e7b5d24680123456789abcdef0a3f1c9e7b5d24680123456789abcdef0';
+    expect(sanitizer.text('hash $sha256'), 'hash $sha256');
+    expect(sanitizer.text('\u001b]8;;https://example.test\u0007link'), 'link');
   });
 
   test('support bundle contains metadata and redacted records', () async {
@@ -487,7 +549,12 @@ void main() {
   });
 }
 
-DiagnosticRecord _record(DateTime timestamp, {required String eventCode}) {
+DiagnosticRecord _record(
+  DateTime timestamp, {
+  required String eventCode,
+  Map<String, Object?> fields = const {},
+  String? errorId,
+}) {
   return DiagnosticRecord(
     sourceTimestampUtc: timestamp,
     ingestedTimestampUtc: timestamp,
@@ -499,5 +566,7 @@ DiagnosticRecord _record(DateTime timestamp, {required String eventCode}) {
     level: LogSeverity.debug,
     eventCode: eventCode,
     message: 'test record',
+    fields: fields,
+    errorId: errorId,
   );
 }

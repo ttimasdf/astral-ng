@@ -92,8 +92,19 @@ final class DiagnosticFloodController {
 
   String _fingerprint(DiagnosticRecord record) {
     final topFrame = record.stackTrace?.split('\n').first ?? '';
-    return '${record.module}\u0000${record.eventCode}\u0000'
-        '${record.errorType ?? ''}\u0000$topFrame';
+    final fields =
+        record.fields.entries.toList()
+          ..sort((left, right) => left.key.compareTo(right.key));
+    return [
+      record.module,
+      record.eventCode,
+      record.message,
+      record.errorId ?? '',
+      record.errorType ?? '',
+      record.errorMessage ?? '',
+      topFrame,
+      for (final field in fields) '${field.key}=${field.value}',
+    ].join('\u0000');
   }
 }
 
