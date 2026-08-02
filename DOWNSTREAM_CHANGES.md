@@ -644,6 +644,7 @@ tags preserve the existing names and identifiers.
 - `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, generate Linux wrapper and desktop entries from the resolved identity, and package canary artifacts separately
 - `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
 - `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
+- `lib/core/constants/home_widget_keys.dart`, `lib/core/services/widget_service.dart`: resolve Android widget providers from their Kotlin namespace so canary startup does not depend on the application ID
 - `scripts/generate_icons.py`, `assets/`, `android/app/src/main/res/mipmap-*`, `windows/runner/resources/`: generate and ship the grayscale-and-gold icon set
 - `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
 - `linux/CMakeLists.txt`, `linux/runner/`: select the canary executable, GTK application ID, and window name

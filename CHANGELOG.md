@@ -55,6 +55,8 @@ baseline.
 
 ### Fixed
 
+- Fixed Android canary snapshots remaining on the white launch screen when
+  startup tried to resolve home-widget providers from the canary package ID.
 - Fixed Android VPN routes not refreshing when a connected peer advertises or
   changes a proxy subnet. ([upstream-#231])
 - Fixed room member filtering when switching between user and server types.
