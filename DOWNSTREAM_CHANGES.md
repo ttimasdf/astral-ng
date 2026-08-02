@@ -660,7 +660,7 @@ tags preserve the existing names and identifiers.
 
 ## [observability-refactor]: Add cross-platform structured diagnostics
 
-- **Scope**: `lib/core/diagnostics/`, `lib/main.dart`, `lib/features/settings/pages/general/logs_page.dart`, `rust/src/diagnostics/`, `vpn_service_plugin/`, `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`, `docs/TROUBLESHOOTING.md`
+- **Scope**: `lib/core/diagnostics/`, `lib/main.dart`, `lib/features/settings/pages/general/logs_page.dart`, `rust/src/diagnostics/`, `vpn_service_plugin/`, `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`, `docs/TROUBLESHOOTING.md`, `docs/troubleshooting/`, `docs/DIAGNOSTIC_CATALOG.md`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: observability-refactor
@@ -688,7 +688,8 @@ extras.
 - `vpn_service_plugin/`: emit structured Android VPN events to logcat and Flutter, synchronize runtime filtering, and preserve null-interface establishment failures without misclassifying permission state
 - `android/app/src/main/kotlin/pw/rabit/astralng/MainActivity.kt`: translate bounded debug/profile Activity extras into Dart pre-start arguments
 - `lib/core/services/`, `lib/core/app_links/`, `lib/features/magic_wall/`, `lib/features/rooms/`: replace legacy call sites and attach safe operation, connection, and error context
-- `docs/TROUBLESHOOTING.md`: document console and logcat use, policy activation, support exports, packet capture, routing inspection, EasyTier state, Flutter DevTools, privacy boundaries, and failure isolation
+- `docs/TROUBLESHOOTING.md`, `docs/troubleshooting/`: document console and logcat use, policy activation, support exports, packet capture, routing inspection, EasyTier state, Flutter DevTools, privacy boundaries, and failure isolation by investigation topic
+- `docs/DIAGNOSTIC_CATALOG.md`: catalog project-wide modules, event codes, native console tags, cross-language schema, and compact Rust fallback identities
 
 ---
 

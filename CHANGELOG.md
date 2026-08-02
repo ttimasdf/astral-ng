@@ -18,7 +18,9 @@ baseline.
   reviewable support-bundle exports.
 - Added process-only pre-start diagnostic flags for desktop and debuggable
   Android builds, plus a cross-platform troubleshooting guide covering
-  application, network, routing, and EasyTier inspection tools.
+  application, network, routing, and EasyTier inspection tools. The guide is
+  split by investigation type and includes a project-wide catalog of modules,
+  event codes, and native console tags across Dart, Rust, and Kotlin.
 - Added an Android Quick Settings tile that shows the current connection state
   and connects or disconnects Astral-ng with one tap. ([#10])
 - Added automatic connection retries with a configurable retry limit.
