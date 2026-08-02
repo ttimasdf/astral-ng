@@ -77,7 +77,7 @@ class _SupportAboutSettingsContentState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Astral-ng',
+                        'AstralNG',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -150,7 +150,7 @@ class _SupportAboutSettingsContentState
                 trailing: const Icon(Icons.copy_outlined),
                 onTap: () async {
                   final details = [
-                    'Astral-ng ${AppInfoUtil.getVersionDisplay()}',
+                    'AstralNG ${AppInfoUtil.getVersionDisplay()}',
                     if (_kernelVersion.isNotEmpty) 'EasyTier: $_kernelVersion',
                     'Logs: ${logs.length}',
                   ].join('\n');
