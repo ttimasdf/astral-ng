@@ -85,6 +85,19 @@ final class LogPolicy {
   final String name;
   final Map<String, ModuleThresholds> modules;
 
+  LogPolicy withModuleLevel(String module, LogSeverity? level) {
+    return LogPolicy(
+      name: name,
+      modules: {
+        ...modules,
+        module: ModuleThresholds(console: level, memory: level, file: level),
+      },
+    );
+  }
+
+  LogPolicy withName(String newName) =>
+      LogPolicy(name: newName, modules: modules);
+
   LogSeverity? minimumLevel(String module, DiagnosticDestination destination) {
     LogSeverity? effective;
     for (final name in _ancestors(module)) {

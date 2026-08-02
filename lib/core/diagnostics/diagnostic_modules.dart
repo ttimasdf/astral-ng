@@ -16,4 +16,24 @@ abstract final class DiagnosticModules {
   static const magicWall = 'astral.magic-wall';
   static const window = 'astral.window';
   static const logging = 'astral.logging';
+
+  static const all = <String>[
+    root,
+    bootstrap,
+    database,
+    connection,
+    vpn,
+    vpnAndroid,
+    easyTier,
+    easyTierInstance,
+    easyTierPeer,
+    easyTierConnection,
+    easyTierTunnel,
+    widgets,
+    appLinks,
+    updates,
+    magicWall,
+    window,
+    logging,
+  ];
 }

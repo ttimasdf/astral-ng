@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,7 @@ import 'package:astral/core/diagnostics/diagnostic_sanitizer.dart';
 import 'package:astral/core/diagnostics/diagnostic_store.dart';
 import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/diagnostics/log_policy.dart';
+import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
 
 void main() {
   group('LogPolicy', () {
@@ -107,6 +110,48 @@ void main() {
       }),
       {'password': '<redacted>', 'detail': 'Authorization=<redacted>'},
     );
+  });
+
+  test('rotating JSONL sink persists structured bounded records', () async {
+    final directory = await Directory.systemTemp.createTemp('astral-logs-');
+    addTearDown(() => directory.delete(recursive: true));
+    final sink = await RotatingJsonlSink.open(
+      directory: directory,
+      maxBytes: 900,
+      retainedFiles: 2,
+    );
+    addTearDown(sink.close);
+    final runtime = DiagnosticsRuntime.bootstrap(
+      initialPolicy: LogPolicy.debugDefaults(),
+      additionalSinks: [sink],
+    );
+    addTearDown(runtime.close);
+
+    for (var index = 0; index < 12; index++) {
+      runtime
+          .logger(DiagnosticModules.bootstrap)
+          .info(
+            'rotation.$index',
+            'Structured record $index ${'x' * 80}',
+            fields: {'index': index},
+          );
+    }
+    await runtime.flush();
+
+    final files =
+        await directory
+            .list()
+            .where((entity) => entity is File)
+            .cast<File>()
+            .toList();
+    expect(files.length, lessThanOrEqualTo(3));
+    expect(files, isNotEmpty);
+    final lines = await files.last.readAsLines();
+    expect(lines, isNotEmpty);
+    final decoded = jsonDecode(lines.last) as Map<String, dynamic>;
+    expect(decoded['schema_version'], 1);
+    expect(decoded['module'], DiagnosticModules.bootstrap);
+    expect(decoded['fields'], isA<Map<String, dynamic>>());
   });
 
   testWidgets('StartupHost renders before bootstrap completes', (tester) async {

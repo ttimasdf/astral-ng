@@ -17,6 +17,7 @@ import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/diagnostics/error/error_coordinator.dart';
 import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/diagnostics/module_logger.dart';
+import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
 import 'package:astral/core/platform/window_manager.dart';
@@ -147,6 +148,11 @@ Future<void> _initializeOptionalServices(
   DiagnosticsRuntime diagnostics,
   ServiceManager services,
 ) async {
+  await _optional(
+    diagnostics.logger(DiagnosticModules.logging),
+    'logging.file.initialize',
+    () async => diagnostics.attachSink(await RotatingJsonlSink.open()),
+  );
   await _optional(
     diagnostics.logger(DiagnosticModules.widgets),
     'widgets.initialize',

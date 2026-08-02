@@ -23,7 +23,7 @@ final class DiagnosticsRuntime {
     required this.store,
     required List<DiagnosticSink> sinks,
     DiagnosticSanitizer sanitizer = const DiagnosticSanitizer(),
-  }) : _sinks = List.unmodifiable(sinks),
+  }) : _sinks = List.of(sinks),
        _sanitizer = sanitizer {
     hierarchicalLoggingEnabled = true;
     Logger.root.level = Level.ALL;
@@ -64,6 +64,19 @@ final class DiagnosticsRuntime {
     module,
     () => ModuleLogger(module: module, policy: () => policy.value),
   );
+
+  void attachSink(DiagnosticSink sink) {
+    if (_closed) {
+      unawaited(sink.close());
+      return;
+    }
+    if (_sinks.any((current) => current.destination == sink.destination)) {
+      throw StateError(
+        'A ${sink.destination.name} diagnostic sink is already attached',
+      );
+    }
+    _sinks.add(sink);
+  }
 
   void _ingest(LogRecord source) {
     if (_closed) return;
