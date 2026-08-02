@@ -171,7 +171,7 @@ where
     let message = truncate(
         fields
             .remove("message")
-            .unwrap_or_else(|| metadata.name().to_string()),
+            .unwrap_or_else(|| "Rust event".to_string()),
         MAX_MESSAGE_LENGTH,
     );
     let event_code = fields
@@ -298,10 +298,34 @@ fn truncate(mut value: String, max: usize) -> String {
 }
 
 fn default_event_code(metadata: &Metadata<'_>) -> String {
-    format!(
-        "rust.{}",
-        metadata.name().replace(' ', "-").to_ascii_lowercase()
-    )
+    compact_rust_event_code(metadata.target(), metadata.file(), metadata.line())
+}
+
+fn compact_rust_event_code(target: &str, file: Option<&str>, line: Option<u32>) -> String {
+    let normalized = file.unwrap_or("unknown").replace('\\', "/");
+    let (crate_directory, relative) =
+        if let Some((prefix, relative)) = normalized.rsplit_once("/src/") {
+            (prefix.rsplit('/').next(), relative)
+        } else if let Some(relative) = normalized.strip_prefix("src/") {
+            (None, relative)
+        } else {
+            (None, normalized.rsplit('/').next().unwrap_or("unknown"))
+        };
+    let crate_label = compact_crate_label(target, crate_directory);
+    match line {
+        Some(line) => format!("rust.event@{crate_label}:{relative}:{line}"),
+        None => format!("rust.event@{crate_label}:{relative}"),
+    }
+}
+
+fn compact_crate_label<'a>(target: &str, crate_directory: Option<&'a str>) -> &'a str {
+    match crate_directory {
+        Some("rust") => "astral",
+        Some(directory) => directory,
+        None if target.starts_with("rust_lib_astral") || target.starts_with("astral") => "astral",
+        None if target.starts_with("easytier") || target.starts_with("CORE") => "easytier",
+        None => "rust",
+    }
 }
 
 pub fn map_target(target: &str) -> String {
@@ -445,6 +469,45 @@ mod tests {
             map_target("easytier::tunnel::udp"),
             "astral.easytier.tunnel.udp"
         );
+    }
+
+    #[test]
+    fn compacts_rust_event_source_paths() {
+        assert_eq!(
+            compact_rust_event_code(
+                "CORE::INSTANCE::CONNECTION",
+                Some(
+                    "/home/u/.cargo/git/checkouts/easytier-af9fb4bbe1f7758c/8428a89/easytier/src/connector/manual.rs",
+                ),
+                Some(213),
+            ),
+            "rust.event@easytier:connector/manual.rs:213"
+        );
+        assert_eq!(
+            compact_rust_event_code(
+                "rust_lib_astral::api::simple",
+                Some("rust\\src\\api\\simple.rs"),
+                Some(42),
+            ),
+            "rust.event@astral:api/simple.rs:42"
+        );
+    }
+
+    #[test]
+    fn native_formatter_does_not_add_ansi_color() {
+        let event = RustDiagnosticEvent {
+            timestamp_millis: 0,
+            source_sequence: 0,
+            level: "info".to_string(),
+            module: "astral.easytier".to_string(),
+            raw_target: "CORE".to_string(),
+            event_code: "rust.event@easytier:connector/manual.rs:213".to_string(),
+            message: "Rust event".to_string(),
+            fields: HashMap::new(),
+            console_already_reported: true,
+        };
+
+        assert!(!format_native(&event).contains('\u{1b}'));
     }
 
     #[test]

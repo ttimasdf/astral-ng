@@ -182,6 +182,7 @@ void main() {
       }),
       {'password': '<redacted>', 'detail': 'Authorization=<redacted>'},
     );
+    expect(sanitizer.text('\u001b[31mfailed\u001b[0m'), 'failed');
   });
 
   test('support bundle contains metadata and redacted records', () async {

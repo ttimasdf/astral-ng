@@ -8,6 +8,7 @@ final class DiagnosticSanitizer {
   String text(Object? value, {int maxLength = maxMessageLength}) {
     if (value == null) return '';
     var result = value.toString();
+    result = result.replaceAll(RegExp(r'\x1B\[[0-?]*[ -/]*[@-~]'), '');
     result = result.replaceAllMapped(
       RegExp(
         r'(password|token|authorization|cookie|private[_-]?key)\s*[:=]\s*[^\s,;]+',
