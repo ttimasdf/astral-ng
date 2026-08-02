@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
@@ -19,6 +20,7 @@ import 'package:astral/core/diagnostics/error/error_coordinator.dart';
 import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/diagnostics/log_policy.dart';
 import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:astral/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
 import 'package:astral/core/diagnostics/support_bundle.dart';
 
 void main() {
@@ -119,6 +121,27 @@ void main() {
     final second = ErrorHookRegistration.install(coordinator);
     expect(identical(first, second), isTrue);
     first.dispose();
+  });
+
+  test('easy_localization warnings use Astral diagnostics', () async {
+    final runtime = DiagnosticsRuntime.bootstrap(
+      initialPolicy: LogPolicy.debugDefaults(),
+    );
+    addTearDown(runtime.close);
+    final source = EasyLocalizationDiagnosticSource.install(runtime);
+    addTearDown(source.dispose);
+
+    EasyLocalization.logger.debug('routine package chatter');
+    expect(runtime.store.value, isEmpty);
+
+    EasyLocalization.logger.warning(
+      '\u001b[34mmissing localization key\u001b[0m',
+    );
+    final record = runtime.store.value.single;
+    expect(record.module, DiagnosticModules.localization);
+    expect(record.eventCode, 'localization.package.warning');
+    expect(record.message, 'Localization package reported a warning');
+    expect(record.fields['detail'], 'missing localization key');
   });
 
   test('flood controller coalesces duplicates and reports suppression', () {

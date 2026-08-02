@@ -2,6 +2,7 @@ abstract final class DiagnosticModules {
   static const root = 'astral';
   static const bootstrap = 'astral.bootstrap';
   static const database = 'astral.database';
+  static const localization = 'astral.localization';
   static const connection = 'astral.connection';
   static const vpn = 'astral.vpn';
   static const vpnAndroid = 'astral.vpn.android';
@@ -22,6 +23,7 @@ abstract final class DiagnosticModules {
     root,
     bootstrap,
     database,
+    localization,
     connection,
     vpn,
     vpnAndroid,

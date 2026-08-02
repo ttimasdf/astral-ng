@@ -20,6 +20,7 @@ import 'package:astral/core/diagnostics/error/error_coordinator.dart';
 import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/diagnostics/module_logger.dart';
 import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:astral/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
 import 'package:astral/core/diagnostics/sources/rust_diagnostic_source.dart';
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
@@ -34,6 +35,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final diagnostics = Diagnostics.initialize();
+  EasyLocalizationDiagnosticSource.install(diagnostics);
   ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
   WidgetsBinding.instance.addObserver(
     _DiagnosticsLifecycleObserver(diagnostics),
