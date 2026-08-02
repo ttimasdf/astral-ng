@@ -1,51 +1,61 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:astral/src/rust/api/utils.dart';
+
 import 'package:easy_localization/easy_localization.dart';
-import 'package:astral/core/platform/app_info.dart';
-import 'package:astral/core/platform/startup_url_scheme.dart';
-import 'package:astral/core/bootstrap/log_capture.dart';
-import 'package:astral/core/bootstrap/file_logger.dart';
-import 'package:astral/core/bootstrap/global_error_handler.dart';
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/platform/window_manager.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/app_links/app_link_registry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
     show ExternalLibrary;
 import 'package:path/path.dart' as p;
-import 'package:astral/src/rust/frb_generated.dart';
 import 'package:astral/app.dart';
+import 'package:astral/core/app_links/app_link_registry.dart';
+import 'package:astral/core/bootstrap/log_capture.dart';
+import 'package:astral/core/bootstrap/startup_host.dart';
+import 'package:astral/core/database/app_data.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
+import 'package:astral/core/diagnostics/module_logger.dart';
+import 'package:astral/core/platform/app_info.dart';
+import 'package:astral/core/platform/startup_url_scheme.dart';
+import 'package:astral/core/platform/window_manager.dart';
+import 'package:astral/core/services/connection_connect_guard.dart';
+import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/src/rust/api/utils.dart';
+import 'package:astral/src/rust/frb_generated.dart';
 
-void main() async {
-  // 初始化文件日志系统（Release 模式下不会创建文件）
-  await FileLogger().init();
-  GlobalErrorHandler.initialize();
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // 使用错误处理包装主应用
-  runZonedGuarded(
-    () async {
-      await _initializeApp();
-    },
-    (error, stack) {
-      GlobalErrorHandler.logError(
-        'Uncaught error in main zone',
-        error: error,
-        stack: stack,
+  final diagnostics = Diagnostics.initialize();
+  ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
+  diagnostics
+      .logger(DiagnosticModules.bootstrap)
+      .info(
+        'session.start',
+        'AstralNG diagnostic session started',
+        fields: {
+          'session': diagnostics.sessionId,
+          'build_mode': kDebugMode ? 'debug' : 'release',
+          'policy': diagnostics.policy.value.name,
+          'platform': defaultTargetPlatform.name,
+        },
       );
-    },
+
+  runApp(
+    StartupHost(
+      diagnostics: diagnostics,
+      bootstrap: () => _bootstrapApp(diagnostics),
+    ),
   );
 }
 
-/// 初始化 FRB 动态库。
+/// Initializes the FRB dynamic library.
 ///
-/// 生成代码里 `kDefaultExternalLibraryLoaderConfig` 会优先从
-/// `rust/target/release/` 加载；若本机曾单独 `cargo build --release`，
-/// 会一直误用那份旧 dll（与当前 Dart 绑定 content hash 不一致）。
-/// Flutter Windows 会把 cargokit 编好的 `rust_lib_astral.dll` 放在 exe 同目录，
-/// 因此桌面端优先从该路径显式加载。
+/// Generated code prefers `rust/target/release/`. A stale separately-built DLL
+/// there can mismatch the current Dart bindings, so Windows desktop first tries
+/// the Cargokit library bundled beside the executable.
 Future<void> _initRustLib() async {
   if (!kIsWeb && Platform.isWindows) {
     final bundledPath = p.join(
@@ -53,107 +63,161 @@ Future<void> _initRustLib() async {
       'rust_lib_astral.dll',
     );
     if (File(bundledPath).existsSync()) {
-      await RustLib.init(
-        externalLibrary: ExternalLibrary.open(bundledPath),
-      );
+      await RustLib.init(externalLibrary: ExternalLibrary.open(bundledPath));
       return;
     }
   }
   await RustLib.init();
 }
 
-Future<void> _initializeApp() async {
+Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) async {
+  final log = diagnostics.logger(DiagnosticModules.bootstrap);
+  log.info('bootstrap.start', 'Application bootstrap started');
+
+  await _criticalStage(log, 'rust', _initRustLib);
+
+  if (Platform.isMacOS) {
+    final elevated = await _criticalStage(log, 'macos.elevation', checkSudo);
+    if (!elevated) {
+      log.warning(
+        'bootstrap.macos.elevation.relaunch',
+        'Current macOS process is not elevated; exiting after relaunch request',
+      );
+      exit(0);
+    }
+  }
+
+  await _criticalStage(log, 'localization', EasyLocalization.ensureInitialized);
+  await _criticalStage(log, 'database', AppDatabase().init);
+
+  final services = ServiceManager();
+  await _criticalStage(
+    log,
+    'services',
+    () => services.init(runStartupActions: false),
+  );
+
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    await _criticalStage(log, 'window', WindowManagerUtils.initializeWindow);
+  }
+
+  log.info('bootstrap.complete', 'Critical bootstrap completed');
+  unawaited(_initializeOptionalServices(diagnostics, services));
+
+  return EasyLocalization(
+    supportedLocales: const [Locale('zh'), Locale('en')],
+    path: 'assets/translations',
+    fallbackLocale: const Locale('zh'),
+    child: const KevinApp(),
+  );
+}
+
+Future<T> _criticalStage<T>(
+  ModuleLogger log,
+  String stage,
+  Future<T> Function() action,
+) async {
+  final stopwatch = Stopwatch()..start();
+  log.debug(
+    'bootstrap.stage.start',
+    'Bootstrap stage started',
+    fields: {'stage': stage},
+  );
   try {
-    await _initRustLib();
-    FileLogger().info('RustLib initialized');
-
-    WidgetsFlutterBinding.ensureInitialized();
-
-    if (Platform.isMacOS) {
-      checkSudo().then((elevated) {
-        if (!elevated) {
-          FileLogger().warning('macOS elevation failed, exiting');
-          exit(0); // 当前进程退出，交由新进程运行
-        }
-      });
-    }
-
-    await EasyLocalization.ensureInitialized();
-    FileLogger().info('EasyLocalization initialized');
-
-    await AppDatabase().init();
-    FileLogger().info('Database initialized');
-
-    // 初始化新的服务管理器
-    final services = ServiceManager();
-    await services.init();
-    FileLogger().info('ServiceManager initialized');
-
-    // 初始化贴片服务
-    services.widgets.initialize();
-    if (Platform.isAndroid) {
-      await services.widgets.syncAll();
-    }
-    FileLogger().info('WidgetService initialized');
-
-    try {
-      await AppInfoUtil.init().timeout(const Duration(seconds: 3));
-      FileLogger().info('AppInfoUtil initialized');
-    } catch (e) {
-      FileLogger().warning('AppInfoUtil init timeout/failure, continue: $e');
-    }
-
-    await LogCapture().startCapture();
-    FileLogger().info('LogCapture started');
-
-    await UrlSchemeRegistrar.registerUrlScheme();
-    FileLogger().info('URL scheme registered');
-
-    await _initAppLinks();
-
-    if (!kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      await WindowManagerUtils.initializeWindow();
-      FileLogger().info('Window manager initialized');
-    }
-
-    _runApp();
-  } catch (e, stack) {
-    GlobalErrorHandler.logError(
-      'Failed to initialize app',
-      error: e,
-      stack: stack,
+    final result = await action();
+    log.info(
+      'bootstrap.stage.complete',
+      'Bootstrap stage completed',
+      fields: {'stage': stage, 'duration_ms': stopwatch.elapsedMilliseconds},
+    );
+    return result;
+  } catch (error, stack) {
+    log.error(
+      'bootstrap.stage.failed',
+      'Bootstrap stage failed',
+      fields: {'stage': stage, 'duration_ms': stopwatch.elapsedMilliseconds},
+      error: error,
+      stackTrace: stack,
     );
     rethrow;
   }
 }
 
-void _runApp() {
-  FileLogger().info('Starting Flutter app');
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [
-        Locale('zh'),
-        Locale('en'),
-      ],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('zh'),
-      child: const KevinApp(),
-    ),
+Future<void> _initializeOptionalServices(
+  DiagnosticsRuntime diagnostics,
+  ServiceManager services,
+) async {
+  await _optional(
+    diagnostics.logger(DiagnosticModules.widgets),
+    'widgets.initialize',
+    () async => services.widgets.initialize(),
+  );
+  if (Platform.isAndroid) {
+    await _optional(
+      diagnostics.logger(DiagnosticModules.widgets),
+      'widgets.sync',
+      () => services.widgets.syncAll().timeout(const Duration(seconds: 5)),
+    );
+  }
+
+  await _optional(
+    diagnostics.logger(DiagnosticModules.bootstrap),
+    'metadata.initialize',
+    () => AppInfoUtil.init().timeout(const Duration(seconds: 3)),
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.easyTier),
+    'legacy-log-capture.start',
+    LogCapture().startCapture,
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.appLinks),
+    'url-scheme.register',
+    () async {
+      final registered = await UrlSchemeRegistrar.registerUrlScheme().timeout(
+        const Duration(seconds: 5),
+      );
+      if (!registered) throw StateError('URL scheme registration failed');
+    },
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.appLinks),
+    'app-links.initialize',
+    () => AppLinkRegistry().initialize().timeout(const Duration(seconds: 5)),
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.connection),
+    'startup-auto-connect',
+    ConnectionConnectGuard.tryStartupAutoConnect,
   );
 }
 
-Future<void> _initAppLinks() async {
+Future<void> _optional(
+  ModuleLogger log,
+  String operation,
+  Future<void> Function() action,
+) async {
+  final stopwatch = Stopwatch()..start();
   try {
-    final registry = AppLinkRegistry();
-    await registry.initialize();
-    FileLogger().info('App links initialized');
-  } catch (e, stack) {
-    FileLogger().warning('App links 初始化失败: $e');
-    GlobalErrorHandler.logError(
-      'Failed to initialize app links',
-      error: e,
-      stack: stack,
+    await action();
+    log.info(
+      '$operation.complete',
+      'Optional initialization completed',
+      fields: {
+        'operation': operation,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+    );
+  } catch (error, stack) {
+    log.warning(
+      '$operation.failed',
+      'Optional initialization failed; continuing',
+      fields: {
+        'operation': operation,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+      error: error,
+      stackTrace: stack,
     );
   }
 }
