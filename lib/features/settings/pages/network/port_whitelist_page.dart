@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -7,130 +8,128 @@ class PortWhitelistPage extends BaseSettingsPage {
   const PortWhitelistPage({super.key});
 
   @override
-  String get title => '端口白名单';
+  String get title => 'port_whitelist'.tr();
 
   @override
   Widget buildContent(BuildContext context) {
-    final tcpWhitelist = ServiceManager().networkConfigState.tcpWhitelist
-        .watch(context);
-    final udpWhitelist = ServiceManager().networkConfigState.udpWhitelist
-        .watch(context);
+    final tcpWhitelist = ServiceManager().networkConfigState.tcpWhitelist.watch(
+      context,
+    );
+    final udpWhitelist = ServiceManager().networkConfigState.udpWhitelist.watch(
+      context,
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.info_outline),
-                title: const Text('白名单说明'),
-                subtitle: const Text(
-                  '配置允许通过的TCP/UDP端口。\n'
-                  '支持单个端口(80)和范围(8000-9000)。\n'
-                  '多个端口用逗号分隔，如: 80,443,8000-9000',
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: Text('port_whitelist_info'.tr()),
+              subtitle: Text('port_whitelist_format_desc'.tr()),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.storage),
+              title: Text('tcp_allowed_ports'.tr()),
+              subtitle: Text(
+                tcpWhitelist.isEmpty ? 'not_configured'.tr() : tcpWhitelist,
+                style: TextStyle(
+                  color:
+                      tcpWhitelist.isEmpty
+                          ? Theme.of(context).textTheme.bodySmall?.color
+                          : Theme.of(context).colorScheme.primary,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.storage),
-                title: const Text('TCP 端口白名单'),
-                subtitle: Text(
-                  tcpWhitelist.isEmpty ? '未设置' : tcpWhitelist,
-                  style: TextStyle(
-                    color:
-                        tcpWhitelist.isEmpty
-                            ? Theme.of(context).textTheme.bodySmall?.color
-                            : Theme.of(context).colorScheme.primary,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'edit'.tr(),
+                    onPressed:
+                        () => _editWhitelist(
+                          context,
+                          'TCP',
+                          tcpWhitelist,
+                          (value) => ServiceManager().networkConfig
+                              .updateTcpWhitelist(value),
+                        ),
                   ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+                  if (tcpWhitelist.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: '编辑',
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'clear'.tr(),
                       onPressed:
-                          () => _editWhitelist(
+                          () => _clearWhitelist(
                             context,
                             'TCP',
-                            tcpWhitelist,
-                            (value) => ServiceManager().networkConfig
-                                .updateTcpWhitelist(value),
+                            () => ServiceManager().networkConfig
+                                .updateTcpWhitelist(''),
                           ),
                     ),
-                    if (tcpWhitelist.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: '清空',
-                        onPressed:
-                            () => _clearWhitelist(
-                              context,
-                              'TCP',
-                              () => ServiceManager().networkConfig
-                                  .updateTcpWhitelist(''),
-                            ),
-                      ),
-                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        buildSettingsCard(
+          context: context,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.wifi),
+              title: Text('udp_allowed_ports'.tr()),
+              subtitle: Text(
+                udpWhitelist.isEmpty ? 'not_configured'.tr() : udpWhitelist,
+                style: TextStyle(
+                  color:
+                      udpWhitelist.isEmpty
+                          ? Theme.of(context).textTheme.bodySmall?.color
+                          : Theme.of(context).colorScheme.primary,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          buildSettingsCard(
-            context: context,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.wifi),
-                title: const Text('UDP 端口白名单'),
-                subtitle: Text(
-                  udpWhitelist.isEmpty ? '未设置' : udpWhitelist,
-                  style: TextStyle(
-                    color:
-                        udpWhitelist.isEmpty
-                            ? Theme.of(context).textTheme.bodySmall?.color
-                            : Theme.of(context).colorScheme.primary,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'edit'.tr(),
+                    onPressed:
+                        () => _editWhitelist(
+                          context,
+                          'UDP',
+                          udpWhitelist,
+                          (value) => ServiceManager().networkConfig
+                              .updateUdpWhitelist(value),
+                        ),
                   ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+                  if (udpWhitelist.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.edit),
-                      tooltip: '编辑',
+                      icon: const Icon(Icons.clear),
+                      tooltip: 'clear'.tr(),
                       onPressed:
-                          () => _editWhitelist(
+                          () => _clearWhitelist(
                             context,
                             'UDP',
-                            udpWhitelist,
-                            (value) => ServiceManager().networkConfig
-                                .updateUdpWhitelist(value),
+                            () => ServiceManager().networkConfig
+                                .updateUdpWhitelist(''),
                           ),
                     ),
-                    if (udpWhitelist.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        tooltip: '清空',
-                        onPressed:
-                            () => _clearWhitelist(
-                              context,
-                              'UDP',
-                              () => ServiceManager().networkConfig
-                                  .updateUdpWhitelist(''),
-                            ),
-                      ),
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
-      );
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Future<void> _editWhitelist(
@@ -144,29 +143,29 @@ class PortWhitelistPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('编辑 $type 端口白名单'),
+            title: Text('edit_port_whitelist'.tr(namedArgs: {'type': type})),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '格式说明：',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  'port_format'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text('• 单个端口: 80'),
-                const Text('• 端口范围: 8000-9000'),
-                const Text('• 多个端口: 80,443,8000-9000'),
+                Text('• ${'single_port_example'.tr()}'),
+                Text('• ${'port_range_example'.tr()}'),
+                Text('• ${'multiple_ports_example'.tr()}'),
                 const SizedBox(height: 16),
                 TextField(
                   controller: controller,
                   autofocus: true,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: '$type 端口',
-                    hintText: '例如: 80,443,8000-9000',
+                    labelText: 'port_field'.tr(namedArgs: {'type': type}),
+                    hintText: 'port_example_hint'.tr(),
                     border: const OutlineInputBorder(),
-                    helperText: '留空表示不限制',
+                    helperText: 'empty_allows_all_ports'.tr(),
                   ),
                 ),
               ],
@@ -174,11 +173,11 @@ class PortWhitelistPage extends BaseSettingsPage {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('取消'),
+                child: Text('cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, controller.text),
-                child: const Text('保存'),
+                child: Text('save'.tr()),
               ),
             ],
           ),
@@ -198,16 +197,18 @@ class PortWhitelistPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('确认清空'),
-            content: Text('确定要清空 $type 端口白名单吗？\n清空后将不限制端口访问。'),
+            title: Text('confirm_clear_ports'.tr(namedArgs: {'type': type})),
+            content: Text(
+              'confirm_clear_ports_desc'.tr(namedArgs: {'type': type}),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('取消'),
+                child: Text('cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('清空'),
+                child: Text('clear'.tr()),
               ),
             ],
           ),

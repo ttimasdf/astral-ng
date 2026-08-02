@@ -11,12 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class NetworkConnectionSettingsContent extends StatelessWidget {
-  final VoidCallback onOpenGeneral;
-
-  const NetworkConnectionSettingsContent({
-    super.key,
-    required this.onOpenGeneral,
-  });
+  const NetworkConnectionSettingsContent({super.key});
 
   Future<void> _editSocks5Port(BuildContext context, int currentPort) async {
     final controller = TextEditingController(text: currentPort.toString());
@@ -128,10 +123,10 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final encryption = network.enableEncryption.watch(context);
       final latencyFirst = network.latencyFirst.watch(context);
       final disableP2p = network.disableP2p.watch(context);
-      final noTun = network.noTun.watch(context);
-      final enableSocks5 = network.enableSocks5.watch(context);
-      final socks5Port = network.socks5Port.watch(context);
-      final autoSetMtu = network.autoSetMTU.watch(context);
+      final disableTunAdapter = network.noTun.watch(context);
+      final localSocks5ProxyEnabled = network.enableSocks5.watch(context);
+      final socks5ListenPort = network.socks5Port.watch(context);
+      final preferAstralAdapter = network.preferAstralAdapter.watch(context);
       final compression = network.dataCompressAlgo.watch(context);
       final disableUdp = network.disableUdpHolePunching.watch(context);
       final disableTcp = network.disableTcpHolePunching.watch(context);
@@ -196,16 +191,6 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
                           }
                           : null,
                 ),
-              ),
-              SettingsLinkTile(
-                icon: Icons.power_settings_new,
-                title: 'startup_auto_connect'.tr(),
-                subtitle: 'auto_connect_managed_general'.tr(),
-                value:
-                    services.startupState.startupAutoConnect.watch(context)
-                        ? 'enabled'.tr()
-                        : 'disabled'.tr(),
-                onTap: onOpenGeneral,
               ),
             ],
           ),
@@ -311,43 +296,45 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 title: Text('tun_device'.tr()),
                 subtitle: Text('tun_device_desc'.tr()),
-                value: noTun,
+                value: disableTunAdapter,
                 onChanged: services.networkConfig.updateNoTun,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 title: Text('enable_socks5'.tr()),
                 subtitle: Text(
-                  noTun
+                  disableTunAdapter
                       ? 'enable_socks5_desc'.tr()
                       : 'socks5_recommends_no_tun'.tr(),
                 ),
-                value: enableSocks5,
+                value: localSocks5ProxyEnabled,
                 onChanged: services.networkConfig.updateEnableSocks5,
               ),
-              if (enableSocks5)
-                SettingsLinkTile(
-                  icon: Icons.numbers,
-                  title: 'socks5_port'.tr(),
-                  subtitle: 'socks5_address_hint'.tr(
-                    namedArgs: {'port': socks5Port.toString()},
-                  ),
-                  value: socks5Port.toString(),
-                  onTap: () => _editSocks5Port(context, socks5Port),
-                ),
-              SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text('auto_set_hop'.tr()),
-                subtitle: Text('auto_set_hop_desc'.tr()),
-                value: autoSetMtu,
-                onChanged: services.networkConfig.setAutoSetMTU,
-              ),
               SettingsLinkTile(
-                icon: Icons.format_list_numbered,
-                title: 'view_hop_list'.tr(),
-                subtitle: 'view_hop_list_desc'.tr(),
-                onTap: () => showHopList(context),
+                icon: Icons.numbers,
+                title: 'socks5_port'.tr(),
+                subtitle: 'socks5_address_hint'.tr(
+                  namedArgs: {'port': socks5ListenPort.toString()},
+                ),
+                value: socks5ListenPort.toString(),
+                enabled: localSocks5ProxyEnabled,
+                onTap: () => _editSocks5Port(context, socks5ListenPort),
               ),
+              if (SettingsAvailability.windowsOnly.isVisible)
+                SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+                  title: Text('auto_set_hop'.tr()),
+                  subtitle: Text('auto_set_hop_desc'.tr()),
+                  value: preferAstralAdapter,
+                  onChanged: services.networkConfig.setPreferAstralAdapter,
+                ),
+              if (SettingsAvailability.windowsOnly.isVisible)
+                SettingsLinkTile(
+                  icon: Icons.format_list_numbered,
+                  title: 'view_hop_list'.tr(),
+                  subtitle: 'view_hop_list_desc'.tr(),
+                  onTap: () => showHopList(context),
+                ),
             ],
           ),
           SettingsSection(

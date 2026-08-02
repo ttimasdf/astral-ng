@@ -11,7 +11,10 @@ class NetworkConfigService {
 
   Future<void> init() async {
     final config = await _repo.get();
-    state.applyFrom(config, autoSetMtu: await _repo.getAutoSetMTU());
+    state.applyFrom(
+      config,
+      preferAstralAdapterValue: await _repo.getPreferAstralAdapter(),
+    );
   }
 
   Future<void> updateIpv4(String value) async {
@@ -24,9 +27,9 @@ class NetworkConfigService {
     await _repo.update((c) => c.dhcp = value);
   }
 
-  Future<void> setAutoSetMTU(bool value) async {
-    state.autoSetMTU.value = value;
-    await _repo.setAutoSetMTU(value);
+  Future<void> setPreferAstralAdapter(bool value) async {
+    state.preferAstralAdapter.value = value;
+    await _repo.setPreferAstralAdapter(value);
   }
 
   Future<void> updateDefaultProtocol(String value) async {

@@ -52,9 +52,7 @@ class _UserPageState extends State<UserPage> {
         final netStatus = ServiceManager().connectionState.netStatus.watch(
           context,
         );
-        final connectionState = ServiceManager()
-            .connectionState
-            .connectionState
+        final connectionState = ServiceManager().connectionState.connectionState
             .watch(context);
         final reduceAnimationUpdates = ServiceManager()
             .appSettingsState
@@ -135,7 +133,9 @@ class _UserPageState extends State<UserPage> {
           final displayMode = ServiceManager().displayState.displayMode.watch(
             context,
           );
-          final userListSimple = ServiceManager().displayState.userListSimple
+          final compactPeerCards = ServiceManager()
+              .displayState
+              .compactPeerCards
               .watch(context);
           final localIPv4 = ServiceManager().networkConfigState.ipv4.watch(
             context,
@@ -166,12 +166,10 @@ class _UserPageState extends State<UserPage> {
           List<KVNodeInfo> filteredNodes = nodes;
           if (displayMode == UserDisplayMode.users) {
             // 仅显示用户（排除服务器）
-            filteredNodes =
-                nodes.where((node) => !isServerNode(node)).toList();
+            filteredNodes = nodes.where((node) => !isServerNode(node)).toList();
           } else if (displayMode == UserDisplayMode.servers) {
             // 仅显示服务器
-            filteredNodes =
-                nodes.where((node) => isServerNode(node)).toList();
+            filteredNodes = nodes.where((node) => isServerNode(node)).toList();
           }
 
           // 返回一个可滚动的视图
@@ -200,7 +198,7 @@ class _UserPageState extends State<UserPage> {
                       // 获取当前索引对应的玩家数据
                       final player = filteredNodes[index];
                       // 根据简单列表模式选项返回不同的卡片组件
-                      return userListSimple
+                      return compactPeerCards
                           ? MiniUserCard(
                             key: ValueKey(player.peerId),
                             player: player,

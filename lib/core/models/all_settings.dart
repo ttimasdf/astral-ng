@@ -19,7 +19,7 @@ class AllSettings {
   /// 自定义vpn网段
   List<String> customVpn = [];
 
-  ///用户列表简约模式
+  /// 紧凑节点卡片（保留旧字段名以兼容现有 Isar 数据）
   bool userListSimple = true;
 
   /// 关闭最小化到托盘
@@ -34,7 +34,7 @@ class AllSettings {
   /// 启动后自动连接
   bool startupAutoConnect = false;
 
-  /// 自动设置网卡跃点
+  /// 优先使用 AstralNG Windows 适配器（保留旧字段名以兼容现有 Isar 数据）
   bool autoSetMTU = true;
 
   /// 参与测试版

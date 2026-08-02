@@ -247,16 +247,16 @@ class _SoftwareSettingsPageState
             SwitchListTile(
               title: Text(LocaleKeys.player_list_card.tr()),
               subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
-              value: ServiceManager().displayState.userListSimple.watch(
+              value: ServiceManager().displayState.compactPeerCards.watch(
                 context,
               ),
               onChanged: (value) {
-                ServiceManager().appSettings.setUserListSimple(value);
+                ServiceManager().appSettings.setCompactPeerCards(value);
               },
             ),
             SwitchListTile(
-              title: const Text('减少动画更新'),
-              subtitle: const Text('降低拓扑图与连线动画刷新频率，减少 GPU 占用'),
+              title: Text('reduce_animation_updates'.tr()),
+              subtitle: Text('reduce_animation_updates_desc'.tr()),
               value: ServiceManager().appSettingsState.reduceAnimationUpdates
                   .watch(context),
               onChanged: (value) async {
@@ -272,14 +272,14 @@ class _SoftwareSettingsPageState
           context: context,
           children: [
             ListTile(
-              title: const Text('连接设置'),
-              subtitle: const Text('配置连接重试行为'),
+              title: Text('connection_behavior'.tr()),
+              subtitle: Text('connection_behavior_desc'.tr()),
               leading: const Icon(Icons.sync),
             ),
             buildDivider(),
             SwitchListTile(
-              title: const Text('连接失败自动重试'),
-              subtitle: const Text('连接失败时自动重新尝试连接'),
+              title: Text('auto_retry_on_failure'.tr()),
+              subtitle: Text('auto_retry_on_failure_desc'.tr()),
               value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
               onChanged: (value) async {
                 await ServiceManager().appSettings.updateAutoRetryOnFailure(
@@ -289,9 +289,15 @@ class _SoftwareSettingsPageState
             ),
             if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
               ListTile(
-                title: const Text('最大重试次数'),
+                title: Text('max_retry_count'.tr()),
                 subtitle: Text(
-                  '当前设置为 ${ServiceManager().appSettingsState.maxRetryCount.value} 次',
+                  'max_retry_count_value'.tr(
+                    namedArgs: {
+                      'count':
+                          ServiceManager().appSettingsState.maxRetryCount.value
+                              .toString(),
+                    },
+                  ),
                 ),
                 trailing: SizedBox(
                   width: 100,
@@ -303,7 +309,7 @@ class _SoftwareSettingsPageState
                         [1, 2, 3, 5, 10].map((int count) {
                           return DropdownMenuItem<int>(
                             value: count,
-                            child: Text('$count 次'),
+                            child: Text(count.toString()),
                           );
                         }).toList(),
                     onChanged: (int? newValue) async {

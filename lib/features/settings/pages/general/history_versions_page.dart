@@ -31,7 +31,7 @@ class _HistoryVersionsPageState
       IconButton(
         icon: const Icon(Icons.refresh),
         onPressed: _loadVersions,
-        tooltip: '刷新',
+        tooltip: 'refresh'.tr(),
       ),
     ];
   }
@@ -62,13 +62,15 @@ class _HistoryVersionsPageState
         });
       } else {
         setState(() {
-          _errorMessage = '加载失败: HTTP ${response.statusCode}';
+          _errorMessage = 'load_failed'.tr(
+            namedArgs: {'error': 'HTTP ${response.statusCode}'},
+          );
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = '加载失败: $e';
+        _errorMessage = 'load_failed'.tr(namedArgs: {'error': e.toString()});
         _isLoading = false;
       });
     }
@@ -80,7 +82,7 @@ class _HistoryVersionsPageState
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        AppSnackBars.error(context, '无法打开链接', url);
+        AppSnackBars.error(context, 'unable_open_link'.tr(), url);
       }
     }
   }
@@ -107,7 +109,7 @@ class _HistoryVersionsPageState
             ElevatedButton.icon(
               onPressed: _loadVersions,
               icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
+              label: Text('retry'.tr()),
             ),
           ],
         ),
@@ -115,8 +117,11 @@ class _HistoryVersionsPageState
     }
 
     if (_versions.isEmpty) {
-      return const Center(
-        child: Text('暂无历史版本', style: TextStyle(fontSize: 16)),
+      return Center(
+        child: Text(
+          'no_previous_versions'.tr(),
+          style: const TextStyle(fontSize: 16),
+        ),
       );
     }
 

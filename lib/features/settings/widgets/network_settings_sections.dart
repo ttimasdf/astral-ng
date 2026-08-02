@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/src/rust/api/hops.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -27,21 +28,17 @@ class NetworkBasicSettingsCard extends StatelessWidget {
           title: Text(LocaleKeys.p2p_hole_punching.tr()),
           subtitle: Text(LocaleKeys.preferred_protocol.tr()),
           trailing: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: DropdownButton<String>(
                 value:
-                    ServiceManager()
-                            .networkConfigState
-                            .defaultProtocol.watch(context)
+                    ServiceManager().networkConfigState.defaultProtocol
+                            .watch(context)
                             .isEmpty
                         ? 'tcp'
-                        : ServiceManager()
-                            .networkConfigState
-                            .defaultProtocol.watch(context),
+                        : ServiceManager().networkConfigState.defaultProtocol
+                            .watch(context),
                 items: const [
                   DropdownMenuItem(
                     value: 'tcp',
@@ -57,10 +54,7 @@ class NetworkBasicSettingsCard extends StatelessWidget {
                   ),
                   DropdownMenuItem(
                     value: 'ws',
-                    child: Text(
-                      'WebSocket',
-                      style: TextStyle(fontSize: 14),
-                    ),
+                    child: Text('WebSocket', style: TextStyle(fontSize: 14)),
                   ),
                   DropdownMenuItem(
                     value: 'wss',
@@ -75,9 +69,7 @@ class NetworkBasicSettingsCard extends StatelessWidget {
                 icon: const Icon(Icons.arrow_drop_down),
                 onChanged: (value) {
                   if (value != null) {
-                    ServiceManager().networkConfig.updateDefaultProtocol(
-                      value,
-                    );
+                    ServiceManager().networkConfig.updateDefaultProtocol(value);
                   }
                 },
               ),
@@ -88,7 +80,9 @@ class NetworkBasicSettingsCard extends StatelessWidget {
         SwitchListTile(
           title: Text(LocaleKeys.enable_encryption.tr()),
           subtitle: Text(LocaleKeys.auto_set_mtu.tr()),
-          value: ServiceManager().networkConfigState.enableEncryption.watch(context),
+          value: ServiceManager().networkConfigState.enableEncryption.watch(
+            context,
+          ),
           onChanged: (value) {
             ServiceManager().networkConfig.updateEnableEncryption(value);
           },
@@ -96,7 +90,9 @@ class NetworkBasicSettingsCard extends StatelessWidget {
         SwitchListTile(
           title: Text(LocaleKeys.latency_first.tr()),
           subtitle: Text(LocaleKeys.latency_first_desc.tr()),
-          value: ServiceManager().networkConfigState.latencyFirst.watch(context),
+          value: ServiceManager().networkConfigState.latencyFirst.watch(
+            context,
+          ),
           onChanged: (value) {
             ServiceManager().networkConfig.updateLatencyFirst(value);
           },
@@ -131,56 +127,40 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
         SwitchListTile(
           title: Text(LocaleKeys.disable_udp_hole_punching.tr()),
           subtitle: Text(LocaleKeys.disable_udp_hole_punching_desc.tr()),
-          value:
-              ServiceManager()
-                  .networkConfigState
-                  .disableUdpHolePunching.watch(context),
+          value: ServiceManager().networkConfigState.disableUdpHolePunching
+              .watch(context),
           onChanged: (value) {
-            ServiceManager().networkConfig.updateDisableUdpHolePunching(
-              value,
-            );
+            ServiceManager().networkConfig.updateDisableUdpHolePunching(value);
           },
         ),
         SwitchListTile(
           title: Text(LocaleKeys.disable_tcp_hole_punching.tr()),
           subtitle: Text(LocaleKeys.disable_tcp_hole_punching_desc.tr()),
-          value:
-              ServiceManager()
-                  .networkConfigState
-                  .disableTcpHolePunching.watch(context),
+          value: ServiceManager().networkConfigState.disableTcpHolePunching
+              .watch(context),
           onChanged: (value) {
-            ServiceManager().networkConfig.updateDisableTcpHolePunching(
-              value,
-            );
+            ServiceManager().networkConfig.updateDisableTcpHolePunching(value);
           },
         ),
         SwitchListTile(
           title: Text(LocaleKeys.disable_sym_hole_punching.tr()),
           subtitle: Text(LocaleKeys.disable_sym_hole_punching_desc.tr()),
-          value:
-              ServiceManager()
-                  .networkConfigState
-                  .disableSymHolePunching.watch(context),
+          value: ServiceManager().networkConfigState.disableSymHolePunching
+              .watch(context),
           onChanged: (value) {
-            ServiceManager().networkConfig.updateDisableSymHolePunching(
-              value,
-            );
+            ServiceManager().networkConfig.updateDisableSymHolePunching(value);
           },
         ),
         ListTile(
           title: Text(LocaleKeys.compression_algorithm.tr()),
           subtitle: Text(LocaleKeys.compression_algorithm_desc.tr()),
           trailing: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: DropdownButton<int>(
-                value:
-                    ServiceManager()
-                        .networkConfigState
-                        .dataCompressAlgo.watch(context),
+                value: ServiceManager().networkConfigState.dataCompressAlgo
+                    .watch(context),
                 items: [
                   DropdownMenuItem(
                     value: 1,
@@ -213,7 +193,9 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
         SwitchListTile(
           title: Text(LocaleKeys.enable_kcp_proxy.tr()),
           subtitle: Text(LocaleKeys.enable_kcp_proxy_desc.tr()),
-          value: ServiceManager().networkConfigState.enableKcpProxy.watch(context),
+          value: ServiceManager().networkConfigState.enableKcpProxy.watch(
+            context,
+          ),
           onChanged: (value) {
             ServiceManager().networkConfig.updateEnableKcpProxy(value);
           },
@@ -237,12 +219,16 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
         SwitchListTile(
           title: Text(LocaleKeys.enable_socks5.tr()),
           subtitle: Text(LocaleKeys.enable_socks5_desc.tr()),
-          value: ServiceManager().networkConfigState.enableSocks5.watch(context),
+          value: ServiceManager().networkConfigState.enableSocks5.watch(
+            context,
+          ),
           onChanged: (value) {
             ServiceManager().networkConfig.updateEnableSocks5(value);
           },
         ),
-        if (ServiceManager().networkConfigState.enableSocks5.watch(context)) ...[
+        if (ServiceManager().networkConfigState.enableSocks5.watch(
+          context,
+        )) ...[
           ListTile(
             title: Text(LocaleKeys.socks5_port.tr()),
             subtitle: Text(LocaleKeys.socks5_port_desc.tr()),
@@ -252,10 +238,10 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
                 key: ValueKey(
                   ServiceManager().networkConfigState.socks5Port.watch(context),
                 ),
-                initialValue: ServiceManager()
-                    .networkConfigState
-                    .socks5Port.watch(context)
-                    .toString(),
+                initialValue:
+                    ServiceManager().networkConfigState.socks5Port
+                        .watch(context)
+                        .toString(),
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.end,
                 decoration: const InputDecoration(
@@ -275,10 +261,10 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
             title: Text(
               LocaleKeys.socks5_address_hint.tr(
                 namedArgs: {
-                  'port': ServiceManager()
-                      .networkConfigState
-                      .socks5Port.watch(context)
-                      .toString(),
+                  'port':
+                      ServiceManager().networkConfigState.socks5Port
+                          .watch(context)
+                          .toString(),
                 },
               ),
               style: TextStyle(
@@ -299,14 +285,20 @@ class NetworkHopSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!SettingsAvailability.windowsOnly.isVisible) {
+      return const SizedBox.shrink();
+    }
+
     return _settingsCard(
       children: [
         SwitchListTile(
           title: Text(LocaleKeys.auto_set_hop.tr()),
           subtitle: Text(LocaleKeys.auto_set_hop_desc.tr()),
-          value: ServiceManager().networkConfigState.autoSetMTU.watch(context),
+          value: ServiceManager().networkConfigState.preferAstralAdapter.watch(
+            context,
+          ),
           onChanged: (value) {
-            ServiceManager().networkConfig.setAutoSetMTU(value);
+            ServiceManager().networkConfig.setPreferAstralAdapter(value);
           },
         ),
         _divider(),
@@ -356,6 +348,10 @@ Future<void> showHopList(BuildContext context) async {
     );
   } catch (e) {
     if (!context.mounted) return;
-    AppSnackBars.error(context, '错误', LocaleKeys.get_hop_list_failed.tr());
+    AppSnackBars.error(
+      context,
+      LocaleKeys.network_adapter_hop_list.tr(),
+      LocaleKeys.get_hop_list_failed.tr(),
+    );
   }
 }

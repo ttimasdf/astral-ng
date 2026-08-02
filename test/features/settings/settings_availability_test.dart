@@ -21,6 +21,14 @@ void main() {
       expect(availability.isVisibleOn(SettingsPlatform.linux), isFalse);
     });
 
+    test('Windows adapter options are hidden on other desktops', () {
+      const availability = SettingsAvailability.windowsOnly;
+
+      expect(availability.supports(SettingsPlatform.windows), isTrue);
+      expect(availability.isVisibleOn(SettingsPlatform.linux), isFalse);
+      expect(availability.isVisibleOn(SettingsPlatform.macos), isFalse);
+    });
+
     test(
       'discoverable Android options stay visible but disabled elsewhere',
       () {

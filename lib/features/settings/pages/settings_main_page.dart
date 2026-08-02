@@ -48,18 +48,32 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       keywords: [
         'startup',
         'boot',
-        'minimize',
+        'sign in',
         'tray',
+        'close button',
         'auto connect',
         '启动',
+        '登录',
         '托盘',
+        '关闭按钮',
       ],
     ),
     _SettingsCategory(
       titleKey: 'settings_appearance',
       descriptionKey: 'settings_appearance_short_desc',
       icon: Icons.palette_outlined,
-      keywords: ['theme', 'color', 'language', 'motion', 'display', '主题', '语言'],
+      keywords: [
+        'theme',
+        'color',
+        'language',
+        'compact peer cards',
+        'topology animations',
+        'display',
+        '主题',
+        '语言',
+        '紧凑节点卡片',
+        '拓扑动画',
+      ],
     ),
     _SettingsCategory(
       titleKey: 'settings_network_connection',
@@ -74,7 +88,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         'p2p',
         'tun',
         'socks5',
-        'mtu',
+        'local proxy',
+        'adapter priority',
         'nat',
         'vpn',
         'listen',
@@ -88,7 +103,18 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       titleKey: 'settings_updates',
       descriptionKey: 'settings_updates_short_desc',
       icon: Icons.system_update_alt,
-      keywords: ['update', 'beta', 'version', 'download', 'mirror', '更新', '版本'],
+      keywords: [
+        'update',
+        'beta',
+        'prerelease',
+        'version',
+        'download',
+        'mirror',
+        '更新',
+        '测试版',
+        '版本',
+        '镜像',
+      ],
     ),
     _SettingsCategory(
       titleKey: 'settings_permissions',
@@ -114,6 +140,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         'logs',
         'diagnostics',
         'version',
+        'build channel',
         '帮助',
         '日志',
       ],
@@ -147,23 +174,11 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     }).toList();
   }
 
-  Widget _contentFor(int index, BuildContext context, {required bool wide}) {
+  Widget _contentFor(int index) {
     return switch (index) {
       0 => const GeneralSettingsContent(),
       1 => const AppearanceSettingsContent(),
-      2 => NetworkConnectionSettingsContent(
-        onOpenGeneral: () {
-          if (wide) {
-            setState(() => _selectedIndex = 0);
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => _buildCategoryRoute(context, 0),
-              ),
-            );
-          }
-        },
-      ),
+      2 => const NetworkConnectionSettingsContent(),
       3 => const UpdateSettingsContent(),
       4 => const PermissionsSettingsContent(),
       _ => const SupportAboutSettingsContent(),
@@ -174,7 +189,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     final category = _categories[index];
     return Scaffold(
       appBar: AppBar(title: Text(category.titleKey.tr())),
-      body: _contentFor(index, context, wide: false),
+      body: _contentFor(index),
     );
   }
 
@@ -475,11 +490,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                                   duration: const Duration(milliseconds: 180),
                                   child: KeyedSubtree(
                                     key: ValueKey(_selectedIndex),
-                                    child: _contentFor(
-                                      _selectedIndex,
-                                      context,
-                                      wide: true,
-                                    ),
+                                    child: _contentFor(_selectedIndex),
                                   ),
                                 ),
                               ),

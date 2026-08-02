@@ -1,4 +1,5 @@
 import 'package:astral/core/platform/app_info.dart';
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
@@ -69,7 +70,7 @@ class _SupportAboutSettingsContentState
                     color: colorScheme.surface.withValues(alpha: 0.88),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Image.asset('assets/logo.png'),
+                  child: Image.asset(BuildBrand.appIcon),
                 ),
                 const SizedBox(width: 18),
                 Expanded(
@@ -77,7 +78,7 @@ class _SupportAboutSettingsContentState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'AstralNG',
+                        BuildBrand.appName,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -106,7 +107,13 @@ class _SupportAboutSettingsContentState
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.apps_outlined),
                 title: Text('software_version'.tr()),
-                trailing: Text(AppInfoUtil.getVersionDisplay()),
+                trailing: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 240),
+                  child: Text(
+                    AppInfoUtil.getVersionDisplay(),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
@@ -150,7 +157,7 @@ class _SupportAboutSettingsContentState
                 trailing: const Icon(Icons.copy_outlined),
                 onTap: () async {
                   final details = [
-                    'AstralNG ${AppInfoUtil.getVersionDisplay()}',
+                    '${BuildBrand.appName} ${AppInfoUtil.getVersionDisplay()}',
                     if (_kernelVersion.isNotEmpty) 'EasyTier: $_kernelVersion',
                     'Logs: ${logs.length}',
                   ].join('\n');

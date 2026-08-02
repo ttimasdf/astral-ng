@@ -1,3 +1,4 @@
+import 'package:astral/core/states/display_state.dart';
 import 'package:astral/core/states/window_state.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:flutter/material.dart';
@@ -118,6 +119,10 @@ void main() {
 
     await tester.tap(find.text('Exit program'));
     expect(selected, WindowCloseBehavior.exitProgram);
+  });
+
+  test('peer cards default to the compact layout', () {
+    expect(DisplayState().compactPeerCards.value, isTrue);
   });
 
   test('window close behavior defaults to close to tray', () {

@@ -58,6 +58,10 @@ class SettingsAvailability {
     platforms: {SettingsPlatform.android},
   );
 
+  static const windowsOnly = SettingsAvailability(
+    platforms: {SettingsPlatform.windows},
+  );
+
   static const androidOnlyDiscoverable = SettingsAvailability(
     platforms: {SettingsPlatform.android},
     unsupportedPresentation: UnsupportedSettingsPresentation.disabled,

@@ -43,7 +43,7 @@ class AppSettingsService {
     playerState.updatePlayerName(playerName);
     playerState.setListenList(listenList);
 
-    displayState.setUserListSimple(settings.userListSimple);
+    displayState.setCompactPeerCards(settings.userListSimple);
     displayState.setSortOption(UserSortOption.fromIndex(settings.sortOption));
     displayState.setSortOrder(UserSortOrder.fromIndex(settings.sortOrder));
     displayState.setDisplayMode(
@@ -112,8 +112,9 @@ class AppSettingsService {
     playerState.setListenList(await _repo.getListenList());
   }
 
-  Future<void> setUserListSimple(bool value) async {
-    displayState.setUserListSimple(value);
+  Future<void> setCompactPeerCards(bool value) async {
+    displayState.setCompactPeerCards(value);
+    // Keep the legacy storage field to preserve existing installations.
     await _repo.update((s) => s.userListSimple = value);
   }
 

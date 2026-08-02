@@ -10,7 +10,7 @@ class NetworkConfigState {
   final instanceName = signal('default');
   final ipv4 = signal('');
   final dhcp = signal(true);
-  final autoSetMTU = signal(true);
+  final preferAstralAdapter = signal(true);
 
   // ========== 网络连接配置 (6个) ==========
   final networkName = signal('');
@@ -36,6 +36,7 @@ class NetworkConfigState {
   // ========== 高级网络配置 (10个) ==========
   final relayNetworkWhitelist = signal('');
   final disableP2p = signal(false);
+
   /// Windows：捕获局域网 UDP 广播并转发到虚拟网（EasyTier `enable_udp_broadcast_relay`）。
   final enableUdpBroadcastRelay = signal(false);
   final privateMode = signal(false);
@@ -67,7 +68,7 @@ class NetworkConfigState {
   void updateMtu(int value) => mtu.value = value;
   void updateLatencyFirst(bool value) => latencyFirst.value = value;
 
-  void applyFrom(NetConfig config, {required bool autoSetMtu}) {
+  void applyFrom(NetConfig config, {required bool preferAstralAdapterValue}) {
     netns.value = config.netns;
     hostname.value = config.hostname;
     instanceName.value = config.instance_name;
@@ -109,6 +110,6 @@ class NetworkConfigState {
     acceptDns.value = config.accept_dns;
     tcpWhitelist.value = config.tcp_whitelist;
     udpWhitelist.value = config.udp_whitelist;
-    autoSetMTU.value = autoSetMtu;
+    preferAstralAdapter.value = preferAstralAdapterValue;
   }
 }

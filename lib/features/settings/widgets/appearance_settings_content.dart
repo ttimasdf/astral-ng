@@ -89,7 +89,7 @@ class AppearanceSettingsContent extends StatelessWidget {
     return Watch((context) {
       final themeMode = services.themeState.themeMode.watch(context);
       final themeColor = services.themeState.themeColor.watch(context);
-      final compactPlayers = services.displayState.userListSimple.watch(
+      final compactPeerCards = services.displayState.compactPeerCards.watch(
         context,
       );
       final reduceMotion = services.appSettingsState.reduceAnimationUpdates
@@ -151,8 +151,8 @@ class AppearanceSettingsContent extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 title: Text('player_list_card'.tr()),
                 subtitle: Text('player_list_card_desc'.tr()),
-                value: compactPlayers,
-                onChanged: services.appSettings.setUserListSimple,
+                value: compactPeerCards,
+                onChanged: services.appSettings.setCompactPeerCards,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),

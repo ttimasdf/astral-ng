@@ -68,14 +68,15 @@ class _AboutHomeState extends State<AboutHome> {
                 final currentVersion = AppInfoUtil.getVersion();
                 final latestVersion = ServiceManager().updateState.latestVersion
                     .watch(context);
-                final versionText = VersionUtil.getVersionDisplayText(
-                  currentVersion,
-                  latestVersion,
-                );
                 final hasNewVersion = VersionUtil.hasNewVersion(
                   currentVersion,
                   latestVersion,
                 );
+                final currentDisplay = AppInfoUtil.getVersionDisplay();
+                final versionText =
+                    hasNewVersion
+                        ? '$currentDisplay → ${latestVersion!.replaceFirst(RegExp(r'^v'), '')}'
+                        : currentDisplay;
 
                 return Row(
                   mainAxisSize: MainAxisSize.min,
