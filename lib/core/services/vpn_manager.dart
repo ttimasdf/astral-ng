@@ -119,7 +119,7 @@ class VpnManager {
       module: event['module']?.toString() ?? DiagnosticModules.vpnAndroid,
       rawTarget: 'android.vpn',
       level: _parseNativeLevel(event['level']?.toString()),
-      eventCode: event['eventCode']?.toString() ?? 'vpn.native.event',
+      eventCode: event['eventCode']?.toString(),
       message: event['message']?.toString() ?? 'Android VPN event',
       fields: fields,
       connectionAttemptId: fields['connection_attempt_id']?.toString(),

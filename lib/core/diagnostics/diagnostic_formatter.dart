@@ -21,13 +21,21 @@ abstract final class DiagnosticFormatter {
       if (record.errorId != null) 'error_id': record.errorId,
     };
     final suffix = fields.isEmpty ? '' : ' | ${_formatFields(fields)}';
+    final eventCode = record.eventCode ?? '-';
     return '$time ${record.level.token} '
-        '${module.padRight(18)} ${record.eventCode.padRight(24)} '
+        '${module.padRight(18)} ${eventCode.padRight(24)} '
         '${record.message}$suffix';
   }
 
   static String details(DiagnosticRecord record) {
     final parts = <String>[];
+    if (record.sourceFile != null) {
+      final line = record.sourceLine == null ? '' : ':${record.sourceLine}';
+      parts.add('source=${record.sourceFile}$line');
+    }
+    if (record.sourceFunction != null) {
+      parts.add('function=${record.sourceFunction}');
+    }
     if (record.errorMessage != null) parts.add(record.errorMessage!);
     if (record.stackTrace != null) parts.add(record.stackTrace!);
     return parts.join('\n');

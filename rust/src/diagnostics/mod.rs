@@ -1,7 +1,7 @@
 use crate::api::diagnostics::{RustDiagnosticBatch, RustDiagnosticEvent};
 use crate::frb_generated::StreamSink;
 use chrono::Utc;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 #[cfg(target_os = "android")]
 use std::ffi::CString;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
@@ -24,7 +24,7 @@ const MAX_MESSAGE_LENGTH: usize = 4_096;
 type FilterHandle = reload::Handle<EnvFilter, Registry>;
 
 static FILTER_HANDLE: OnceLock<FilterHandle> = OnceLock::new();
-static BRIDGE_SINK: OnceLock<Mutex<Option<StreamSink<RustDiagnosticBatch>>>> = OnceLock::new();
+static BRIDGE_STATE: OnceLock<Mutex<BridgeState>> = OnceLock::new();
 static BRIDGE_SENDER: OnceLock<mpsc::SyncSender<RustDiagnosticEvent>> = OnceLock::new();
 static SOURCE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 static DROPPED_RECORDS: AtomicUsize = AtomicUsize::new(0);
@@ -69,21 +69,44 @@ pub fn set_filter(filter: &str) -> Result<(), String> {
 }
 
 pub fn set_stream(sink: StreamSink<RustDiagnosticBatch>) {
-    let sink_slot = BRIDGE_SINK.get_or_init(|| Mutex::new(None));
-    if let Ok(mut current) = sink_slot.lock() {
-        *current = Some(sink);
-    } else {
+    let bridge = BRIDGE_STATE.get_or_init(|| Mutex::new(BridgeState::default()));
+    let Ok(mut state) = bridge.lock() else {
         write_emergency(
             "ERR",
             "logging",
             "rust.bridge.lock_failed",
             "Rust diagnostic bridge lock is poisoned",
         );
+        return;
+    };
+    state.sink = Some(sink);
+    while !state.pending.is_empty() {
+        let mut events = Vec::with_capacity(50);
+        while events.len() < 50 {
+            let Some(event) = state.pending.pop_front() else {
+                break;
+            };
+            events.push(event);
+        }
+        let failed = state.sink.as_ref().is_none_or(|current| {
+            current
+                .add(RustDiagnosticBatch {
+                    events: events.clone(),
+                })
+                .is_err()
+        });
+        if failed {
+            state.sink = None;
+            for event in events.into_iter().rev() {
+                state.pending.push_front(event);
+            }
+            break;
+        }
     }
 }
 
 fn init_bridge_worker() {
-    BRIDGE_SINK.get_or_init(|| Mutex::new(None));
+    BRIDGE_STATE.get_or_init(|| Mutex::new(BridgeState::default()));
     BRIDGE_SENDER.get_or_init(|| {
         let (sender, receiver) = mpsc::sync_channel(BRIDGE_CAPACITY);
         let worker = std::thread::Builder::new()
@@ -104,17 +127,22 @@ fn init_bridge_worker() {
                             Err(mpsc::RecvTimeoutError::Disconnected) => break,
                         }
                     }
-                    let Some(slot) = BRIDGE_SINK.get() else {
+                    let Some(bridge) = BRIDGE_STATE.get() else {
                         continue;
                     };
-                    let Ok(mut sink) = slot.lock() else {
+                    let Ok(mut state) = bridge.lock() else {
                         continue;
                     };
-                    let Some(current) = sink.as_ref() else {
-                        continue;
-                    };
-                    if current.add(RustDiagnosticBatch { events }).is_err() {
-                        *sink = None;
+                    let delivered = state.sink.as_ref().is_some_and(|current| {
+                        current
+                            .add(RustDiagnosticBatch {
+                                events: events.clone(),
+                            })
+                            .is_ok()
+                    });
+                    if !delivered {
+                        state.sink = None;
+                        state.buffer(events);
                     }
                 }
             });
@@ -128,6 +156,24 @@ fn init_bridge_worker() {
         }
         sender
     });
+}
+
+#[derive(Default)]
+struct BridgeState {
+    sink: Option<StreamSink<RustDiagnosticBatch>>,
+    pending: VecDeque<RustDiagnosticEvent>,
+}
+
+impl BridgeState {
+    fn buffer(&mut self, events: Vec<RustDiagnosticEvent>) {
+        for event in events {
+            if self.pending.len() >= BRIDGE_CAPACITY {
+                self.pending.pop_front();
+                DROPPED_RECORDS.fetch_add(1, Ordering::Relaxed);
+            }
+            self.pending.push_back(event);
+        }
+    }
 }
 
 struct AstralDiagnosticLayer;
@@ -176,7 +222,8 @@ where
     );
     let event_code = fields
         .remove("event_code")
-        .unwrap_or_else(|| default_event_code(metadata));
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| truncate(value, 128));
     let target = metadata.target().to_string();
     RustDiagnosticEvent {
         timestamp_millis: Utc::now().timestamp_millis(),
@@ -184,7 +231,10 @@ where
         level: metadata.level().as_str().to_ascii_lowercase(),
         module: map_target(metadata.target()),
         raw_target: target,
-        event_code: truncate(event_code, 128),
+        source_file: compact_rust_source_file(metadata.target(), metadata.file()),
+        source_line: metadata.line(),
+        source_function: metadata.module_path().map(str::to_string),
+        event_code,
         message,
         fields: fields.into_iter().collect(),
         console_already_reported: true,
@@ -202,7 +252,10 @@ fn enqueue_bridge(event: RustDiagnosticEvent) {
             level: "warning".to_string(),
             module: "astral.logging".to_string(),
             raw_target: "astral.diagnostics".to_string(),
-            event_code: "logging.records.suppressed".to_string(),
+            source_file: None,
+            source_line: None,
+            source_function: Some("astral.diagnostics".to_string()),
+            event_code: Some("logging.records.suppressed".to_string()),
             message: "Rust diagnostic bridge suppressed records".to_string(),
             fields,
             console_already_reported: true,
@@ -297,12 +350,8 @@ fn truncate(mut value: String, max: usize) -> String {
     value
 }
 
-fn default_event_code(metadata: &Metadata<'_>) -> String {
-    compact_rust_event_code(metadata.target(), metadata.file(), metadata.line())
-}
-
-fn compact_rust_event_code(target: &str, file: Option<&str>, line: Option<u32>) -> String {
-    let normalized = file.unwrap_or("unknown").replace('\\', "/");
+fn compact_rust_source_file(target: &str, file: Option<&str>) -> Option<String> {
+    let normalized = file?.replace('\\', "/");
     let (crate_directory, relative) =
         if let Some((prefix, relative)) = normalized.rsplit_once("/src/") {
             (prefix.rsplit('/').next(), relative)
@@ -312,10 +361,7 @@ fn compact_rust_event_code(target: &str, file: Option<&str>, line: Option<u32>) 
             (None, normalized.rsplit('/').next().unwrap_or("unknown"))
         };
     let crate_label = compact_crate_label(target, crate_directory);
-    match line {
-        Some(line) => format!("rust.event@{crate_label}:{relative}:{line}"),
-        None => format!("rust.event@{crate_label}:{relative}"),
-    }
+    Some(format!("{crate_label}/{relative}"))
 }
 
 fn compact_crate_label<'a>(target: &str, crate_directory: Option<&'a str>) -> &'a str {
@@ -381,7 +427,7 @@ fn format_native(event: &RustDiagnosticEvent) -> String {
         "{} {:<18} {:<24} {}{}",
         level_token(&event.level),
         module,
-        event.event_code,
+        event.event_code.as_deref().unwrap_or("-"),
         event.message,
         suffix
     )
@@ -474,40 +520,59 @@ mod tests {
     #[test]
     fn compacts_rust_event_source_paths() {
         assert_eq!(
-            compact_rust_event_code(
+            compact_rust_source_file(
                 "CORE::INSTANCE::CONNECTION",
                 Some(
                     "/home/u/.cargo/git/checkouts/easytier-af9fb4bbe1f7758c/8428a89/easytier/src/connector/manual.rs",
                 ),
-                Some(213),
             ),
-            "rust.event@easytier:connector/manual.rs:213"
+            Some("easytier/connector/manual.rs".to_string())
         );
         assert_eq!(
-            compact_rust_event_code(
+            compact_rust_source_file(
                 "rust_lib_astral::api::simple",
                 Some("rust\\src\\api\\simple.rs"),
-                Some(42),
             ),
-            "rust.event@astral:api/simple.rs:42"
+            Some("astral/api/simple.rs".to_string())
         );
     }
 
     #[test]
     fn native_formatter_does_not_add_ansi_color() {
-        let event = RustDiagnosticEvent {
+        let event = test_event(0);
+
+        assert!(!format_native(&event).contains('\u{1b}'));
+        assert!(format_native(&event).contains(" - "));
+    }
+
+    #[test]
+    fn pre_attach_buffer_is_bounded_and_keeps_newest_records() {
+        let mut state = BridgeState::default();
+        state.buffer((0..=BRIDGE_CAPACITY).map(test_event).collect());
+
+        assert_eq!(state.pending.len(), BRIDGE_CAPACITY);
+        assert_eq!(state.pending.front().unwrap().source_sequence, 1);
+        assert_eq!(
+            state.pending.back().unwrap().source_sequence,
+            BRIDGE_CAPACITY as u64
+        );
+    }
+
+    fn test_event(sequence: usize) -> RustDiagnosticEvent {
+        RustDiagnosticEvent {
             timestamp_millis: 0,
-            source_sequence: 0,
+            source_sequence: sequence as u64,
             level: "info".to_string(),
             module: "astral.easytier".to_string(),
             raw_target: "CORE".to_string(),
-            event_code: "rust.event@easytier:connector/manual.rs:213".to_string(),
+            source_file: Some("easytier/connector/manual.rs".to_string()),
+            source_line: Some(213),
+            source_function: None,
+            event_code: None,
             message: "Rust event".to_string(),
             fields: HashMap::new(),
             console_already_reported: true,
-        };
-
-        assert!(!format_native(&event).contains('\u{1b}'));
+        }
     }
 
     #[test]

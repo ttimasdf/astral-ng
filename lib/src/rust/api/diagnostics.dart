@@ -43,7 +43,10 @@ class RustDiagnosticEvent {
   final String level;
   final String module;
   final String rawTarget;
-  final String eventCode;
+  final String? sourceFile;
+  final int? sourceLine;
+  final String? sourceFunction;
+  final String? eventCode;
   final String message;
   final Map<String, String> fields;
   final bool consoleAlreadyReported;
@@ -54,7 +57,10 @@ class RustDiagnosticEvent {
     required this.level,
     required this.module,
     required this.rawTarget,
-    required this.eventCode,
+    this.sourceFile,
+    this.sourceLine,
+    this.sourceFunction,
+    this.eventCode,
     required this.message,
     required this.fields,
     required this.consoleAlreadyReported,
@@ -67,6 +73,9 @@ class RustDiagnosticEvent {
       level.hashCode ^
       module.hashCode ^
       rawTarget.hashCode ^
+      sourceFile.hashCode ^
+      sourceLine.hashCode ^
+      sourceFunction.hashCode ^
       eventCode.hashCode ^
       message.hashCode ^
       fields.hashCode ^
@@ -82,6 +91,9 @@ class RustDiagnosticEvent {
           level == other.level &&
           module == other.module &&
           rawTarget == other.rawTarget &&
+          sourceFile == other.sourceFile &&
+          sourceLine == other.sourceLine &&
+          sourceFunction == other.sourceFunction &&
           eventCode == other.eventCode &&
           message == other.message &&
           fields == other.fields &&

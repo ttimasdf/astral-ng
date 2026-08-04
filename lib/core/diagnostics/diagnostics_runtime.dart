@@ -163,8 +163,11 @@ final class DiagnosticsRuntime {
     required String origin,
     required String module,
     required String? rawTarget,
+    String? sourceFile,
+    int? sourceLine,
+    String? sourceFunction,
     required LogSeverity level,
-    required String eventCode,
+    required String? eventCode,
     required String message,
     Map<String, Object?> fields = const {},
     String? operationId,
@@ -187,8 +190,20 @@ final class DiagnosticsRuntime {
         origin: origin,
         module: module,
         rawTarget: rawTarget,
+        sourceFile:
+            sourceFile == null
+                ? null
+                : _sanitizer.text(sourceFile, maxLength: 512),
+        sourceLine: sourceLine,
+        sourceFunction:
+            sourceFunction == null
+                ? null
+                : _sanitizer.text(sourceFunction, maxLength: 512),
         level: level,
-        eventCode: _sanitizer.text(eventCode, maxLength: 128),
+        eventCode:
+            eventCode == null
+                ? null
+                : _sanitizer.text(eventCode, maxLength: 128),
         message: _sanitizer.text(message),
         fields: _sanitizer.fields(fields),
         operationId: operationId,

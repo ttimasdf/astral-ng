@@ -80,8 +80,9 @@ class _LogsPageState extends State<LogsPage> {
           if (!_matches(record.errorId, _errorController.text)) return false;
           if (query.isEmpty) return true;
           return record.message.toLowerCase().contains(query) ||
-              record.eventCode.toLowerCase().contains(query) ||
+              (record.eventCode?.toLowerCase().contains(query) ?? false) ||
               record.module.toLowerCase().contains(query) ||
+              (record.sourceFile?.toLowerCase().contains(query) ?? false) ||
               record.fields.toString().toLowerCase().contains(query) ||
               (record.errorMessage?.toLowerCase().contains(query) ?? false) ||
               (record.errorId?.toLowerCase().contains(query) ?? false);
@@ -657,7 +658,7 @@ final class _DiagnosticRecordCard extends StatelessWidget {
         leading: Icon(icon, color: color, size: 20),
         title: Text(
           '${record.level.token}  ${record.module.replaceFirst('astral.', '')}  '
-          '${record.eventCode}',
+          '${record.eventCode ?? 'unclassified'}',
           style: TextStyle(
             fontSize: 12,
             fontFamily: 'monospace',

@@ -14,6 +14,9 @@ final class DiagnosticRecord {
     required this.message,
     Map<String, Object?> fields = const {},
     this.rawTarget,
+    this.sourceFile,
+    this.sourceLine,
+    this.sourceFunction,
     this.operationId,
     this.connectionAttemptId,
     this.easyTierInstanceId,
@@ -24,7 +27,8 @@ final class DiagnosticRecord {
     this.consoleAlreadyReported = false,
   }) : fields = Map.unmodifiable(fields);
 
-  static const schemaVersion = 1;
+  static const schemaVersion = 2;
+  static const ecsVersion = '8.11.0';
 
   final DateTime sourceTimestampUtc;
   final DateTime ingestedTimestampUtc;
@@ -34,8 +38,11 @@ final class DiagnosticRecord {
   final String origin;
   final String module;
   final String? rawTarget;
+  final String? sourceFile;
+  final int? sourceLine;
+  final String? sourceFunction;
   final LogSeverity level;
-  final String eventCode;
+  final String? eventCode;
   final String message;
   final Map<String, Object?> fields;
   final String? operationId;
@@ -50,26 +57,52 @@ final class DiagnosticRecord {
   bool get isError => level.index >= LogSeverity.error.index;
 
   Map<String, Object?> toJson() => {
-    'schema_version': schemaVersion,
-    'source_timestamp_utc': sourceTimestampUtc.toIso8601String(),
-    'ingested_timestamp_utc': ingestedTimestampUtc.toIso8601String(),
-    'ingest_sequence': ingestSequence,
-    if (sourceSequence != null) 'source_sequence': sourceSequence,
-    'session_id': sessionId,
-    'origin': origin,
-    'module': module,
-    if (rawTarget != null) 'raw_target': rawTarget,
-    'level': level.name,
-    'event_code': eventCode,
+    '@timestamp': sourceTimestampUtc.toIso8601String(),
+    'ecs.version': ecsVersion,
     'message': message,
-    if (fields.isNotEmpty) 'fields': fields,
-    if (operationId != null) 'operation_id': operationId,
-    if (connectionAttemptId != null)
-      'connection_attempt_id': connectionAttemptId,
-    if (easyTierInstanceId != null) 'easytier_instance_id': easyTierInstanceId,
-    if (errorId != null) 'error_id': errorId,
-    if (errorType != null) 'error_type': errorType,
-    if (errorMessage != null) 'error_message': errorMessage,
-    if (stackTrace != null) 'stack_trace': stackTrace,
+    'log.level': level.name,
+    'log': {
+      'logger': module,
+      if (sourceFile != null || sourceLine != null || sourceFunction != null)
+        'origin': {
+          if (sourceFile != null || sourceLine != null)
+            'file': {
+              if (sourceFile != null) 'name': sourceFile,
+              if (sourceLine != null) 'line': sourceLine,
+            },
+          if (sourceFunction != null) 'function': sourceFunction,
+        },
+    },
+    'event': {
+      'created': ingestedTimestampUtc.toIso8601String(),
+      'sequence': sourceSequence ?? ingestSequence,
+      'provider': origin,
+      if (eventCode != null) 'code': eventCode,
+    },
+    'service': {'name': 'astral-ng'},
+    'session': {'id': sessionId},
+    if (errorId != null ||
+        errorType != null ||
+        errorMessage != null ||
+        stackTrace != null)
+      'error': {
+        if (errorId != null) 'id': errorId,
+        if (errorType != null) 'type': errorType,
+        if (errorMessage != null) 'message': errorMessage,
+        if (stackTrace != null) 'stack_trace': stackTrace,
+      },
+    'astral': {
+      'schema_version': schemaVersion,
+      'ingest_sequence': ingestSequence,
+      if (sourceSequence != null) 'source_sequence': sourceSequence,
+      if (rawTarget != null) 'raw_target': rawTarget,
+      if (eventCode == null) 'classification': 'upstream-unclassified',
+      if (fields.isNotEmpty) 'fields': fields,
+      if (operationId != null) 'operation_id': operationId,
+      if (connectionAttemptId != null)
+        'connection_attempt_id': connectionAttemptId,
+      if (easyTierInstanceId != null)
+        'easytier_instance_id': easyTierInstanceId,
+    },
   };
 }

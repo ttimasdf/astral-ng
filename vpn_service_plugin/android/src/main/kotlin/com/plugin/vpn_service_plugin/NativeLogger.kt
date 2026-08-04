@@ -1,6 +1,7 @@
 package com.plugin.vpn_service_plugin
 
 import android.util.Log
+import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -17,11 +18,33 @@ object NativeLogger {
     private const val TAG = "Astral"
     private const val MODULE = "astral.vpn.android"
     private const val MAX_VALUE_LENGTH = 1024
+    private const val MAX_PENDING_EVENTS = 256
     private val minimumPriority = AtomicInteger(NativeLogLevel.INFO.priority)
     private val sourceSequence = AtomicLong(0)
+    private val callbackLock = Any()
+    private val pendingEvents = ArrayDeque<Map<String, Any?>>()
+    private var eventCallback: ((Map<String, Any?>) -> Unit)? = null
+    private var droppedPendingEvents = 0
 
-    @Volatile
-    var eventCallback: (Map<String, Any?>) -> Unit = {}
+    fun attachEventCallback(callback: (Map<String, Any?>) -> Unit) {
+        val buffered = synchronized(callbackLock) {
+            eventCallback = callback
+            buildList {
+                if (droppedPendingEvents > 0) {
+                    add(pendingSuppressionEvent(droppedPendingEvents))
+                    droppedPendingEvents = 0
+                }
+                while (pendingEvents.isNotEmpty()) add(pendingEvents.removeFirst())
+            }
+        }
+        buffered.forEach { deliver(callback, it) }
+    }
+
+    fun detachEventCallback() {
+        synchronized(callbackLock) {
+            eventCallback = null
+        }
+    }
 
     fun configure(minimumLevel: String) {
         val level = NativeLogLevel.entries.firstOrNull {
@@ -90,12 +113,51 @@ object NativeLogger {
             event["errorMessage"] = error.message?.take(4096) ?: error.toString().take(4096)
             event["stackTrace"] = Log.getStackTraceString(error).take(32768)
         }
+        forward(event)
+    }
+
+    private fun forward(event: Map<String, Any?>) {
+        val callback = synchronized(callbackLock) {
+            val current = eventCallback
+            if (current == null) bufferLocked(event)
+            current
+        } ?: return
+        deliver(callback, event)
+    }
+
+    private fun deliver(
+        callback: (Map<String, Any?>) -> Unit,
+        event: Map<String, Any?>,
+    ) {
         try {
-            eventCallback(event)
+            callback(event)
         } catch (callbackError: Exception) {
+            synchronized(callbackLock) {
+                if (eventCallback === callback) eventCallback = null
+                bufferLocked(event)
+            }
             Log.w(TAG, "Native diagnostic forwarding failed", callbackError)
         }
     }
+
+    private fun bufferLocked(event: Map<String, Any?>) {
+        if (pendingEvents.size >= MAX_PENDING_EVENTS) {
+            pendingEvents.removeFirst()
+            droppedPendingEvents++
+        }
+        pendingEvents.addLast(event)
+    }
+
+    private fun pendingSuppressionEvent(count: Int): Map<String, Any?> = mapOf(
+        "timestampMillis" to System.currentTimeMillis(),
+        "sourceSequence" to sourceSequence.getAndIncrement(),
+        "level" to NativeLogLevel.WARNING.wireName,
+        "module" to MODULE,
+        "eventCode" to "logging.records.suppressed",
+        "message" to "Android diagnostic bridge suppressed records",
+        "fields" to mapOf("reason" to "pre_attach_overflow", "count" to count),
+        "consoleAlreadyReported" to false,
+    )
 
     private fun sanitize(fields: Map<String, Any?>): Map<String, Any?> = fields.mapValues {
         (key, value) ->

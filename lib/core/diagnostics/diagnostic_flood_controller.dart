@@ -97,7 +97,7 @@ final class DiagnosticFloodController {
           ..sort((left, right) => left.key.compareTo(right.key));
     return [
       record.module,
-      record.eventCode,
+      record.eventCode ?? '',
       record.message,
       record.errorId ?? '',
       record.errorType ?? '',

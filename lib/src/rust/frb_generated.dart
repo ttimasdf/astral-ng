@@ -2715,6 +2715,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   double dco_decode_f_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
@@ -3012,6 +3018,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
   (String, String) dco_decode_record_string_string(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3060,18 +3072,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   RustDiagnosticEvent dco_decode_rust_diagnostic_event(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 9)
-      throw Exception('unexpected arr length: expect 9 but see ${arr.length}');
+    if (arr.length != 12)
+      throw Exception('unexpected arr length: expect 12 but see ${arr.length}');
     return RustDiagnosticEvent(
       timestampMillis: dco_decode_i_64(arr[0]),
       sourceSequence: dco_decode_u_64(arr[1]),
       level: dco_decode_String(arr[2]),
       module: dco_decode_String(arr[3]),
       rawTarget: dco_decode_String(arr[4]),
-      eventCode: dco_decode_String(arr[5]),
-      message: dco_decode_String(arr[6]),
-      fields: dco_decode_Map_String_String_None(arr[7]),
-      consoleAlreadyReported: dco_decode_bool(arr[8]),
+      sourceFile: dco_decode_opt_String(arr[5]),
+      sourceLine: dco_decode_opt_box_autoadd_u_32(arr[6]),
+      sourceFunction: dco_decode_opt_String(arr[7]),
+      eventCode: dco_decode_opt_String(arr[8]),
+      message: dco_decode_String(arr[9]),
+      fields: dco_decode_Map_String_String_None(arr[10]),
+      consoleAlreadyReported: dco_decode_bool(arr[11]),
     );
   }
 
@@ -3371,6 +3386,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_magic_wall_rule(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
   }
 
   @protected
@@ -3806,6 +3827,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   (String, String) sse_decode_record_string_string(
     SseDeserializer deserializer,
   ) {
@@ -3853,7 +3885,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_level = sse_decode_String(deserializer);
     var var_module = sse_decode_String(deserializer);
     var var_rawTarget = sse_decode_String(deserializer);
-    var var_eventCode = sse_decode_String(deserializer);
+    var var_sourceFile = sse_decode_opt_String(deserializer);
+    var var_sourceLine = sse_decode_opt_box_autoadd_u_32(deserializer);
+    var var_sourceFunction = sse_decode_opt_String(deserializer);
+    var var_eventCode = sse_decode_opt_String(deserializer);
     var var_message = sse_decode_String(deserializer);
     var var_fields = sse_decode_Map_String_String_None(deserializer);
     var var_consoleAlreadyReported = sse_decode_bool(deserializer);
@@ -3863,6 +3898,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       level: var_level,
       module: var_module,
       rawTarget: var_rawTarget,
+      sourceFile: var_sourceFile,
+      sourceLine: var_sourceLine,
+      sourceFunction: var_sourceFunction,
       eventCode: var_eventCode,
       message: var_message,
       fields: var_fields,
@@ -4205,6 +4243,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
   void sse_encode_f_32(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat32(self);
@@ -4538,6 +4582,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_record_string_string(
     (String, String) self,
     SseSerializer serializer,
@@ -4588,7 +4642,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.level, serializer);
     sse_encode_String(self.module, serializer);
     sse_encode_String(self.rawTarget, serializer);
-    sse_encode_String(self.eventCode, serializer);
+    sse_encode_opt_String(self.sourceFile, serializer);
+    sse_encode_opt_box_autoadd_u_32(self.sourceLine, serializer);
+    sse_encode_opt_String(self.sourceFunction, serializer);
+    sse_encode_opt_String(self.eventCode, serializer);
     sse_encode_String(self.message, serializer);
     sse_encode_Map_String_String_None(self.fields, serializer);
     sse_encode_bool(self.consoleAlreadyReported, serializer);

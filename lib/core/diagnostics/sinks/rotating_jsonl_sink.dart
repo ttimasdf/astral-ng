@@ -76,6 +76,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
 
   Future<void> _initialize() async {
     await _removeExpiredFiles();
+    await _resetIncompatibleRotationSet();
     if (await _currentFile.exists()) {
       _currentBytes = await _currentFile.length();
     }
@@ -175,6 +176,36 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
     _currentFile = File(p.join(_directory.path, 'astral.jsonl'));
     _output = _currentFile.openWrite(mode: FileMode.append);
     _currentBytes = 0;
+  }
+
+  Future<void> _resetIncompatibleRotationSet() async {
+    if (!await _currentFile.exists() || await _currentFile.length() == 0) {
+      return;
+    }
+    var compatible = false;
+    try {
+      final firstLine =
+          await _currentFile
+              .openRead()
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())
+              .first;
+      final decoded = jsonDecode(firstLine);
+      final astral = decoded is Map<String, dynamic> ? decoded['astral'] : null;
+      compatible =
+          astral is Map<String, dynamic> &&
+          astral['schema_version'] == DiagnosticRecord.schemaVersion;
+    } catch (_) {
+      compatible = false;
+    }
+    if (compatible) return;
+
+    await for (final entity in _directory.list()) {
+      if (entity is File &&
+          p.basename(entity.path).startsWith('astral.jsonl')) {
+        await entity.delete();
+      }
+    }
   }
 
   Future<void> _removeExpiredFiles() async {

@@ -65,7 +65,18 @@ void main(List<String> arguments) {
       bootstrap: () => _bootstrapApp(diagnostics),
     ),
   );
+  unawaited(_initializeDiagnosticFile(diagnostics));
 }
+
+Future<void> _initializeDiagnosticFile(DiagnosticsRuntime diagnostics) =>
+    _optional(
+      diagnostics.logger(DiagnosticModules.logging),
+      'logging.file.initialize',
+      () async => diagnostics.attachSink(
+        await RotatingJsonlSink.open(),
+        replayStoredRecords: true,
+      ),
+    );
 
 /// Initializes the FRB dynamic library.
 ///
@@ -195,14 +206,6 @@ Future<void> _initializeOptionalServices(
   DiagnosticsRuntime diagnostics,
   ServiceManager services,
 ) async {
-  await _optional(
-    diagnostics.logger(DiagnosticModules.logging),
-    'logging.file.initialize',
-    () async => diagnostics.attachSink(
-      await RotatingJsonlSink.open(),
-      replayStoredRecords: true,
-    ),
-  );
   if (Platform.isAndroid) {
     await _optional(
       diagnostics.logger(DiagnosticModules.vpn),

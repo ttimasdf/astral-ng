@@ -9,7 +9,7 @@ import 'package:astral/core/diagnostics/log_policy.dart';
 import 'package:astral/core/platform/app_info.dart';
 
 abstract final class SupportBundle {
-  static const schemaVersion = 1;
+  static const schemaVersion = 2;
 
   static String encode({
     required DiagnosticsRuntime diagnostics,

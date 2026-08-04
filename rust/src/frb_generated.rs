@@ -3151,6 +3151,17 @@ impl SseDecode for Option<i64> {
     }
 }
 
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for (String, String) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3196,7 +3207,10 @@ impl SseDecode for crate::api::diagnostics::RustDiagnosticEvent {
         let mut var_level = <String>::sse_decode(deserializer);
         let mut var_module = <String>::sse_decode(deserializer);
         let mut var_rawTarget = <String>::sse_decode(deserializer);
-        let mut var_eventCode = <String>::sse_decode(deserializer);
+        let mut var_sourceFile = <Option<String>>::sse_decode(deserializer);
+        let mut var_sourceLine = <Option<u32>>::sse_decode(deserializer);
+        let mut var_sourceFunction = <Option<String>>::sse_decode(deserializer);
+        let mut var_eventCode = <Option<String>>::sse_decode(deserializer);
         let mut var_message = <String>::sse_decode(deserializer);
         let mut var_fields = <std::collections::HashMap<String, String>>::sse_decode(deserializer);
         let mut var_consoleAlreadyReported = <bool>::sse_decode(deserializer);
@@ -3206,6 +3220,9 @@ impl SseDecode for crate::api::diagnostics::RustDiagnosticEvent {
             level: var_level,
             module: var_module,
             raw_target: var_rawTarget,
+            source_file: var_sourceFile,
+            source_line: var_sourceLine,
+            source_function: var_sourceFunction,
             event_code: var_eventCode,
             message: var_message,
             fields: var_fields,
@@ -3900,6 +3917,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::diagnostics::RustDiagnosticEv
             self.level.into_into_dart().into_dart(),
             self.module.into_into_dart().into_dart(),
             self.raw_target.into_into_dart().into_dart(),
+            self.source_file.into_into_dart().into_dart(),
+            self.source_line.into_into_dart().into_dart(),
+            self.source_function.into_into_dart().into_dart(),
             self.event_code.into_into_dart().into_dart(),
             self.message.into_into_dart().into_dart(),
             self.fields.into_into_dart().into_dart(),
@@ -4398,6 +4418,16 @@ impl SseEncode for Option<i64> {
     }
 }
 
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for (String, String) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -4438,7 +4468,10 @@ impl SseEncode for crate::api::diagnostics::RustDiagnosticEvent {
         <String>::sse_encode(self.level, serializer);
         <String>::sse_encode(self.module, serializer);
         <String>::sse_encode(self.raw_target, serializer);
-        <String>::sse_encode(self.event_code, serializer);
+        <Option<String>>::sse_encode(self.source_file, serializer);
+        <Option<u32>>::sse_encode(self.source_line, serializer);
+        <Option<String>>::sse_encode(self.source_function, serializer);
+        <Option<String>>::sse_encode(self.event_code, serializer);
         <String>::sse_encode(self.message, serializer);
         <std::collections::HashMap<String, String>>::sse_encode(self.fields, serializer);
         <bool>::sse_encode(self.console_already_reported, serializer);

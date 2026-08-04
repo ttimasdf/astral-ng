@@ -19,7 +19,6 @@ final class RustDiagnosticSource {
   Future<void> start() async {
     if (_started) return;
     final filter = _buildFilter(diagnostics.policy.value);
-    await initializeRustDiagnostics(filter: filter);
     _subscription = createRustDiagnosticStream().listen(
       _ingest,
       onError: (Object error, StackTrace stack) {
@@ -37,6 +36,13 @@ final class RustDiagnosticSource {
         );
       },
     );
+    try {
+      await initializeRustDiagnostics(filter: filter);
+    } catch (_) {
+      await _subscription?.cancel();
+      _subscription = null;
+      rethrow;
+    }
     diagnostics.policy.addListener(_policyChanged);
     _started = true;
     _log.info(
@@ -62,6 +68,9 @@ final class RustDiagnosticSource {
       origin: 'rust',
       module: event.module,
       rawTarget: event.rawTarget,
+      sourceFile: event.sourceFile,
+      sourceLine: event.sourceLine,
+      sourceFunction: event.sourceFunction,
       level: _parseLevel(event.level),
       eventCode: event.eventCode,
       message: event.message,

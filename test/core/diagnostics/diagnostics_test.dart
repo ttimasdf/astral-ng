@@ -362,9 +362,11 @@ void main() {
     );
     final decoded = jsonDecode(encoded) as Map<String, dynamic>;
     final records = decoded['records'] as List<dynamic>;
-    final fields = (records.single as Map<String, dynamic>)['fields'];
+    final record = records.single as Map<String, dynamic>;
+    final astral = record['astral'] as Map<String, dynamic>;
+    final fields = astral['fields'] as Map<String, dynamic>;
 
-    expect(decoded['support_bundle_schema_version'], 1);
+    expect(decoded['support_bundle_schema_version'], 2);
     expect(
       (decoded['session'] as Map<String, dynamic>)['app_version'],
       '3.0.0',
@@ -394,8 +396,31 @@ void main() {
     final records = await File('${directory.path}/astral.jsonl').readAsLines();
     expect(records, hasLength(1));
     final decoded = jsonDecode(records.single) as Map<String, dynamic>;
-    expect(decoded['module'], DiagnosticModules.localization);
-    expect(decoded['event_code'], 'localization.package.debug');
+    expect(
+      (decoded['log'] as Map<String, dynamic>)['logger'],
+      DiagnosticModules.localization,
+    );
+    expect(
+      (decoded['event'] as Map<String, dynamic>)['code'],
+      'localization.package.debug',
+    );
+  });
+
+  test('JSONL sink resets an incompatible rotation set', () async {
+    final directory = await Directory.systemTemp.createTemp('astral-schema-');
+    addTearDown(() => directory.delete(recursive: true));
+    await File(
+      '${directory.path}/astral.jsonl',
+    ).writeAsString('{"schema_version":1,"message":"legacy"}\n');
+    await File(
+      '${directory.path}/astral.jsonl.1',
+    ).writeAsString('{"schema_version":1,"message":"legacy rotation"}\n');
+
+    final sink = await RotatingJsonlSink.open(directory: directory);
+    addTearDown(sink.close);
+
+    expect(await File('${directory.path}/astral.jsonl').length(), 0);
+    expect(File('${directory.path}/astral.jsonl.1').existsSync(), isFalse);
   });
 
   test('rotating JSONL sink persists structured bounded records', () async {
@@ -435,9 +460,50 @@ void main() {
     final lines = await files.last.readAsLines();
     expect(lines, isNotEmpty);
     final decoded = jsonDecode(lines.last) as Map<String, dynamic>;
-    expect(decoded['schema_version'], 1);
-    expect(decoded['module'], DiagnosticModules.bootstrap);
-    expect(decoded['fields'], isA<Map<String, dynamic>>());
+    expect(decoded['ecs.version'], DiagnosticRecord.ecsVersion);
+    expect(
+      (decoded['astral'] as Map<String, dynamic>)['schema_version'],
+      DiagnosticRecord.schemaVersion,
+    );
+    expect(
+      (decoded['log'] as Map<String, dynamic>)['logger'],
+      DiagnosticModules.bootstrap,
+    );
+    expect(
+      (decoded['astral'] as Map<String, dynamic>)['fields'],
+      isA<Map<String, dynamic>>(),
+    );
+  });
+
+  test('ECS serialization separates semantic codes from Rust provenance', () {
+    final record = DiagnosticRecord(
+      sourceTimestampUtc: DateTime.utc(2026),
+      ingestedTimestampUtc: DateTime.utc(2026, 1, 1, 0, 0, 0, 10),
+      ingestSequence: 7,
+      sourceSequence: 3,
+      sessionId: 'SESSION',
+      origin: 'rust',
+      module: DiagnosticModules.easyTier,
+      rawTarget: 'easytier::peers::peer_ospf_route',
+      sourceFile: 'easytier/peers/peer_ospf_route.rs',
+      sourceLine: 3289,
+      sourceFunction: 'easytier::peers::peer_ospf_route',
+      level: LogSeverity.info,
+      eventCode: null,
+      message: 'Start OSPF sync session',
+    );
+
+    final json = record.toJson();
+    final event = json['event'] as Map<String, Object?>;
+    final log = json['log'] as Map<String, Object?>;
+    final origin = log['origin'] as Map<String, Object?>;
+    final file = origin['file'] as Map<String, Object?>;
+    final astral = json['astral'] as Map<String, Object?>;
+
+    expect(json['@timestamp'], '2026-01-01T00:00:00.000Z');
+    expect(event, isNot(contains('code')));
+    expect(file, {'name': 'easytier/peers/peer_ospf_route.rs', 'line': 3289});
+    expect(astral['classification'], 'upstream-unclassified');
   });
 
   testWidgets('LogsPage links to an error and exposes advanced filters', (

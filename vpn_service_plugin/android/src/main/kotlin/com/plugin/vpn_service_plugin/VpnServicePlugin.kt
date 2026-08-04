@@ -41,7 +41,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                 TauriVpnService.triggerCallback = { event, data ->
                     eventSink?.success(mapOf("event" to event, "data" to data))
                 }
-                NativeLogger.eventCallback = { data ->
+                NativeLogger.attachEventCallback { data ->
                     eventSink?.success(mapOf("event" to "diagnostic", "data" to data))
                 }
             }
@@ -49,7 +49,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             override fun onCancel(arguments: Any?) {
                 eventSink = null
                 TauriVpnService.triggerCallback = { _, _ -> }
-                NativeLogger.eventCallback = {}
+                NativeLogger.detachEventCallback()
             }
         })
     }
@@ -155,7 +155,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
         eventChannel.setStreamHandler(null)
         eventSink = null
         TauriVpnService.triggerCallback = { _, _ -> }
-        NativeLogger.eventCallback = {}
+        NativeLogger.detachEventCallback()
     }
 
     // 插件附加到Activity时调用
