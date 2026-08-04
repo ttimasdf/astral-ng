@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -8,7 +9,7 @@ class PortWhitelistPage extends BaseSettingsPage {
   const PortWhitelistPage({super.key});
 
   @override
-  String get title => 'port_whitelist'.tr();
+  String get title => LocaleKeys.port_whitelist.tr();
 
   @override
   Widget buildContent(BuildContext context) {
@@ -27,8 +28,8 @@ class PortWhitelistPage extends BaseSettingsPage {
           children: [
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text('port_whitelist_info'.tr()),
-              subtitle: Text('port_whitelist_format_desc'.tr()),
+              title: Text(LocaleKeys.port_whitelist_info.tr()),
+              subtitle: Text(LocaleKeys.port_whitelist_format_desc.tr()),
             ),
           ],
         ),
@@ -38,9 +39,11 @@ class PortWhitelistPage extends BaseSettingsPage {
           children: [
             ListTile(
               leading: const Icon(Icons.storage),
-              title: Text('tcp_allowed_ports'.tr()),
+              title: Text(LocaleKeys.tcp_allowed_ports.tr()),
               subtitle: Text(
-                tcpWhitelist.isEmpty ? 'not_configured'.tr() : tcpWhitelist,
+                tcpWhitelist.isEmpty
+                    ? LocaleKeys.not_configured.tr()
+                    : tcpWhitelist,
                 style: TextStyle(
                   color:
                       tcpWhitelist.isEmpty
@@ -53,7 +56,7 @@ class PortWhitelistPage extends BaseSettingsPage {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit),
-                    tooltip: 'edit'.tr(),
+                    tooltip: LocaleKeys.edit.tr(),
                     onPressed:
                         () => _editWhitelist(
                           context,
@@ -66,7 +69,7 @@ class PortWhitelistPage extends BaseSettingsPage {
                   if (tcpWhitelist.isNotEmpty)
                     IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: 'clear'.tr(),
+                      tooltip: LocaleKeys.clear.tr(),
                       onPressed:
                           () => _clearWhitelist(
                             context,
@@ -86,9 +89,11 @@ class PortWhitelistPage extends BaseSettingsPage {
           children: [
             ListTile(
               leading: const Icon(Icons.wifi),
-              title: Text('udp_allowed_ports'.tr()),
+              title: Text(LocaleKeys.udp_allowed_ports.tr()),
               subtitle: Text(
-                udpWhitelist.isEmpty ? 'not_configured'.tr() : udpWhitelist,
+                udpWhitelist.isEmpty
+                    ? LocaleKeys.not_configured.tr()
+                    : udpWhitelist,
                 style: TextStyle(
                   color:
                       udpWhitelist.isEmpty
@@ -101,7 +106,7 @@ class PortWhitelistPage extends BaseSettingsPage {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit),
-                    tooltip: 'edit'.tr(),
+                    tooltip: LocaleKeys.edit.tr(),
                     onPressed:
                         () => _editWhitelist(
                           context,
@@ -114,7 +119,7 @@ class PortWhitelistPage extends BaseSettingsPage {
                   if (udpWhitelist.isNotEmpty)
                     IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: 'clear'.tr(),
+                      tooltip: LocaleKeys.clear.tr(),
                       onPressed:
                           () => _clearWhitelist(
                             context,
@@ -143,29 +148,33 @@ class PortWhitelistPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('edit_port_whitelist'.tr(namedArgs: {'type': type})),
+            title: Text(
+              LocaleKeys.edit_port_whitelist.tr(namedArgs: {'type': type}),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'port_format'.tr(),
+                  LocaleKeys.port_format.tr(),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text('• ${'single_port_example'.tr()}'),
-                Text('• ${'port_range_example'.tr()}'),
-                Text('• ${'multiple_ports_example'.tr()}'),
+                Text('• ${LocaleKeys.single_port_example.tr()}'),
+                Text('• ${LocaleKeys.port_range_example.tr()}'),
+                Text('• ${LocaleKeys.multiple_ports_example.tr()}'),
                 const SizedBox(height: 16),
                 TextField(
                   controller: controller,
                   autofocus: true,
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: 'port_field'.tr(namedArgs: {'type': type}),
-                    hintText: 'port_example_hint'.tr(),
+                    labelText: LocaleKeys.port_field.tr(
+                      namedArgs: {'type': type},
+                    ),
+                    hintText: LocaleKeys.port_example_hint.tr(),
                     border: const OutlineInputBorder(),
-                    helperText: 'empty_allows_all_ports'.tr(),
+                    helperText: LocaleKeys.empty_allows_all_ports.tr(),
                   ),
                 ),
               ],
@@ -173,11 +182,11 @@ class PortWhitelistPage extends BaseSettingsPage {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('cancel'.tr()),
+                child: Text(LocaleKeys.cancel.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, controller.text),
-                child: Text('save'.tr()),
+                child: Text(LocaleKeys.save.tr()),
               ),
             ],
           ),
@@ -197,18 +206,20 @@ class PortWhitelistPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('confirm_clear_ports'.tr(namedArgs: {'type': type})),
+            title: Text(
+              LocaleKeys.confirm_clear_ports.tr(namedArgs: {'type': type}),
+            ),
             content: Text(
-              'confirm_clear_ports_desc'.tr(namedArgs: {'type': type}),
+              LocaleKeys.confirm_clear_ports_desc.tr(namedArgs: {'type': type}),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: Text('cancel'.tr()),
+                child: Text(LocaleKeys.cancel.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text('clear'.tr()),
+                child: Text(LocaleKeys.clear.tr()),
               ),
             ],
           ),

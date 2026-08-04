@@ -220,12 +220,12 @@ class _SoftwareSettingsPageState
               ),
             if (SettingsAvailability.desktopOnly.isVisible)
               SettingsSegmentedChoice<WindowCloseBehavior>(
-                title: 'settings_close_behavior'.tr(),
+                title: LocaleKeys.settings_close_behavior.tr(),
                 description:
                     ServiceManager().windowState.closeBehavior.watch(context) ==
                             WindowCloseBehavior.closeToTray
-                        ? 'settings_close_to_tray_desc'.tr()
-                        : 'settings_exit_program_desc'.tr(),
+                        ? LocaleKeys.settings_close_to_tray_desc.tr()
+                        : LocaleKeys.settings_exit_program_desc.tr(),
                 value: ServiceManager().windowState.closeBehavior.watch(
                   context,
                 ),
@@ -233,12 +233,12 @@ class _SoftwareSettingsPageState
                   ButtonSegment(
                     value: WindowCloseBehavior.closeToTray,
                     icon: const Icon(Icons.move_to_inbox_outlined),
-                    label: Text('settings_close_to_tray'.tr()),
+                    label: Text(LocaleKeys.settings_close_to_tray.tr()),
                   ),
                   ButtonSegment(
                     value: WindowCloseBehavior.exitProgram,
                     icon: const Icon(Icons.logout),
-                    label: Text('settings_exit_program'.tr()),
+                    label: Text(LocaleKeys.settings_exit_program.tr()),
                   ),
                 ],
                 onChanged:
@@ -255,8 +255,8 @@ class _SoftwareSettingsPageState
               },
             ),
             SwitchListTile(
-              title: Text('reduce_animation_updates'.tr()),
-              subtitle: Text('reduce_animation_updates_desc'.tr()),
+              title: Text(LocaleKeys.reduce_animation_updates.tr()),
+              subtitle: Text(LocaleKeys.reduce_animation_updates_desc.tr()),
               value: ServiceManager().appSettingsState.reduceAnimationUpdates
                   .watch(context),
               onChanged: (value) async {
@@ -272,14 +272,14 @@ class _SoftwareSettingsPageState
           context: context,
           children: [
             ListTile(
-              title: Text('connection_behavior'.tr()),
-              subtitle: Text('connection_behavior_desc'.tr()),
+              title: Text(LocaleKeys.connection_behavior.tr()),
+              subtitle: Text(LocaleKeys.connection_behavior_desc.tr()),
               leading: const Icon(Icons.sync),
             ),
             buildDivider(),
             SwitchListTile(
-              title: Text('auto_retry_on_failure'.tr()),
-              subtitle: Text('auto_retry_on_failure_desc'.tr()),
+              title: Text(LocaleKeys.auto_retry_on_failure.tr()),
+              subtitle: Text(LocaleKeys.auto_retry_on_failure_desc.tr()),
               value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
               onChanged: (value) async {
                 await ServiceManager().appSettings.updateAutoRetryOnFailure(
@@ -289,9 +289,9 @@ class _SoftwareSettingsPageState
             ),
             if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
               ListTile(
-                title: Text('max_retry_count'.tr()),
+                title: Text(LocaleKeys.max_retry_count.tr()),
                 subtitle: Text(
-                  'max_retry_count_value'.tr(
+                  LocaleKeys.max_retry_count_value.tr(
                     namedArgs: {
                       'count':
                           ServiceManager().appSettingsState.maxRetryCount.value

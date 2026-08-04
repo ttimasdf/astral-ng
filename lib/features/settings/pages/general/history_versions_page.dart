@@ -31,7 +31,7 @@ class _HistoryVersionsPageState
       IconButton(
         icon: const Icon(Icons.refresh),
         onPressed: _loadVersions,
-        tooltip: 'refresh'.tr(),
+        tooltip: LocaleKeys.refresh.tr(),
       ),
     ];
   }
@@ -62,7 +62,7 @@ class _HistoryVersionsPageState
         });
       } else {
         setState(() {
-          _errorMessage = 'load_failed'.tr(
+          _errorMessage = LocaleKeys.load_failed.tr(
             namedArgs: {'error': 'HTTP ${response.statusCode}'},
           );
           _isLoading = false;
@@ -70,7 +70,9 @@ class _HistoryVersionsPageState
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'load_failed'.tr(namedArgs: {'error': e.toString()});
+        _errorMessage = LocaleKeys.load_failed.tr(
+          namedArgs: {'error': e.toString()},
+        );
         _isLoading = false;
       });
     }
@@ -82,7 +84,7 @@ class _HistoryVersionsPageState
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        AppSnackBars.error(context, 'unable_open_link'.tr(), url);
+        AppSnackBars.error(context, LocaleKeys.unable_open_link.tr(), url);
       }
     }
   }
@@ -109,7 +111,7 @@ class _HistoryVersionsPageState
             ElevatedButton.icon(
               onPressed: _loadVersions,
               icon: const Icon(Icons.refresh),
-              label: Text('retry'.tr()),
+              label: Text(LocaleKeys.retry.tr()),
             ),
           ],
         ),
@@ -119,7 +121,7 @@ class _HistoryVersionsPageState
     if (_versions.isEmpty) {
       return Center(
         child: Text(
-          'no_previous_versions'.tr(),
+          LocaleKeys.no_previous_versions.tr(),
           style: const TextStyle(fontSize: 16),
         ),
       );

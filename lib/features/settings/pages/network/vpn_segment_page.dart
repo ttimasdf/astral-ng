@@ -29,7 +29,7 @@ class VpnSegmentPage extends BaseSettingsPage {
       return buildEmptyState(
         context: context,
         icon: Icons.vpn_lock,
-        title: 'no_android_vpn_routes'.tr(),
+        title: LocaleKeys.no_android_vpn_routes.tr(),
         actionLabel: LocaleKeys.add_vpn_segment.tr(),
         onAction: () => _addVpnSegment(context),
       );

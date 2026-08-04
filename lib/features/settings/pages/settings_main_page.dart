@@ -1,5 +1,6 @@
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/features/settings/models/settings_availability.dart';
 import 'package:astral/features/settings/widgets/appearance_settings_content.dart';
 import 'package:astral/features/settings/widgets/general_settings_content.dart';
@@ -42,8 +43,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
 
   static const _categories = [
     _SettingsCategory(
-      titleKey: 'settings_general',
-      descriptionKey: 'settings_general_short_desc',
+      titleKey: LocaleKeys.settings_general,
+      descriptionKey: LocaleKeys.settings_general_short_desc,
       icon: Icons.tune,
       keywords: [
         'startup',
@@ -59,8 +60,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       ],
     ),
     _SettingsCategory(
-      titleKey: 'settings_appearance',
-      descriptionKey: 'settings_appearance_short_desc',
+      titleKey: LocaleKeys.settings_appearance,
+      descriptionKey: LocaleKeys.settings_appearance_short_desc,
       icon: Icons.palette_outlined,
       keywords: [
         'theme',
@@ -76,8 +77,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       ],
     ),
     _SettingsCategory(
-      titleKey: 'settings_network_connection',
-      descriptionKey: 'settings_network_connection_short_desc',
+      titleKey: LocaleKeys.settings_network_connection,
+      descriptionKey: LocaleKeys.settings_network_connection_short_desc,
       icon: Icons.hub_outlined,
       keywords: [
         'network',
@@ -100,8 +101,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       ],
     ),
     _SettingsCategory(
-      titleKey: 'settings_updates',
-      descriptionKey: 'settings_updates_short_desc',
+      titleKey: LocaleKeys.settings_updates,
+      descriptionKey: LocaleKeys.settings_updates_short_desc,
       icon: Icons.system_update_alt,
       keywords: [
         'update',
@@ -117,8 +118,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       ],
     ),
     _SettingsCategory(
-      titleKey: 'settings_permissions',
-      descriptionKey: 'settings_permissions_short_desc',
+      titleKey: LocaleKeys.settings_permissions,
+      descriptionKey: LocaleKeys.settings_permissions_short_desc,
       icon: Icons.admin_panel_settings_outlined,
       keywords: [
         'permission',
@@ -131,8 +132,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       availability: SettingsAvailability.androidOnly,
     ),
     _SettingsCategory(
-      titleKey: 'settings_support_about',
-      descriptionKey: 'settings_support_about_short_desc',
+      titleKey: LocaleKeys.settings_support_about,
+      descriptionKey: LocaleKeys.settings_support_about_short_desc,
       icon: Icons.support_agent,
       keywords: [
         'support',
@@ -211,19 +212,19 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     return switch (index) {
       0 =>
         services.startupState.startupAutoConnect.value
-            ? 'auto_connect_on'.tr()
-            : 'saved_automatically'.tr(),
+            ? LocaleKeys.auto_connect_on.tr()
+            : LocaleKeys.saved_automatically.tr(),
       1 => switch (services.themeState.themeMode.value) {
-        ThemeMode.system => 'theme_system'.tr(),
-        ThemeMode.light => 'theme_light'.tr(),
-        ThemeMode.dark => 'theme_dark'.tr(),
+        ThemeMode.system => LocaleKeys.theme_system.tr(),
+        ThemeMode.light => LocaleKeys.theme_light.tr(),
+        ThemeMode.dark => LocaleKeys.theme_dark.tr(),
       },
       2 =>
         services.networkConfigState.defaultProtocol.value.isEmpty
             ? 'TCP'
             : services.networkConfigState.defaultProtocol.value.toUpperCase(),
       3 => services.updateState.beta.value ? 'Beta' : 'Stable',
-      4 => 'platform_specific'.tr(),
+      4 => LocaleKeys.platform_specific.tr(),
       _ => AppInfoUtil.getVersionDisplay(),
     };
   }
@@ -262,7 +263,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'settings_title'.tr(),
+          LocaleKeys.settings_title.tr(),
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
@@ -270,7 +271,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         ),
         const SizedBox(height: 3),
         Text(
-          'settings_title_desc'.tr(),
+          LocaleKeys.settings_title_desc.tr(),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -282,12 +283,12 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
   Widget _searchField(BuildContext context) {
     return SearchBar(
       controller: _searchController,
-      hintText: 'search_settings'.tr(),
+      hintText: LocaleKeys.search_settings.tr(),
       leading: const Icon(Icons.search),
       trailing: [
         if (_query.isNotEmpty)
           IconButton(
-            tooltip: 'clear'.tr(),
+            tooltip: LocaleKeys.clear.tr(),
             icon: const Icon(Icons.close),
             onPressed: () {
               _searchController.clear();
@@ -444,12 +445,12 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'no_settings_found'.tr(),
+              LocaleKeys.no_settings_found.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'no_settings_found_desc'.tr(),
+              LocaleKeys.no_settings_found_desc.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

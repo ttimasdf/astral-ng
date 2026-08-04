@@ -1,5 +1,6 @@
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/features/settings/widgets/update_settings_actions.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -18,26 +19,28 @@ class UpdateSettingsContent extends StatelessWidget {
       final automatic = services.updateState.autoCheckUpdate.watch(context);
 
       return SettingsContentView(
-        title: 'settings_updates'.tr(),
-        description: 'settings_updates_desc'.tr(),
+        title: LocaleKeys.settings_updates.tr(),
+        description: LocaleKeys.settings_updates_desc.tr(),
         children: [
           SettingsSection(
-            title: 'update_channel'.tr(),
-            description: 'update_channel_desc'.tr(),
+            title: LocaleKeys.update_channel.tr(),
+            description: LocaleKeys.update_channel_desc.tr(),
             icon: Icons.rocket_launch_outlined,
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text('join_beta'.tr()),
-                subtitle: Text('join_beta_desc'.tr()),
+                title: Text(LocaleKeys.join_beta.tr()),
+                subtitle: Text(LocaleKeys.join_beta_desc.tr()),
                 value: beta,
                 onChanged: services.appSettings.setBeta,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text('auto_update'.tr()),
+                title: Text(LocaleKeys.auto_update.tr()),
                 subtitle: Text(
-                  beta ? 'auto_update_beta_desc'.tr() : 'auto_update_desc'.tr(),
+                  beta
+                      ? LocaleKeys.auto_update_beta_desc.tr()
+                      : LocaleKeys.auto_update_desc.tr(),
                 ),
                 value: beta || automatic,
                 onChanged:
@@ -45,40 +48,40 @@ class UpdateSettingsContent extends StatelessWidget {
               ),
               SettingsLinkTile(
                 icon: Icons.bolt,
-                title: 'download_acceleration'.tr(),
+                title: LocaleKeys.download_acceleration.tr(),
                 subtitle: downloadAccelerateDescription(),
                 onTap: () => editDownloadAccelerate(context),
               ),
             ],
           ),
           SettingsSection(
-            title: 'update_operations'.tr(),
-            description: 'update_operations_desc'.tr(),
+            title: LocaleKeys.update_operations.tr(),
+            description: LocaleKeys.update_operations_desc.tr(),
             icon: Icons.system_update_alt,
             children: [
               SettingsLinkTile(
                 icon: Icons.refresh,
-                title: 'check_update'.tr(),
-                subtitle: 'check_update_available'.tr(),
+                title: LocaleKeys.check_update.tr(),
+                subtitle: LocaleKeys.check_update_available.tr(),
                 onTap: () => checkForUpdates(context),
               ),
               SettingsLinkTile(
                 icon: Icons.info_outline,
-                title: 'version_info'.tr(),
-                subtitle: 'version_info_desc'.tr(),
+                title: LocaleKeys.version_info.tr(),
+                subtitle: LocaleKeys.version_info_desc.tr(),
                 value: AppInfoUtil.getVersionDisplay(),
                 onTap: () => showVersionInfo(context),
               ),
               SettingsLinkTile(
                 icon: Icons.history,
-                title: 'history_versions'.tr(),
-                subtitle: 'history_versions_desc'.tr(),
+                title: LocaleKeys.history_versions.tr(),
+                subtitle: LocaleKeys.history_versions_desc.tr(),
                 onTap: () => navigateToHistoryVersions(context),
               ),
               SettingsLinkTile(
                 icon: Icons.cloud_download_outlined,
-                title: 'redownload_update'.tr(),
-                subtitle: 'redownload_update_desc'.tr(),
+                title: LocaleKeys.redownload_update.tr(),
+                subtitle: LocaleKeys.redownload_update_desc.tr(),
                 onTap: () => redownloadUpdate(context),
               ),
             ],
@@ -86,7 +89,9 @@ class UpdateSettingsContent extends StatelessWidget {
           SettingsNotice(
             icon: beta ? Icons.science_outlined : Icons.verified_outlined,
             message:
-                beta ? 'beta_version_desc'.tr() : 'stable_channel_desc'.tr(),
+                beta
+                    ? LocaleKeys.beta_version_desc.tr()
+                    : LocaleKeys.stable_channel_desc.tr(),
           ),
         ],
       );

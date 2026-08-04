@@ -1,6 +1,7 @@
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/features/settings/widgets/update_settings_actions.dart';
@@ -44,8 +45,8 @@ class _SupportAboutSettingsContentState
       final logs = ServiceManager().appSettingsState.logs.watch(context);
 
       return SettingsContentView(
-        title: 'settings_support_about'.tr(),
-        description: 'settings_support_about_desc'.tr(),
+        title: LocaleKeys.settings_support_about.tr(),
+        description: LocaleKeys.settings_support_about_desc.tr(),
         children: [
           Container(
             padding: const EdgeInsets.all(22),
@@ -84,7 +85,7 @@ class _SupportAboutSettingsContentState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'app_tagline'.tr(),
+                        LocaleKeys.app_tagline.tr(),
                         style: TextStyle(color: colorScheme.onPrimaryContainer),
                       ),
                       const SizedBox(height: 10),
@@ -99,14 +100,14 @@ class _SupportAboutSettingsContentState
             ),
           ),
           SettingsSection(
-            title: 'about'.tr(),
-            description: 'about_versions_desc'.tr(),
+            title: LocaleKeys.about.tr(),
+            description: LocaleKeys.about_versions_desc.tr(),
             icon: Icons.info_outline,
             children: [
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.apps_outlined),
-                title: Text('software_version'.tr()),
+                title: Text(LocaleKeys.software_version.tr()),
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
@@ -118,33 +119,35 @@ class _SupportAboutSettingsContentState
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.memory_outlined),
-                title: Text('kernel_version'.tr()),
+                title: Text(LocaleKeys.kernel_version.tr()),
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
-                    _kernelVersion.isEmpty ? 'loading'.tr() : _kernelVersion,
+                    _kernelVersion.isEmpty
+                        ? LocaleKeys.loading.tr()
+                        : _kernelVersion,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
               SettingsLinkTile(
                 icon: Icons.fact_check_outlined,
-                title: 'version_info'.tr(),
-                subtitle: 'version_info_desc'.tr(),
+                title: LocaleKeys.version_info.tr(),
+                subtitle: LocaleKeys.version_info_desc.tr(),
                 onTap: () => showVersionInfo(context),
               ),
             ],
           ),
           SettingsSection(
-            title: 'support_tools'.tr(),
-            description: 'support_tools_desc'.tr(),
+            title: LocaleKeys.support_tools.tr(),
+            description: LocaleKeys.support_tools_desc.tr(),
             icon: Icons.support_agent,
             children: [
               SettingsLinkTile(
                 icon: Icons.article_outlined,
-                title: 'logs'.tr(),
-                subtitle: 'logs_desc'.tr(),
-                value: 'log_count'.tr(
+                title: LocaleKeys.logs.tr(),
+                subtitle: LocaleKeys.logs_desc.tr(),
+                value: LocaleKeys.log_count.tr(
                   namedArgs: {'count': logs.length.toString()},
                 ),
                 onTap: () => _openLogs(context),
@@ -152,8 +155,8 @@ class _SupportAboutSettingsContentState
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.copy_all_outlined),
-                title: Text('copy_diagnostics'.tr()),
-                subtitle: Text('copy_diagnostics_desc'.tr()),
+                title: Text(LocaleKeys.copy_diagnostics.tr()),
+                subtitle: Text(LocaleKeys.copy_diagnostics_desc.tr()),
                 trailing: const Icon(Icons.copy_outlined),
                 onTap: () async {
                   final details = [
@@ -164,15 +167,17 @@ class _SupportAboutSettingsContentState
                   await Clipboard.setData(ClipboardData(text: details));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('diagnostics_copied'.tr())),
+                      SnackBar(
+                        content: Text(LocaleKeys.diagnostics_copied.tr()),
+                      ),
                     );
                   }
                 },
               ),
               SettingsLinkTile(
                 icon: Icons.refresh,
-                title: 'check_update'.tr(),
-                subtitle: 'check_update_available'.tr(),
+                title: LocaleKeys.check_update.tr(),
+                subtitle: LocaleKeys.check_update_available.tr(),
                 onTap: () => checkForUpdates(context),
               ),
             ],

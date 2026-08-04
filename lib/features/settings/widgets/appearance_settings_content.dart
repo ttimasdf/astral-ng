@@ -1,5 +1,6 @@
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/shared/widgets/common/theme_selector.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +11,9 @@ class AppearanceSettingsContent extends StatelessWidget {
 
   String _themeModeLabel(ThemeMode mode) {
     return switch (mode) {
-      ThemeMode.system => 'theme_system'.tr(),
-      ThemeMode.light => 'theme_light'.tr(),
-      ThemeMode.dark => 'theme_dark'.tr(),
+      ThemeMode.system => LocaleKeys.theme_system.tr(),
+      ThemeMode.light => LocaleKeys.theme_light.tr(),
+      ThemeMode.dark => LocaleKeys.theme_dark.tr(),
     };
   }
 
@@ -22,7 +23,7 @@ class AppearanceSettingsContent extends StatelessWidget {
       context: context,
       builder:
           (context) => SimpleDialog(
-            title: Text('theme_mode'.tr()),
+            title: Text(LocaleKeys.theme_mode.tr()),
             children: [
               for (final mode in ThemeMode.values)
                 ListTile(
@@ -51,7 +52,7 @@ class AppearanceSettingsContent extends StatelessWidget {
       context: context,
       builder:
           (context) => SimpleDialog(
-            title: Text('language'.tr()),
+            title: Text(LocaleKeys.language.tr()),
             children: [
               ListTile(
                 selected: current.languageCode == 'zh',
@@ -96,18 +97,18 @@ class AppearanceSettingsContent extends StatelessWidget {
           .watch(context);
 
       return SettingsContentView(
-        title: 'settings_appearance'.tr(),
-        description: 'settings_appearance_desc'.tr(),
+        title: LocaleKeys.settings_appearance.tr(),
+        description: LocaleKeys.settings_appearance_desc.tr(),
         children: [
           SettingsSection(
-            title: 'settings_theme'.tr(),
-            description: 'settings_theme_desc'.tr(),
+            title: LocaleKeys.settings_theme.tr(),
+            description: LocaleKeys.settings_theme_desc.tr(),
             icon: Icons.palette_outlined,
             children: [
               SettingsLinkTile(
                 icon: Icons.contrast,
-                title: 'theme_mode'.tr(),
-                subtitle: 'theme_mode_desc'.tr(),
+                title: LocaleKeys.theme_mode.tr(),
+                subtitle: LocaleKeys.theme_mode_desc.tr(),
                 value: _themeModeLabel(themeMode),
                 onTap: () => _selectThemeMode(context),
               ),
@@ -117,8 +118,8 @@ class AppearanceSettingsContent extends StatelessWidget {
                   vertical: 5,
                 ),
                 leading: const Icon(Icons.color_lens_outlined),
-                title: Text('theme_color'.tr()),
-                subtitle: Text('theme_color_desc'.tr()),
+                title: Text(LocaleKeys.theme_color.tr()),
+                subtitle: Text(LocaleKeys.theme_color_desc.tr()),
                 trailing: Container(
                   width: 30,
                   height: 30,
@@ -135,29 +136,29 @@ class AppearanceSettingsContent extends StatelessWidget {
               ),
               SettingsLinkTile(
                 icon: Icons.language,
-                title: 'language'.tr(),
-                subtitle: 'language_desc'.tr(),
+                title: LocaleKeys.language.tr(),
+                subtitle: LocaleKeys.language_desc.tr(),
                 value: context.locale.languageCode == 'zh' ? '简体中文' : 'English',
                 onTap: () => _selectLanguage(context),
               ),
             ],
           ),
           SettingsSection(
-            title: 'settings_display'.tr(),
-            description: 'settings_display_desc'.tr(),
+            title: LocaleKeys.settings_display.tr(),
+            description: LocaleKeys.settings_display_desc.tr(),
             icon: Icons.view_compact_outlined,
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text('player_list_card'.tr()),
-                subtitle: Text('player_list_card_desc'.tr()),
+                title: Text(LocaleKeys.player_list_card.tr()),
+                subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
                 value: compactPeerCards,
                 onChanged: services.appSettings.setCompactPeerCards,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text('reduce_animation_updates'.tr()),
-                subtitle: Text('reduce_animation_updates_desc'.tr()),
+                title: Text(LocaleKeys.reduce_animation_updates.tr()),
+                subtitle: Text(LocaleKeys.reduce_animation_updates_desc.tr()),
                 value: reduceMotion,
                 onChanged: services.appSettings.updateReduceAnimationUpdates,
               ),
