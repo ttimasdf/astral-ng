@@ -2,18 +2,18 @@
 
 ## Linux, Windows, and macOS
 
-Run the application from the project development shell so Dart and Rust native
-console records remain together:
+Run the application from the project development shell for immediate Dart and
+Rust console feedback:
 
 ```sh
 nix develop
 flutter run -d linux
 ```
 
-Use the appropriate Flutter desktop device on Windows or macOS. The controlled
-record body has the same level, module, event code, message, and safe fields on
-all desktop targets. Flutter DevTools also receives Dart records through
-`dart:developer`.
+Use the appropriate Flutter desktop device on Windows or macOS. Flutter
+DevTools receives Dart records through `dart:developer`; Rust also writes a
+native fallback to process stderr. These streams are not the canonical merged
+artifact. Use the ECS JSONL workflow for cross-origin ordering and filtering.
 
 For the available modules and event codes, see the
 [project-wide diagnostics catalog](../DIAGNOSTIC_CATALOG.md).
@@ -42,10 +42,12 @@ adb logcat -c
 adb logcat -v threadtime -s Astral AstralRust flutter > astral-logcat.txt
 ```
 
-Android adds its own timestamps, process IDs, priorities, and tags. Compare the
-Astral-controlled body and correlation IDs, not host-added prefixes. `Astral`
-is the Kotlin VPN adapter tag and `AstralRust` is the Rust native tag; both feed
-the same structured schema when the Flutter bridge is attached.
+Android adds its own timestamps, process IDs, priorities, and tags. `Astral`
+is the Kotlin VPN adapter tag, `AstralRust` is the Rust native tag, and Flutter
+Dart output can be visible through the `flutter` tag or DevTools depending on
+the runtime. No individual console is guaranteed to contain every origin. Use
+the canonical JSONL retrieval workflow for agent analysis; use `logcat` for
+pre-bridge, bridge-failure, and Android service investigations.
 
 ## DevTools
 

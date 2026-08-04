@@ -6,26 +6,36 @@ filter construction, and code review. Event codes are the stable query keys;
 messages may change with wording or localization.
 
 The catalog covers records emitted by the application and its EasyTier/VPN
-integration. Third-party EasyTier records that do not provide an explicit
-`event_code` use the fallback form documented below. Update this file in the
-same change that adds a new user-facing diagnostic event.
+integration. Third-party EasyTier tracing without a semantic classification
+has no `event.code`; its logger, message, and source provenance remain
+queryable. Update this file in the same change that adds a new user-facing
+diagnostic event.
 
 ## Common record schema
 
-Every structured record uses the same conceptual fields:
+Persisted records use Elastic Common Schema-compatible JSON Lines. Standard ECS
+fields provide direct `lnav` detection, while the `astral` object carries the
+versioned application extension:
 
 | Field | Meaning |
 | --- | --- |
-| `level` | `trace`, `debug`, `info`, `warning`, `error`, or `fatal` |
-| `module` | Hierarchical policy and filtering name, normally beginning with `astral.` |
-| `eventCode` / `event_code` | Stable event identity |
+| `@timestamp` | UTC source timestamp used to merge records |
+| `log.level` | `trace`, `debug`, `info`, `warning`, `error`, or `fatal` |
+| `log.logger` | Hierarchical policy/filtering module, normally beginning with `astral.` |
+| `log.origin.*` | Compact source file, line, and function provenance when available |
+| `event.code` | Optional stable semantic event identity; never a source location |
+| `event.created` | UTC time Astral ingested the source record |
+| `event.sequence` | Source sequence, falling back to Astral ingest sequence |
+| `event.provider` | `dart`, `rust`, or `android` |
 | `message` | Human-readable, non-secret description |
-| `fields` | Bounded, sanitized scalar context |
-| `connectionAttemptId` | Connection/VPN/EasyTier attempt correlation when applicable |
-| `operationId` | Short-lived operation correlation when applicable |
-| `easyTierInstanceId` | EasyTier instance correlation when applicable |
-| `errorId` | One ID assigned by the owning error boundary |
-| `stackTrace` | One owning stack for an error, when available |
+| `error.*` | Owning error ID, type, message, and one stack when available |
+| `session.id` | Process diagnostic session correlation |
+| `astral.fields` | Bounded, sanitized component-specific scalar context |
+| `astral.operation_id` | Short-lived operation correlation when applicable |
+| `astral.connection_attempt_id` | Connection/VPN/EasyTier attempt correlation when applicable |
+| `astral.easytier_instance_id` | EasyTier instance correlation when applicable |
+| `astral.ingest_sequence` | Total ordering within one process session |
+| `astral.schema_version` | Version of the Astral ECS extension |
 
 Dart records are produced by `ModuleLogger` and normalized by
 `DiagnosticsRuntime`. Rust records are produced by the Astral
@@ -33,6 +43,11 @@ Dart records are produced by `ModuleLogger` and normalized by
 and forwarded through the Flutter event channel. The native adapters differ,
 but the record body, levels, module policy, correlation, redaction, and flood
 controls are shared.
+
+`event.code` follows `<domain>.<entity>.<state-or-past-tense-action>`. Ordinary
+upstream logs are not assigned codes derived from message wording, hashes,
+files, or line numbers. Their `astral.classification` is
+`upstream-unclassified`.
 
 ## Native console tags
 
@@ -250,8 +265,8 @@ establishment failure, not a permission-revocation record.
 ## Rust and EasyTier event codes
 
 Rust emits through `tracing`. Explicit `event_code` fields are listed here;
-ordinary EasyTier tracing output is retained with its mapped module and compact
-fallback source identity.
+ordinary EasyTier tracing output is retained without `event.code`, using its
+mapped logger and compact source provenance instead.
 
 ### Diagnostics infrastructure
 
@@ -305,7 +320,7 @@ per-packet forwarding records.
 | `magic-wall.filters.tracker.missing` | Filter tracking state missing |
 | `magic-wall.filter.ipv4.failed`, `magic-wall.filter.ipv6.failed` | Address-family filter failure |
 
-### Target mapping and fallback identities
+### Target mapping and unclassified provenance
 
 Rust targets are mapped into the module hierarchy as follows:
 
@@ -318,21 +333,17 @@ Rust targets are mapped into the module hierarchy as follows:
 | other `easytier::...` | `astral.easytier.<...>` |
 | `rust_lib_astral::...` | `astral.rust.<...>` |
 
-When a tracing event has no explicit code, the normalized identity is:
+When a tracing event has no explicit code, `event.code` is omitted. The compact
+crate-relative path and line are stored under `log.origin.file`, and the Rust
+module path is stored under `log.origin.function`. For example:
 
-```text
-rust.event@<crate>:<path-below-src>:<line>
+```json
+{"log":{"logger":"astral.easytier.connection","origin":{"file":{"name":"easytier/connector/manual.rs","line":213},"function":"easytier::connector::manual"}},"astral":{"classification":"upstream-unclassified"}}
 ```
 
-Examples:
-
-```text
-rust.event@easytier:connector/manual.rs:213
-rust.event@astral:api/simple.rs:42
-```
-
-Only the crate label, path below `src/`, and line are retained. Absolute build
-paths and checkout hashes are not part of the fallback code.
+Absolute build paths and checkout hashes are never retained. Use semantic event
+codes for operational filters and source provenance only for code-level
+investigation within a specific build.
 
 ## Adding a new event
 

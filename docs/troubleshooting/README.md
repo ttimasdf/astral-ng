@@ -20,8 +20,8 @@ application control plane.
   expected observability behavior.
 
 The [project-wide diagnostics catalog](../DIAGNOSTIC_CATALOG.md) lists modules,
-event codes, native tags, and fallback source identities across Dart, Rust, and
-Kotlin.
+event codes, native tags, and unclassified Rust source provenance across Dart,
+Rust, and Kotlin.
 
 Astral diagnostics describe control-plane decisions and failures. They do not
 record packets, replace a profiler, or dump the host configuration. Use the

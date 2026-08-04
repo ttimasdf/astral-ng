@@ -135,19 +135,24 @@
             name = "astral-dev";
             buildInputs = [
               rustc
+              rustfmt
               cargo
+              cargo-expand
               rustup
               cargo-ndk
               flutterSdk
+              flutter_rust_bridge_codegen
               flutterAndroid
               androidSdk
               javaSdk
               protobuf
+              python3
               clang
               libclang
               gradle
               gh
               jq
+              lnav
               act
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [

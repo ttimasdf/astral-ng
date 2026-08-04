@@ -51,7 +51,8 @@ Enter the complete Linux development environment with:
 nix develop
 ```
 
-The shell includes Flutter, Rust, Java, cargo-ndk, protobuf, and the Android SDK
+The shell includes Flutter, Flutter Rust Bridge code generation, Rust and
+`rustfmt`, Java, cargo-ndk, protobuf, Python, `jq`, `lnav`, and the Android SDK
 composition selected from the current lock, including the compatible platform,
 build tools, CMake, and NDK versions. It exports `JAVA_HOME`, `ANDROID_HOME`,
 `ANDROID_SDK_ROOT`, and `ANDROID_NDK_ROOT`, supplies Nix's `aapt2` to Gradle,

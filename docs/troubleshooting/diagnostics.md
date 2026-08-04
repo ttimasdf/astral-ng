@@ -26,6 +26,50 @@ before sharing it.
 See the [diagnostics catalog](../DIAGNOSTIC_CATALOG.md) for event codes and
 module names.
 
+## Canonical JSONL timeline
+
+The rotating `astral.jsonl` set is the canonical diagnostic interface for both
+agents and humans. It contains ECS-compatible records from Dart, Rust/EasyTier,
+and the Android VPN adapter after their bounded bridges attach. Native consoles
+remain immediate/emergency fallbacks; do not merge DevTools and `logcat` output
+when the JSONL artifact is available.
+
+From the Nix development shell, validate or merge a desktop rotation set:
+
+```sh
+python3 scripts/diagnostic_jsonl.py validate <application-support>/logs
+python3 scripts/diagnostic_jsonl.py merge \
+  <application-support>/logs \
+  --output /tmp/astral-diagnostics.jsonl
+lnav /tmp/astral-diagnostics.jsonl
+```
+
+On Linux the production identity normally stores the set under
+`~/.local/share/pw.rabit.astralng/logs`; the canary identity uses the adjacent
+`pw.rabit.astralng.canary` directory. Pass the explicit directory instead of
+assuming this location on other desktop platforms.
+
+For a debuggable Android build, retrieve private current and rotated files in
+chronological order with:
+
+```sh
+python3 scripts/diagnostic_jsonl.py pull-android \
+  --package pw.rabit.astralng.canary \
+  --output /tmp/astral-diagnostics.jsonl
+lnav /tmp/astral-diagnostics.jsonl
+```
+
+Use `--device <adb-serial>` when more than one device is connected. Android
+release storage is intentionally unavailable to `adb run-as`; use the reviewed
+in-app support workflow instead. Every persisted rotation set has one Astral
+schema version. An incompatible pre-ECS set is discarded on migration rather
+than mixed with the new contract.
+
+Semantic events have stable `event.code` values. Ordinary upstream traces omit
+that field and expose compact provenance under `log.origin`; agents should
+filter those by `log.logger`, message, and source only when a semantic event is
+not available.
+
 ## Pre-start diagnostic flags
 
 Launch overrides apply to the current process only. They are parsed before the
