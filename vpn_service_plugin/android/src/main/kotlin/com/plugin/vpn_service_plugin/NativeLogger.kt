@@ -18,7 +18,12 @@ object NativeLogger {
     private const val TAG = "Astral"
     private const val MODULE = "astral.vpn.android"
     private const val MAX_VALUE_LENGTH = 1024
+    private const val MAX_MESSAGE_LENGTH = 4096
+    private const val MAX_STACK_LENGTH = 32768
     private const val MAX_PENDING_EVENTS = 256
+    private val sensitiveAssignment = Regex(
+        """(?i)[a-z0-9_-]*(?:password|token|authorization|cookie|private[_-]?key|secret|credential)[a-z0-9_-]*["']?\s*[:=]""",
+    )
     private val minimumPriority = AtomicInteger(NativeLogLevel.INFO.priority)
     private val sourceSequence = AtomicLong(0)
     private val callbackLock = Any()
@@ -86,16 +91,20 @@ object NativeLogger {
         error: Throwable? = null,
     ) {
         if (level.priority < minimumPriority.get() && level.priority < Log.ERROR) return
+        val safeMessage = sanitizeText(message, MAX_MESSAGE_LENGTH)
         val safeFields = sanitize(fields)
         val fieldText = safeFields.entries
             .sortedBy { it.key }
             .joinToString(" ") { "${it.key}=${it.value}" }
         val suffix = if (fieldText.isEmpty()) "" else " | $fieldText"
-        val body = "${level.token} vpn.android        ${eventCode.padEnd(24)} $message$suffix"
-        if (error == null) {
+        val body = "${level.token} [vpn.android] [$eventCode] $safeMessage$suffix"
+        val safeStackTrace = error?.let {
+            sanitizeText(Log.getStackTraceString(it), MAX_STACK_LENGTH)
+        }
+        if (safeStackTrace == null) {
             Log.println(level.priority, TAG, body)
         } else {
-            Log.println(level.priority, TAG, "$body\n${Log.getStackTraceString(error)}")
+            Log.println(level.priority, TAG, "$body\n$safeStackTrace")
         }
 
         val event = mutableMapOf<String, Any?>(
@@ -104,14 +113,17 @@ object NativeLogger {
             "level" to level.wireName,
             "module" to MODULE,
             "eventCode" to eventCode.take(128),
-            "message" to message.take(4096),
+            "message" to safeMessage,
             "fields" to safeFields,
             "consoleAlreadyReported" to true,
         )
         if (error != null) {
             event["errorType"] = error.javaClass.simpleName
-            event["errorMessage"] = error.message?.take(4096) ?: error.toString().take(4096)
-            event["stackTrace"] = Log.getStackTraceString(error).take(32768)
+            event["errorMessage"] = sanitizeText(
+                error.message ?: error.toString(),
+                MAX_MESSAGE_LENGTH,
+            )
+            event["stackTrace"] = safeStackTrace
         }
         forward(event)
     }
@@ -166,10 +178,17 @@ object NativeLogger {
         } else {
             when (value) {
                 null, is Boolean, is Number -> value
-                else -> value.toString().take(MAX_VALUE_LENGTH)
+                else -> sanitizeText(value.toString(), MAX_VALUE_LENGTH)
             }
         }
     }
+
+    internal fun sanitizeText(value: String, maxLength: Int): String =
+        if (sensitiveAssignment.containsMatchIn(value)) {
+            "<redacted>"
+        } else {
+            value.take(maxLength)
+        }
 
     private fun isSensitive(key: String): Boolean {
         val normalized = key.lowercase().replace('-', '_')

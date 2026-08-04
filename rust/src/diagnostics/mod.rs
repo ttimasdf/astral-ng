@@ -214,7 +214,7 @@ where
     let mut visitor = FieldVisitor { fields };
     event.record(&mut visitor);
     let mut fields = visitor.fields;
-    let message = truncate(
+    let message = sanitize_text(
         fields
             .remove("message")
             .unwrap_or_else(|| "Rust event".to_string()),
@@ -316,7 +316,7 @@ impl FieldVisitor {
         let safe_value = if is_sensitive_key(&key) {
             "<redacted>".to_string()
         } else {
-            truncate(value, MAX_FIELD_LENGTH)
+            sanitize_text(value, MAX_FIELD_LENGTH)
         };
         self.fields.insert(key, safe_value);
     }
@@ -335,6 +335,31 @@ fn is_sensitive_key(key: &str) -> bool {
     ]
     .iter()
     .any(|needle| normalized.contains(needle))
+}
+
+fn sanitize_text(value: String, max: usize) -> String {
+    if contains_sensitive_assignment(&value) {
+        return "<redacted>".to_string();
+    }
+    truncate(value, max)
+}
+
+fn contains_sensitive_assignment(value: &str) -> bool {
+    value.char_indices().any(|(index, character)| {
+        if character != ':' && character != '=' {
+            return false;
+        }
+        let prefix = value[..index].trim_end_matches(|character: char| {
+            character.is_whitespace() || character == '"' || character == '\''
+        });
+        let key = prefix
+            .rsplit(|character: char| {
+                !(character.is_ascii_alphanumeric() || character == '_' || character == '-')
+            })
+            .next()
+            .unwrap_or_default();
+        !key.is_empty() && is_sensitive_key(key)
+    })
 }
 
 fn truncate(mut value: String, max: usize) -> String {
@@ -423,13 +448,15 @@ fn format_native(event: &RustDiagnosticEvent) -> String {
     } else {
         format!(" | {fields}")
     };
+    let event_code = event
+        .event_code
+        .as_deref()
+        .map(|code| format!(" [{code}]"))
+        .unwrap_or_default();
     format!(
-        "{} {:<18} {:<24} {}{}",
+        "{} [{module}]{event_code} {}{suffix}",
         level_token(&event.level),
-        module,
-        event.event_code.as_deref().unwrap_or("-"),
         event.message,
-        suffix
     )
 }
 
@@ -449,9 +476,10 @@ fn write_native(event: &RustDiagnosticEvent) {
 }
 
 fn write_emergency(level: &str, module: &str, code: &str, message: &str) {
+    let safe_message = sanitize_text(message.to_string(), MAX_MESSAGE_LENGTH);
     write_native_line(
         android_priority(level),
-        &format!("{level} {module:<18} {code:<24} {message}"),
+        &format!("{level} [{module}] [{code}] {safe_message}"),
     );
 }
 
@@ -538,11 +566,17 @@ mod tests {
     }
 
     #[test]
-    fn native_formatter_does_not_add_ansi_color() {
-        let event = test_event(0);
+    fn native_formatter_is_compact_and_does_not_add_ansi_color() {
+        let mut event = test_event(0);
 
+        assert_eq!(format_native(&event), "INF [easytier] Rust event");
         assert!(!format_native(&event).contains('\u{1b}'));
-        assert!(format_native(&event).contains(" - "));
+
+        event.event_code = Some("easytier.connection.started".to_string());
+        assert_eq!(
+            format_native(&event),
+            "INF [easytier] [easytier.connection.started] Rust event"
+        );
     }
 
     #[test]
@@ -576,15 +610,30 @@ mod tests {
     }
 
     #[test]
-    fn redacts_sensitive_fields() {
+    fn redacts_sensitive_fields_and_nested_debug_assignments() {
         let mut visitor = FieldVisitor::default();
         let field_set = tracing::field::FieldSet::new(
-            &["room_password"],
+            &["room_password", "network"],
             tracing::callsite::Identifier(&TEST_CALLSITE),
         );
-        let field = field_set.field("room_password").unwrap();
-        visitor.record_str(&field, "secret");
+        let password = field_set.field("room_password").unwrap();
+        visitor.record_str(&password, "dummy-value");
         assert_eq!(visitor.fields["room_password"], "<redacted>");
+
+        let network = field_set.field("network").unwrap();
+        visitor.record_str(
+            &network,
+            r#"NetworkIdentity { network_secret: Some("dummy-value"), network_secret_digest: Some([1, 2]) }"#,
+        );
+        assert_eq!(visitor.fields["network"], "<redacted>");
+        assert_eq!(
+            sanitize_text("Credential changed".to_string(), MAX_MESSAGE_LENGTH),
+            "Credential changed"
+        );
+        assert_eq!(
+            sanitize_text("network_secret=dummy-value".to_string(), MAX_MESSAGE_LENGTH),
+            "<redacted>"
+        );
     }
 
     struct TestCallsite;

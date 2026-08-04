@@ -42,6 +42,10 @@ adb logcat -c
 adb logcat -v threadtime -s Astral AstralRust flutter > astral-logcat.txt
 ```
 
+Astral-controlled console bodies use compact bracketed fields:
+`LEVEL [module] [optional.event.code] message | key=value`. The event-code
+bracket is omitted for unclassified upstream traces; columns are not padded.
+
 Android adds its own timestamps, process IDs, priorities, and tags. `Astral`
 is the Kotlin VPN adapter tag, `AstralRust` is the Rust native tag, and Flutter
 Dart output can be visible through the `flutter` tag or DevTools depending on

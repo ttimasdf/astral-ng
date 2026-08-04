@@ -131,17 +131,22 @@ def adb_base(device: str | None) -> list[str]:
 def pull_android(package: str, device: str | None) -> list[dict[str, Any]]:
     if not PACKAGE_NAME.fullmatch(package):
         raise DiagnosticError("Android package name contains unsupported characters")
+    listing = subprocess.run(
+        [*adb_base(device), "exec-out", "run-as", package, "ls", "files/logs"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if listing.returncode != 0:
+        detail = listing.stderr.decode("utf-8", errors="replace").strip()
+        raise DiagnosticError(f"failed to list Android diagnostic logs: {detail}")
+    available = set(listing.stdout.decode("utf-8", errors="replace").split())
+
     records: list[dict[str, Any]] = []
     for name in ROTATED_NAMES:
-        remote = f"files/logs/{name}"
-        probe = subprocess.run(
-            [*adb_base(device), "shell", "run-as", package, "test", "-f", remote],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
-        if probe.returncode != 0:
+        if name not in available:
             continue
+        remote = f"files/logs/{name}"
         fetched = subprocess.run(
             [*adb_base(device), "exec-out", "run-as", package, "cat", remote],
             stdout=subprocess.PIPE,
@@ -149,8 +154,7 @@ def pull_android(package: str, device: str | None) -> list[dict[str, Any]]:
             check=False,
         )
         if fetched.returncode != 0:
-            detail = fetched.stderr.decode("utf-8", errors="replace").strip()
-            raise DiagnosticError(f"failed to read {remote}: {detail}")
+            continue
         for line_number, raw_line in enumerate(fetched.stdout.splitlines(), 1):
             if not raw_line.strip():
                 continue

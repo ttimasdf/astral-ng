@@ -34,7 +34,7 @@ def record(timestamp: str, sequence: int, code: str | None = None) -> dict:
         "service": {"name": "astral-ng"},
         "session": {"id": "SESSION"},
         "astral": {
-            "schema_version": 2,
+            "schema_version": 3,
             "ingest_sequence": sequence,
             "classification": "upstream-unclassified",
         },

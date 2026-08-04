@@ -24,5 +24,8 @@ inventory and filter examples.
 
 Never copy complete EasyTier configuration, room passwords, message keys, or
 network credentials into an issue. Room links and compressed room payloads are
-redacted by Astral's diagnostics sanitizer, but the source configuration and
-state views still require careful review before sharing.
+redacted by Astral's diagnostics sanitizer. A rendered debug value containing a
+nested sensitive assignment is redacted as a whole before native output and
+JSONL ingestion, because arbitrary Rust `Debug` structures cannot be safely
+parsed member-by-member. Source configuration and state views still require
+careful review before sharing.

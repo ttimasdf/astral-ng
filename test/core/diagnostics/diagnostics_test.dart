@@ -12,6 +12,7 @@ import 'package:astral/core/diagnostics/log_severity.dart';
 import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
 import 'package:astral/core/diagnostics/diagnostic_context.dart';
 import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
+import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
 import 'package:astral/core/diagnostics/diagnostic_modules.dart';
 import 'package:astral/core/diagnostics/diagnostic_record.dart';
 import 'package:astral/core/diagnostics/diagnostic_sanitizer.dart';
@@ -309,7 +310,7 @@ void main() {
         'password': 'hunter2',
         'detail': 'Authorization=Bearer-secret',
       }),
-      {'password': '<redacted>', 'detail': 'Authorization=<redacted>'},
+      {'password': '<redacted>', 'detail': '<redacted-sensitive-text>'},
     );
     expect(sanitizer.text('\u001b[31mfailed\u001b[0m'), 'failed');
     expect(
@@ -336,6 +337,30 @@ void main() {
         'a3f1c9e7b5d24680123456789abcdef0a3f1c9e7b5d24680123456789abcdef0';
     expect(sanitizer.text('hash $sha256'), 'hash $sha256');
     expect(sanitizer.text('\u001b]8;;https://example.test\u0007link'), 'link');
+    expect(
+      sanitizer.fields({
+        'network':
+            'NetworkIdentity { network_secret: dummy-value, '
+            'network_secret_digest: [1, 2] }',
+      }),
+      {'network': '<redacted-sensitive-text>'},
+    );
+    expect(sanitizer.text('Credential changed'), 'Credential changed');
+  });
+
+  test('console formatter omits padding and absent event codes', () {
+    final timestamp = DateTime(2026);
+    final semantic = _record(timestamp, eventCode: 'connection.started');
+    final unclassified = _record(timestamp, eventCode: null);
+
+    expect(
+      DiagnosticFormatter.console(semantic),
+      '00:00:00.000 DBG [connection] [connection.started] test record',
+    );
+    expect(
+      DiagnosticFormatter.console(unclassified),
+      '00:00:00.000 DBG [connection] test record',
+    );
   });
 
   test('support bundle contains metadata and redacted records', () async {
@@ -366,7 +391,7 @@ void main() {
     final astral = record['astral'] as Map<String, dynamic>;
     final fields = astral['fields'] as Map<String, dynamic>;
 
-    expect(decoded['support_bundle_schema_version'], 2);
+    expect(decoded['support_bundle_schema_version'], 3);
     expect(
       (decoded['session'] as Map<String, dynamic>)['app_version'],
       '3.0.0',
@@ -617,7 +642,7 @@ void main() {
 
 DiagnosticRecord _record(
   DateTime timestamp, {
-  required String eventCode,
+  required String? eventCode,
   Map<String, Object?> fields = const {},
   String? errorId,
 }) {

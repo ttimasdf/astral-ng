@@ -21,9 +21,8 @@ abstract final class DiagnosticFormatter {
       if (record.errorId != null) 'error_id': record.errorId,
     };
     final suffix = fields.isEmpty ? '' : ' | ${_formatFields(fields)}';
-    final eventCode = record.eventCode ?? '-';
-    return '$time ${record.level.token} '
-        '${module.padRight(18)} ${eventCode.padRight(24)} '
+    final eventCode = record.eventCode == null ? '' : ' [${record.eventCode}]';
+    return '$time ${record.level.token} [$module]$eventCode '
         '${record.message}$suffix';
   }
 

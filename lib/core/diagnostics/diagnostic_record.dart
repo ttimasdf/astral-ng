@@ -27,7 +27,7 @@ final class DiagnosticRecord {
     this.consoleAlreadyReported = false,
   }) : fields = Map.unmodifiable(fields);
 
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
   static const ecsVersion = '8.11.0';
 
   final DateTime sourceTimestampUtc;

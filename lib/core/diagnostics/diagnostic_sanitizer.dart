@@ -10,13 +10,9 @@ final class DiagnosticSanitizer {
     var result = value.toString();
     result = result.replaceAll(RegExp(r'\x1B\[[0-?]*[ -/]*[@-~]'), '');
     result = result.replaceAll(RegExp(r'\x1B\][\s\S]*?(?:\x07|\x1B\\)'), '');
-    result = result.replaceAllMapped(
-      RegExp(
-        r'(password|token|authorization|cookie|private[_-]?key)\s*[:=]\s*[^\s,;]+',
-        caseSensitive: false,
-      ),
-      (match) => '${match.group(1)}=<redacted>',
-    );
+    if (_sensitiveAssignment.hasMatch(result)) {
+      return '<redacted-sensitive-text>';
+    }
     result = result.replaceAll(
       RegExp(r'astral://room\?[^\s]*', caseSensitive: false),
       '<redacted-room-link>',
@@ -54,6 +50,11 @@ final class DiagnosticSanitizer {
     }
     return Map.unmodifiable(result);
   }
+
+  static final RegExp _sensitiveAssignment = RegExp(
+    r'''[a-z0-9_-]*(?:password|token|authorization|cookie|private[_-]?key|secret|credential)[a-z0-9_-]*["']?\s*[:=]''',
+    caseSensitive: false,
+  );
 
   bool _isSensitiveKey(String key) {
     final normalized = key.toLowerCase().replaceAll('-', '_');
