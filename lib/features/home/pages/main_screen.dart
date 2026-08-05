@@ -11,9 +11,11 @@ import 'package:astral/features/tools/pages/tools_page.dart';
 import 'package:astral/features/servers/pages/server_page.dart';
 import 'package:astral/features/settings/pages/settings_main_page.dart';
 import 'package:astral/shared/widgets/navigation/bottom_nav.dart';
+import 'package:astral/shared/widgets/navigation/content_navigator.dart';
 import 'package:astral/shared/widgets/navigation/left_nav.dart';
 import 'package:astral/shared/widgets/common/status_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:astral/core/ui/main_tab.dart';
 import 'package:astral/core/ui/navigation.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
@@ -32,9 +34,15 @@ class _MainScreenState extends State<MainScreen>
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver,
         WindowListener {
+  late final List<GlobalKey<NavigatorState>> _destinationNavigatorKeys;
+
   @override
   void initState() {
     super.initState();
+    _destinationNavigatorKeys = List.generate(
+      MainTab.values.length,
+      (_) => GlobalKey<NavigatorState>(),
+    );
 
     WidgetsBinding.instance.addObserver(this);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -188,7 +196,18 @@ class _MainScreenState extends State<MainScreen>
     ),
   ];
 
-  List<Widget> get _pages => navigationItems.map((item) => item.page).toList();
+  List<Widget> _destinationNavigators(
+    List<NavigationItem> items,
+    int activeIndex,
+  ) {
+    return List.generate(items.length, (index) {
+      return ContentNavigator(
+        navigatorKey: _destinationNavigatorKeys[index],
+        rootPage: items[index].page,
+        active: index == activeIndex,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -196,8 +215,9 @@ class _MainScreenState extends State<MainScreen>
     final isSmallWindow = SmallWindowAdapter.shouldApplyAdapter(context);
 
     return Watch((context) {
+      final items = navigationItems;
       final currentIndex = ServiceManager().uiState.selectedIndex.value;
-      final itemCount = navigationItems.length;
+      final itemCount = items.length;
 
       if (currentIndex >= itemCount && itemCount > 0) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -215,7 +235,7 @@ class _MainScreenState extends State<MainScreen>
         body: Row(
           children: [
             if (ServiceManager().uiState.isDesktop.value && !isSmallWindow)
-              LeftNav(items: navigationItems, colorScheme: colorScheme),
+              LeftNav(items: items, colorScheme: colorScheme),
             Expanded(
               child: Column(
                 children: [
@@ -228,9 +248,7 @@ class _MainScreenState extends State<MainScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        safeIndex < navigationItems.length
-                            ? navigationItems[safeIndex].label
-                            : '',
+                        safeIndex < items.length ? items[safeIndex].label : '',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -239,7 +257,10 @@ class _MainScreenState extends State<MainScreen>
                       ),
                     ),
                   Expanded(
-                    child: IndexedStack(index: safeIndex, children: _pages),
+                    child: IndexedStack(
+                      index: safeIndex,
+                      children: _destinationNavigators(items, safeIndex),
+                    ),
                   ),
                 ],
               ),
@@ -249,10 +270,7 @@ class _MainScreenState extends State<MainScreen>
         bottomNavigationBar:
             (ServiceManager().uiState.isDesktop.value && !isSmallWindow)
                 ? null
-                : BottomNav(
-                  navigationItems: navigationItems,
-                  colorScheme: colorScheme,
-                ),
+                : BottomNav(navigationItems: items, colorScheme: colorScheme),
       );
     });
   }
