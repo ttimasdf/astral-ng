@@ -9,10 +9,7 @@ class AppSettingsState {
   // 显示 Android 后台连接通知
   final connectionNotificationEnabled = signal(true);
 
-  // 自动重试失败的连接
-  final retryFailedConnections = signal(true);
-
-  // 连接重试次数上限
+  // 连接失败后的重试次数，0 表示禁用
   final connectionRetryLimit = signal(3);
 
   // 降低拓扑动画与刷新频率
@@ -25,12 +22,8 @@ class AppSettingsState {
     connectionNotificationEnabled.value = value;
   }
 
-  void setRetryFailedConnections(bool value) {
-    retryFailedConnections.value = value;
-  }
-
   void setConnectionRetryLimit(int value) {
-    connectionRetryLimit.value = value;
+    connectionRetryLimit.value = value.clamp(0, 10).toInt();
   }
 
   void setReduceTopologyAnimations(bool value) {

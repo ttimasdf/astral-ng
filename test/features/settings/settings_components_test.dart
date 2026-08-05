@@ -1,3 +1,4 @@
+import 'package:astral/core/states/app_settings_state.dart';
 import 'package:astral/core/states/display_state.dart';
 import 'package:astral/core/states/window_state.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
@@ -127,5 +128,15 @@ void main() {
 
   test('window close behavior defaults to close to tray', () {
     expect(WindowState().closeBehavior.value, WindowCloseBehavior.closeToTray);
+  });
+
+  test('connection retry limit stays between zero and ten', () {
+    final state = AppSettingsState();
+
+    state.setConnectionRetryLimit(-1);
+    expect(state.connectionRetryLimit.value, 0);
+
+    state.setConnectionRetryLimit(11);
+    expect(state.connectionRetryLimit.value, 10);
   });
 }

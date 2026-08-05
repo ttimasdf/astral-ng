@@ -107,18 +107,13 @@ const AllSettingsSchema = CollectionSchema(
       name: r'reduceTopologyAnimations',
       type: IsarType.bool,
     ),
-    r'retryFailedConnections': PropertySchema(
-      id: 18,
-      name: r'retryFailedConnections',
-      type: IsarType.bool,
-    ),
     r'selectedRoomId': PropertySchema(
-      id: 19,
+      id: 18,
       name: r'selectedRoomId',
       type: IsarType.long,
     ),
     r'updateDownloadSource': PropertySchema(
-      id: 20,
+      id: 19,
       name: r'updateDownloadSource',
       type: IsarType.string,
     ),
@@ -204,9 +199,8 @@ void _allSettingsSerialize(
   writer.writeBool(offsets[15], object.preferAstralAdapter);
   writer.writeBool(offsets[16], object.receiveBetaUpdates);
   writer.writeBool(offsets[17], object.reduceTopologyAnimations);
-  writer.writeBool(offsets[18], object.retryFailedConnections);
-  writer.writeLong(offsets[19], object.selectedRoomId);
-  writer.writeString(offsets[20], object.updateDownloadSource);
+  writer.writeLong(offsets[18], object.selectedRoomId);
+  writer.writeString(offsets[19], object.updateDownloadSource);
 }
 
 AllSettings _allSettingsDeserialize(
@@ -235,9 +229,8 @@ AllSettings _allSettingsDeserialize(
   object.preferAstralAdapter = reader.readBool(offsets[15]);
   object.receiveBetaUpdates = reader.readBool(offsets[16]);
   object.reduceTopologyAnimations = reader.readBool(offsets[17]);
-  object.retryFailedConnections = reader.readBool(offsets[18]);
-  object.selectedRoomId = reader.readLongOrNull(offsets[19]);
-  object.updateDownloadSource = reader.readString(offsets[20]);
+  object.selectedRoomId = reader.readLongOrNull(offsets[18]);
+  object.updateDownloadSource = reader.readString(offsets[19]);
   return object;
 }
 
@@ -285,10 +278,8 @@ P _allSettingsDeserializeProp<P>(
     case 17:
       return (reader.readBool(offset)) as P;
     case 18:
-      return (reader.readBool(offset)) as P;
-    case 19:
       return (reader.readLongOrNull(offset)) as P;
-    case 20:
+    case 19:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1513,18 +1504,6 @@ extension AllSettingsQueryFilter
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  retryFailedConnectionsEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'retryFailedConnections',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
   selectedRoomIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1965,20 +1944,6 @@ extension AllSettingsQuerySortBy
     });
   }
 
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByRetryFailedConnections() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'retryFailedConnections', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByRetryFailedConnectionsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'retryFailedConnections', Sort.desc);
-    });
-  }
-
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> sortBySelectedRoomId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'selectedRoomId', Sort.asc);
@@ -2236,20 +2201,6 @@ extension AllSettingsQuerySortThenBy
     });
   }
 
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByRetryFailedConnections() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'retryFailedConnections', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByRetryFailedConnectionsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'retryFailedConnections', Sort.desc);
-    });
-  }
-
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> thenBySelectedRoomId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'selectedRoomId', Sort.asc);
@@ -2404,13 +2355,6 @@ extension AllSettingsQueryWhereDistinct
     });
   }
 
-  QueryBuilder<AllSettings, AllSettings, QDistinct>
-  distinctByRetryFailedConnections() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'retryFailedConnections');
-    });
-  }
-
   QueryBuilder<AllSettings, AllSettings, QDistinct> distinctBySelectedRoomId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'selectedRoomId');
@@ -2551,13 +2495,6 @@ extension AllSettingsQueryProperty
   reduceTopologyAnimationsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'reduceTopologyAnimations');
-    });
-  }
-
-  QueryBuilder<AllSettings, bool, QQueryOperations>
-  retryFailedConnectionsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'retryFailedConnections');
     });
   }
 

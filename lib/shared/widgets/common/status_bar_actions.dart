@@ -12,11 +12,11 @@ import 'package:signals_flutter/signals_flutter.dart';
 String getThemeModeText(ThemeMode mode) {
   switch (mode) {
     case ThemeMode.light:
-      return 'theme_light'.tr();
+      return LocaleKeys.theme_light.tr();
     case ThemeMode.dark:
-      return 'theme_dark'.tr();
+      return LocaleKeys.theme_dark.tr();
     case ThemeMode.system:
-      return 'theme_system'.tr();
+      return LocaleKeys.theme_system.tr();
   }
 }
 
@@ -57,15 +57,15 @@ List<PopupMenuEntry<ThemeMode>> buildThemeModeMenuItems(ThemeMode current) {
   return [
     PopupMenuItem(
       value: ThemeMode.system,
-      child: row(ThemeMode.system, 'theme_system'.tr()),
+      child: row(ThemeMode.system, LocaleKeys.theme_system.tr()),
     ),
     PopupMenuItem(
       value: ThemeMode.light,
-      child: row(ThemeMode.light, 'theme_light'.tr()),
+      child: row(ThemeMode.light, LocaleKeys.theme_light.tr()),
     ),
     PopupMenuItem(
       value: ThemeMode.dark,
-      child: row(ThemeMode.dark, 'theme_dark'.tr()),
+      child: row(ThemeMode.dark, LocaleKeys.theme_dark.tr()),
     ),
   ];
 }
@@ -79,7 +79,9 @@ Widget buildThemeModeMenuButton({
 
     return PopupMenuButton<ThemeMode>(
       icon: Icon(getThemeModeIcon(mode), size: iconSize),
-      tooltip: getThemeModeText(mode),
+      tooltip: LocaleKeys.change_theme_mode_tooltip.tr(
+        namedArgs: {'mode': getThemeModeText(mode)},
+      ),
       padding: padding,
       onSelected: ServiceManager().theme.updateThemeMode,
       itemBuilder: (context) => buildThemeModeMenuItems(mode),
@@ -93,7 +95,7 @@ List<Widget> buildCompactStatusBarActions(BuildContext context) {
     buildThemeModeMenuButton(iconSize: 16, padding: const EdgeInsets.all(4)),
     PopupMenuButton<Locale>(
       icon: Icon(Icons.language, size: 16),
-      tooltip: LocaleKeys.language.tr(),
+      tooltip: LocaleKeys.change_app_language_tooltip.tr(),
       onSelected: (Locale locale) {
         context.setLocale(locale);
       },
@@ -143,12 +145,12 @@ List<Widget> buildDesktopStatusBarActions(
     IconButton(
       icon: const Icon(Icons.color_lens, size: 20),
       onPressed: () => showThemeColorPicker(context),
-      tooltip: 'select_theme_color'.tr(),
+      tooltip: LocaleKeys.select_theme_color.tr(),
       padding: const EdgeInsets.all(4),
     ),
     PopupMenuButton<Locale>(
       icon: const Icon(Icons.language, size: 20),
-      tooltip: LocaleKeys.language.tr(),
+      tooltip: LocaleKeys.change_app_language_tooltip.tr(),
       onSelected: (Locale locale) {
         context.setLocale(locale);
       },

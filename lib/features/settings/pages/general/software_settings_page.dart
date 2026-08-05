@@ -277,60 +277,40 @@ class _SoftwareSettingsPageState
               leading: const Icon(Icons.sync),
             ),
             buildDivider(),
-            SwitchListTile(
-              title: Text(LocaleKeys.retry_failed_connections.tr()),
-              subtitle: Text(LocaleKeys.retry_failed_connections_desc.tr()),
-              value:
-                  ServiceManager()
-                      .appSettingsState
-                      .retryFailedConnections
-                      .value,
-              onChanged: (value) async {
-                await ServiceManager().appSettings.setRetryFailedConnections(
-                  value,
-                );
-              },
-            ),
-            if (ServiceManager().appSettingsState.retryFailedConnections.value)
-              ListTile(
-                title: Text(LocaleKeys.connection_retry_limit.tr()),
-                subtitle: Text(
-                  LocaleKeys.connection_retry_limit_value.tr(
-                    namedArgs: {
-                      'count':
-                          ServiceManager()
-                              .appSettingsState
-                              .connectionRetryLimit
-                              .value
-                              .toString(),
-                    },
-                  ),
-                ),
-                trailing: SizedBox(
-                  width: 100,
-                  child: DropdownButton<int>(
-                    value:
-                        ServiceManager()
-                            .appSettingsState
-                            .connectionRetryLimit
-                            .value,
-                    isExpanded: true,
-                    items:
-                        [1, 2, 3, 5, 10].map((int count) {
-                          return DropdownMenuItem<int>(
-                            value: count,
-                            child: Text(count.toString()),
-                          );
-                        }).toList(),
-                    onChanged: (int? newValue) async {
-                      if (newValue != null) {
-                        await ServiceManager().appSettings
-                            .setConnectionRetryLimit(newValue);
-                      }
-                    },
-                  ),
-                ),
+            ListTile(
+              title: Text(LocaleKeys.connection_retry_limit.tr()),
+              subtitle: Text(
+                ServiceManager().appSettingsState.connectionRetryLimit.value ==
+                        0
+                    ? LocaleKeys.connection_retry_limit_disabled.tr()
+                    : LocaleKeys.connection_retry_limit_value.tr(
+                      namedArgs: {
+                        'count':
+                            ServiceManager()
+                                .appSettingsState
+                                .connectionRetryLimit
+                                .value
+                                .toString(),
+                      },
+                    ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Slider(
+                value:
+                    ServiceManager().appSettingsState.connectionRetryLimit.value
+                        .toDouble(),
+                min: 0,
+                max: 10,
+                divisions: 10,
+                onChanged: (value) {
+                  ServiceManager().appSettings.setConnectionRetryLimit(
+                    value.round(),
+                  );
+                },
+              ),
+            ),
           ],
         ),
         if (SettingsAvailability.androidOnly.isVisible)

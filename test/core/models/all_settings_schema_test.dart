@@ -10,6 +10,7 @@ void main() {
       'androidVpnRoutes',
       'compactPeerCards',
       'connectionNotificationEnabled',
+      'connectionRetryLimit',
       'launchAtLogin',
       'preferAstralAdapter',
       'updateDownloadSource',
@@ -20,10 +21,18 @@ void main() {
     for (final legacyProperty in {
       'autoSetMTU',
       'closeMinimize',
+      'retryFailedConnections',
       'settingsSchemaVersion',
       'userListSimple',
     }) {
       expect(source, isNot(contains(legacyProperty)));
     }
+  });
+
+  test('NetConfig stores the SOCKS5 bind scope', () {
+    final source = File('lib/core/models/net_config.dart').readAsStringSync();
+
+    expect(source, contains('socks5_listen_all_interfaces'));
+    expect(source, contains('bool socks5_listen_all_interfaces = false'));
   });
 }

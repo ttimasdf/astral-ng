@@ -69,7 +69,6 @@ class AppSettingsService {
     appSettingsState.setReduceTopologyAnimations(
       settings.reduceTopologyAnimations,
     );
-    appSettingsState.setRetryFailedConnections(settings.retryFailedConnections);
     appSettingsState.setConnectionRetryLimit(settings.connectionRetryLimit);
 
     windowState.setCloseBehavior(
@@ -178,14 +177,12 @@ class AppSettingsService {
     await _repo.update((s) => s.reduceTopologyAnimations = value);
   }
 
-  Future<void> setRetryFailedConnections(bool value) async {
-    appSettingsState.setRetryFailedConnections(value);
-    await _repo.update((s) => s.retryFailedConnections = value);
-  }
-
   Future<void> setConnectionRetryLimit(int limit) async {
     appSettingsState.setConnectionRetryLimit(limit);
-    await _repo.update((s) => s.connectionRetryLimit = limit);
+    await _repo.update(
+      (s) =>
+          s.connectionRetryLimit = appSettingsState.connectionRetryLimit.value,
+    );
   }
 
   Future<void> updateWindowCloseBehavior(WindowCloseBehavior value) async {

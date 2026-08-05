@@ -74,6 +74,11 @@ class NetworkConfigService {
     await _repo.update((c) => c.socks5_port = port);
   }
 
+  Future<void> updateSocks5ListenAllInterfaces(bool value) async {
+    state.socks5ListenAllInterfaces.value = value;
+    await _repo.update((c) => c.socks5_listen_all_interfaces = value);
+  }
+
   Future<void> updateDataCompressAlgo(int value) async {
     state.dataCompressAlgo.value = value;
     await _repo.update((c) => c.data_compress_algo = value);

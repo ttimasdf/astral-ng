@@ -64,9 +64,6 @@ class AllSettings {
   /// 降低拓扑动画与刷新频率
   bool reduceTopologyAnimations = false;
 
-  /// 自动重试失败的连接
-  bool retryFailedConnections = true;
-
-  /// 连接重试次数上限
+  /// 连接失败后的重试次数，0 表示禁用
   int connectionRetryLimit = 3;
 }

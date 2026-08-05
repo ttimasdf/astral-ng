@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class LocaleKeys {
+abstract class  LocaleKeys {
   static const firewall = 'firewall';
   static const firewall_enabled = 'firewall_enabled';
   static const firewall_disabled = 'firewall_disabled';
@@ -36,8 +36,7 @@ abstract class LocaleKeys {
   static const nav_settings = 'nav_settings';
   static const permission_install_success = 'permission_install_success';
   static const permission_install_failed = 'permission_install_failed';
-  static const permission_install_request_failed =
-      'permission_install_request_failed';
+  static const permission_install_request_failed = 'permission_install_request_failed';
   static const permission_denied = 'permission_denied';
   static const permission_denied_message = 'permission_denied_message';
   static const cancel = 'cancel';
@@ -49,8 +48,7 @@ abstract class LocaleKeys {
   static const view_adapter_priorities = 'view_adapter_priorities';
   static const windows_adapter_priorities = 'windows_adapter_priorities';
   static const close = 'close';
-  static const load_adapter_priorities_failed =
-      'load_adapter_priorities_failed';
+  static const load_adapter_priorities_failed = 'load_adapter_priorities_failed';
   static const launch_at_login = 'launch_at_login';
   static const launch_at_login_desc = 'launch_at_login_desc';
   static const launch_to_tray = 'launch_to_tray';
@@ -68,8 +66,7 @@ abstract class LocaleKeys {
   static const android_vpn_routes = 'android_vpn_routes';
   static const edit_android_vpn_route = 'edit_android_vpn_route';
   static const android_vpn_route_format = 'android_vpn_route_format';
-  static const confirm_delete_android_vpn_route =
-      'confirm_delete_android_vpn_route';
+  static const confirm_delete_android_vpn_route = 'confirm_delete_android_vpn_route';
   static const add_android_vpn_route = 'add_android_vpn_route';
   static const android_vpn_route_hint = 'android_vpn_route_hint';
   static const network_settings = 'network_settings';
@@ -78,19 +75,19 @@ abstract class LocaleKeys {
   static const encrypt_peer_traffic = 'encrypt_peer_traffic';
   static const latency_first = 'latency_first';
   static const latency_first_desc = 'latency_first_desc';
-  static const disable_tun_adapter = 'disable_tun_adapter';
-  static const disable_tun_adapter_desc = 'disable_tun_adapter_desc';
-  static const local_socks5_proxy = 'local_socks5_proxy';
-  static const local_socks5_proxy_desc = 'local_socks5_proxy_desc';
+  static const enable_tun_adapter = 'enable_tun_adapter';
+  static const enable_tun_adapter_desc = 'enable_tun_adapter_desc';
+  static const socks5_proxy = 'socks5_proxy';
+  static const socks5_proxy_desc = 'socks5_proxy_desc';
   static const socks5_listen_port = 'socks5_listen_port';
   static const socks5_listen_port_desc = 'socks5_listen_port_desc';
+  static const socks5_listen_all_interfaces = 'socks5_listen_all_interfaces';
+  static const socks5_listen_all_interfaces_desc = 'socks5_listen_all_interfaces_desc';
   static const socks5_listen_address = 'socks5_listen_address';
   static const disable_udp_hole_punching = 'disable_udp_hole_punching';
-  static const disable_udp_hole_punching_desc =
-      'disable_udp_hole_punching_desc';
+  static const disable_udp_hole_punching_desc = 'disable_udp_hole_punching_desc';
   static const disable_tcp_hole_punching = 'disable_tcp_hole_punching';
-  static const disable_tcp_hole_punching_desc =
-      'disable_tcp_hole_punching_desc';
+  static const disable_tcp_hole_punching_desc = 'disable_tcp_hole_punching_desc';
   static const traffic_compression = 'traffic_compression';
   static const traffic_compression_desc = 'traffic_compression_desc';
   static const compression_none = 'compression_none';
@@ -102,8 +99,7 @@ abstract class LocaleKeys {
   static const software_settings = 'software_settings';
   static const install_update_permission = 'install_update_permission';
   static const install_permission_granted = 'install_permission_granted';
-  static const install_permission_not_granted =
-      'install_permission_not_granted';
+  static const install_permission_not_granted = 'install_permission_not_granted';
   static const tray_show_window = 'tray_show_window';
   static const tray_exit = 'tray_exit';
   static const tray_hide = 'tray_hide';
@@ -134,45 +130,31 @@ abstract class LocaleKeys {
   static const beta_version = 'beta_version';
   static const beta_version_desc = 'beta_version_desc';
   static const update_download_source_desc = 'update_download_source_desc';
-  static const update_download_source_automatic =
-      'update_download_source_automatic';
+  static const update_download_source_automatic = 'update_download_source_automatic';
   static const update_download_source_custom = 'update_download_source_custom';
-  static const update_download_source_custom_hint =
-      'update_download_source_custom_hint';
+  static const update_download_source_custom_hint = 'update_download_source_custom_hint';
   static const update_download_source_direct = 'update_download_source_direct';
-  static const update_download_source_automatic_current =
-      'update_download_source_automatic_current';
-  static const update_download_source_automatic_pending =
-      'update_download_source_automatic_pending';
-  static const update_download_source_benchmark =
-      'update_download_source_benchmark';
-  static const update_download_source_benchmarking =
-      'update_download_source_benchmarking';
-  static const update_download_source_unavailable =
-      'update_download_source_unavailable';
+  static const update_download_source_automatic_current = 'update_download_source_automatic_current';
+  static const update_download_source_automatic_pending = 'update_download_source_automatic_pending';
+  static const update_download_source_benchmark = 'update_download_source_benchmark';
+  static const update_download_source_benchmarking = 'update_download_source_benchmarking';
+  static const update_download_source_unavailable = 'update_download_source_unavailable';
   static const installed_version = 'installed_version';
   static const update_channel = 'update_channel';
   static const disable_sym_hole_punching = 'disable_sym_hole_punching';
-  static const disable_sym_hole_punching_desc =
-      'disable_sym_hole_punching_desc';
+  static const disable_sym_hole_punching_desc = 'disable_sym_hole_punching_desc';
   static const software_behavior_desc = 'software_behavior_desc';
   static const android_settings = 'android_settings';
   static const android_settings_desc = 'android_settings_desc';
   static const permission_description = 'permission_description';
   static const permission_description_desc = 'permission_description_desc';
   static const notification_permission = 'notification_permission';
-  static const notification_permission_granted =
-      'notification_permission_granted';
-  static const notification_permission_not_granted =
-      'notification_permission_not_granted';
-  static const permission_notification_success =
-      'permission_notification_success';
-  static const permission_notification_failed =
-      'permission_notification_failed';
-  static const permission_notification_request_failed =
-      'permission_notification_request_failed';
-  static const permission_notification_denied_message =
-      'permission_notification_denied_message';
+  static const notification_permission_granted = 'notification_permission_granted';
+  static const notification_permission_not_granted = 'notification_permission_not_granted';
+  static const permission_notification_success = 'permission_notification_success';
+  static const permission_notification_failed = 'permission_notification_failed';
+  static const permission_notification_request_failed = 'permission_notification_request_failed';
+  static const permission_notification_denied_message = 'permission_notification_denied_message';
   static const room_mode = 'room_mode';
   static const room_mode_simple = 'room_mode_simple';
   static const room_mode_simple_desc = 'room_mode_simple_desc';
@@ -190,24 +172,19 @@ abstract class LocaleKeys {
   static const settings_general_short_desc = 'settings_general_short_desc';
   static const settings_appearance = 'settings_appearance';
   static const settings_appearance_desc = 'settings_appearance_desc';
-  static const settings_appearance_short_desc =
-      'settings_appearance_short_desc';
+  static const settings_appearance_short_desc = 'settings_appearance_short_desc';
   static const settings_network_connection = 'settings_network_connection';
-  static const settings_network_connection_desc =
-      'settings_network_connection_desc';
-  static const settings_network_connection_short_desc =
-      'settings_network_connection_short_desc';
+  static const settings_network_connection_desc = 'settings_network_connection_desc';
+  static const settings_network_connection_short_desc = 'settings_network_connection_short_desc';
   static const settings_updates = 'settings_updates';
   static const settings_updates_desc = 'settings_updates_desc';
   static const settings_updates_short_desc = 'settings_updates_short_desc';
   static const settings_permissions = 'settings_permissions';
   static const settings_permissions_desc = 'settings_permissions_desc';
-  static const settings_permissions_short_desc =
-      'settings_permissions_short_desc';
+  static const settings_permissions_short_desc = 'settings_permissions_short_desc';
   static const settings_support_about = 'settings_support_about';
   static const settings_support_about_desc = 'settings_support_about_desc';
-  static const settings_support_about_short_desc =
-      'settings_support_about_short_desc';
+  static const settings_support_about_short_desc = 'settings_support_about_short_desc';
   static const settings_startup = 'settings_startup';
   static const settings_startup_desc = 'settings_startup_desc';
   static const settings_requires_startup = 'settings_requires_startup';
@@ -218,36 +195,31 @@ abstract class LocaleKeys {
   static const settings_close_to_tray_desc = 'settings_close_to_tray_desc';
   static const settings_exit_program = 'settings_exit_program';
   static const settings_exit_program_desc = 'settings_exit_program_desc';
-  static const settings_mobile_general_notice =
-      'settings_mobile_general_notice';
-  static const settings_android_general_notice =
-      'settings_android_general_notice';
-  static const settings_available_android_only =
-      'settings_available_android_only';
+  static const settings_mobile_general_notice = 'settings_mobile_general_notice';
+  static const settings_android_general_notice = 'settings_android_general_notice';
+  static const settings_available_android_only = 'settings_available_android_only';
   static const settings_theme = 'settings_theme';
   static const settings_theme_desc = 'settings_theme_desc';
   static const theme_mode = 'theme_mode';
   static const theme_mode_desc = 'theme_mode_desc';
+  static const change_theme_mode_tooltip = 'change_theme_mode_tooltip';
   static const theme_system = 'theme_system';
   static const theme_light = 'theme_light';
   static const theme_dark = 'theme_dark';
   static const theme_color = 'theme_color';
   static const theme_color_desc = 'theme_color_desc';
   static const language_desc = 'language_desc';
+  static const change_app_language_tooltip = 'change_app_language_tooltip';
   static const settings_display = 'settings_display';
   static const settings_display_desc = 'settings_display_desc';
   static const reduce_animation_updates = 'reduce_animation_updates';
   static const reduce_animation_updates_desc = 'reduce_animation_updates_desc';
-  static const network_changes_next_connection =
-      'network_changes_next_connection';
+  static const network_changes_next_connection = 'network_changes_next_connection';
   static const connection_behavior = 'connection_behavior';
   static const connection_behavior_desc = 'connection_behavior_desc';
-  static const retry_failed_connections = 'retry_failed_connections';
-  static const retry_failed_connections_desc = 'retry_failed_connections_desc';
   static const connection_retry_limit = 'connection_retry_limit';
   static const connection_retry_limit_value = 'connection_retry_limit_value';
-  static const connection_retry_limit_disabled =
-      'connection_retry_limit_disabled';
+  static const connection_retry_limit_disabled = 'connection_retry_limit_disabled';
   static const auto_connect_managed_general = 'auto_connect_managed_general';
   static const enabled = 'enabled';
   static const disabled = 'disabled';
@@ -262,8 +234,7 @@ abstract class LocaleKeys {
   static const listen_list_desc = 'listen_list_desc';
   static const android_vpn_routes_desc = 'android_vpn_routes_desc';
   static const allowed_virtual_network_ports = 'allowed_virtual_network_ports';
-  static const allowed_virtual_network_ports_desc =
-      'allowed_virtual_network_ports_desc';
+  static const allowed_virtual_network_ports_desc = 'allowed_virtual_network_ports_desc';
   static const item_count = 'item_count';
   static const not_configured = 'not_configured';
   static const configured = 'configured';
@@ -282,11 +253,10 @@ abstract class LocaleKeys {
   static const port_example_hint = 'port_example_hint';
   static const empty_allows_all_ports = 'empty_allows_all_ports';
   static const confirm_clear_allowed_ports = 'confirm_clear_allowed_ports';
-  static const confirm_clear_allowed_ports_desc =
-      'confirm_clear_allowed_ports_desc';
-  static const adapter_proxy = 'adapter_proxy';
-  static const adapter_proxy_desc = 'adapter_proxy_desc';
-  static const socks5_recommends_no_tun = 'socks5_recommends_no_tun';
+  static const confirm_clear_allowed_ports_desc = 'confirm_clear_allowed_ports_desc';
+  static const virtual_network_access = 'virtual_network_access';
+  static const virtual_network_access_desc = 'virtual_network_access_desc';
+  static const socks5_proxy_with_tun_desc = 'socks5_proxy_with_tun_desc';
   static const socks5_port_range = 'socks5_port_range';
   static const socks5_port_invalid = 'socks5_port_invalid';
   static const view_adapter_priorities_desc = 'view_adapter_priorities_desc';
@@ -297,19 +267,15 @@ abstract class LocaleKeys {
   static const redownload_update = 'redownload_update';
   static const redownload_update_desc = 'redownload_update_desc';
   static const stable_channel_desc = 'stable_channel_desc';
-  static const permission_open_system_settings =
-      'permission_open_system_settings';
+  static const permission_open_system_settings = 'permission_open_system_settings';
   static const permission_granted = 'permission_granted';
   static const permission_required = 'permission_required';
   static const permissions_managed_by_system = 'permissions_managed_by_system';
-  static const install_permission_explanation =
-      'install_permission_explanation';
-  static const notification_permission_explanation =
-      'notification_permission_explanation';
+  static const install_permission_explanation = 'install_permission_explanation';
+  static const notification_permission_explanation = 'notification_permission_explanation';
   static const connection_notification = 'connection_notification';
   static const connection_notification_desc = 'connection_notification_desc';
-  static const notification_permission_needed =
-      'notification_permission_needed';
+  static const notification_permission_needed = 'notification_permission_needed';
   static const app_tagline = 'app_tagline';
   static const about_versions_desc = 'about_versions_desc';
   static const loading = 'loading';
@@ -325,6 +291,10 @@ abstract class LocaleKeys {
   static const auto_connect_on = 'auto_connect_on';
   static const platform_specific = 'platform_specific';
   static const select_theme_color = 'select_theme_color';
+  static const window_minimize_tooltip = 'window_minimize_tooltip';
+  static const window_maximize_tooltip = 'window_maximize_tooltip';
+  static const window_restore_tooltip = 'window_restore_tooltip';
+  static const window_close_tooltip = 'window_close_tooltip';
   static const custom_color = 'custom_color';
   static const refresh = 'refresh';
   static const load_failed = 'load_failed';
@@ -343,4 +313,5 @@ abstract class LocaleKeys {
   static const log_entry_copied = 'log_entry_copied';
   static const scroll_to_bottom = 'scroll_to_bottom';
   static const confirm = 'confirm';
+
 }

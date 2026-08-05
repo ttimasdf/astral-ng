@@ -27,11 +27,14 @@ void main() {
     final keys = _translationKeys('assets/translations/en.json');
 
     const legacyKeys = {
+      'adapter_proxy',
       'auto_retry_on_failure',
       'auto_set_hop',
       'auto_set_mtu',
       'custom_vpn_segment',
+      'disable_tun_adapter',
       'download_acceleration',
+      'local_socks5_proxy',
       'player_list_card',
       'port_whitelist',
       'software_version',
@@ -45,10 +48,13 @@ void main() {
         'android_vpn_routes',
         'astralng_version',
         'compact_peer_cards',
+        'enable_tun_adapter',
         'launch_at_login',
         'prefer_astral_adapter',
-        'retry_failed_connections',
+        'socks5_listen_all_interfaces',
+        'socks5_proxy',
         'update_download_source',
+        'virtual_network_access',
       }),
     );
   });

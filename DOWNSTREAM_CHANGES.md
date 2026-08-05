@@ -12,7 +12,7 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ## [settings-overhaul]: Redesign the settings experience
 
-- **Scope**: `lib/features/settings/`, `lib/core/models/all_settings.dart`, `lib/core/states/`, `lib/core/services/`, `lib/shared/widgets/common/`, `assets/translations/`, `test/features/settings/`, `test/generated/`
+- **Scope**: `lib/features/settings/`, `lib/core/models/`, `lib/core/states/`, `lib/core/services/`, `lib/core/builders/`, `lib/shared/widgets/common/`, `lib/src/rust/`, `rust/src/api/`, `assets/translations/`, `test/features/settings/`, `test/generated/`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: settings-overhaul
@@ -43,15 +43,24 @@ peer-card density, versions, permissions, and update download sources. Duplicate
 or repurposed legacy keys are removed, and generated `LocaleKeys` are checked
 against both translation files in tests.
 
+Connection recovery uses one 0–10 retry slider instead of a separate enable
+switch and limit selector; 0 disables retries, while positive values count
+retries after the initial connection attempt. Virtual-network access presents
+TUN as a recommended enable switch. SOCKS5 remains loopback-only by default but
+can explicitly bind `0.0.0.0` on trusted networks; the setting is persisted in
+`NetConfig` and carried through `FlagsC` to both Rust startup paths. Desktop
+status-bar and window-button tooltips are localized, action-oriented labels.
+
 ### Files affected
 
 - `lib/features/settings/pages/settings_main_page.dart`: adaptive settings shell, category search, navigation, and summaries
 - `lib/core/models/all_settings.dart`, `lib/core/models/all_settings.g.dart`: concept-based settings schema with no legacy aliases or unused migration fields
-- `lib/core/database/dao/all_settings_dao.dart`, `lib/core/states/`, `lib/core/services/`: concept-based settings persistence and runtime APIs
+- `lib/core/database/dao/all_settings_dao.dart`, `lib/core/states/`, `lib/core/services/`: concept-based settings persistence, bounded retry state, and runtime APIs
+- `lib/core/models/net_config.dart`, `lib/core/builders/server_config_builder.dart`, `lib/src/rust/`, `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: persisted SOCKS5 bind scope and Dart/Rust bridge propagation
 - `lib/features/settings/pages/general/update_settings_page.dart`: reuse the consolidated update-settings content
 - `lib/features/settings/widgets/*_settings_content.dart`: category content for General, Appearance & Language, Network & Connection, Updates, Permissions, and Support & About
 - `lib/features/settings/widgets/settings_components.dart`: shared section, navigation-row, notice, and value-status components
-- `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`: localized theme shortcuts shared with the new Appearance category
+- `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`, `lib/shared/widgets/common/windows_controls.dart`: localized theme shortcuts and action-oriented toolbar/window tooltips
 - `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: synchronized concept-based localization keys, bilingual settings hierarchy, descriptions, statuses, and validation messages
 - `test/features/settings/settings_components_test.dart`: widget coverage for the shared settings presentation components
 - `test/generated/locale_keys_test.dart`: synchronization and legacy-key rejection coverage for translations and generated keys

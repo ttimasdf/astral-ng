@@ -209,16 +209,16 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.disable_tun_adapter.tr()),
-          subtitle: Text(LocaleKeys.disable_tun_adapter_desc.tr()),
-          value: ServiceManager().networkConfigState.noTun.watch(context),
+          title: Text(LocaleKeys.enable_tun_adapter.tr()),
+          subtitle: Text(LocaleKeys.enable_tun_adapter_desc.tr()),
+          value: !ServiceManager().networkConfigState.noTun.watch(context),
           onChanged: (value) {
-            ServiceManager().networkConfig.updateNoTun(value);
+            ServiceManager().networkConfig.updateNoTun(!value);
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.local_socks5_proxy.tr()),
-          subtitle: Text(LocaleKeys.local_socks5_proxy_desc.tr()),
+          title: Text(LocaleKeys.socks5_proxy.tr()),
+          subtitle: Text(LocaleKeys.socks5_proxy_desc.tr()),
           value: ServiceManager().networkConfigState.enableSocks5.watch(
             context,
           ),
@@ -257,10 +257,25 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
               ),
             ),
           ),
+          SwitchListTile(
+            title: Text(LocaleKeys.socks5_listen_all_interfaces.tr()),
+            subtitle: Text(LocaleKeys.socks5_listen_all_interfaces_desc.tr()),
+            value: ServiceManager().networkConfigState.socks5ListenAllInterfaces
+                .watch(context),
+            onChanged:
+                ServiceManager().networkConfig.updateSocks5ListenAllInterfaces,
+          ),
           ListTile(
             title: Text(
               LocaleKeys.socks5_listen_address.tr(
                 namedArgs: {
+                  'address':
+                      ServiceManager()
+                              .networkConfigState
+                              .socks5ListenAllInterfaces
+                              .watch(context)
+                          ? '0.0.0.0'
+                          : '127.0.0.1',
                   'port':
                       ServiceManager().networkConfigState.socks5Port
                           .watch(context)

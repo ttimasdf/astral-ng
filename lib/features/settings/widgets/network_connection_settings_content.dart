@@ -120,7 +120,6 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final isConnected =
           services.connectionState.connectionState.watch(context) !=
           CoState.idle;
-      final retryFailedConnections = app.retryFailedConnections.watch(context);
       final connectionRetryLimit = app.connectionRetryLimit.watch(context);
       final protocol =
           network.defaultProtocol.watch(context).isEmpty
@@ -129,9 +128,12 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final encryption = network.enableEncryption.watch(context);
       final latencyFirst = network.latencyFirst.watch(context);
       final disableP2p = network.disableP2p.watch(context);
-      final disableTunAdapter = network.noTun.watch(context);
-      final localSocks5ProxyEnabled = network.enableSocks5.watch(context);
+      final tunAdapterEnabled = !network.noTun.watch(context);
+      final socks5ProxyEnabled = network.enableSocks5.watch(context);
       final socks5ListenPort = network.socks5Port.watch(context);
+      final socks5ListenAllInterfaces = network.socks5ListenAllInterfaces.watch(
+        context,
+      );
       final preferAstralAdapter = network.preferAstralAdapter.watch(context);
       final compression = network.dataCompressAlgo.watch(context);
       final disableUdp = network.disableUdpHolePunching.watch(context);
@@ -158,46 +160,36 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             description: LocaleKeys.connection_behavior_desc.tr(),
             icon: Icons.sync,
             children: [
-              SwitchListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.retry_failed_connections.tr()),
-                subtitle: Text(LocaleKeys.retry_failed_connections_desc.tr()),
-                value: retryFailedConnections,
-                onChanged: services.appSettings.setRetryFailedConnections,
-              ),
               ListTile(
-                enabled: retryFailedConnections,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+                contentPadding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
                 title: Text(LocaleKeys.connection_retry_limit.tr()),
                 subtitle: Text(
-                  retryFailedConnections
-                      ? LocaleKeys.connection_retry_limit_value.tr(
+                  connectionRetryLimit == 0
+                      ? LocaleKeys.connection_retry_limit_disabled.tr()
+                      : LocaleKeys.connection_retry_limit_value.tr(
                         namedArgs: {'count': connectionRetryLimit.toString()},
-                      )
-                      : LocaleKeys.connection_retry_limit_disabled.tr(),
+                      ),
                 ),
-                trailing: DropdownButton<int>(
-                  value: connectionRetryLimit,
-                  underline: const SizedBox.shrink(),
-                  items:
-                      [1, 2, 3, 5, 10]
-                          .map(
-                            (count) => DropdownMenuItem(
-                              value: count,
-                              child: Text(count.toString()),
-                            ),
-                          )
-                          .toList(),
-                  onChanged:
-                      retryFailedConnections
-                          ? (value) {
-                            if (value != null) {
-                              services.appSettings.setConnectionRetryLimit(
-                                value,
-                              );
-                            }
-                          }
-                          : null,
+                trailing: Text(
+                  connectionRetryLimit == 0
+                      ? LocaleKeys.disabled.tr()
+                      : connectionRetryLimit.toString(),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: Slider(
+                  value: connectionRetryLimit.toDouble(),
+                  min: 0,
+                  max: 10,
+                  divisions: 10,
+                  label:
+                      connectionRetryLimit == 0
+                          ? LocaleKeys.disabled.tr()
+                          : connectionRetryLimit.toString(),
+                  onChanged: (value) {
+                    services.appSettings.setConnectionRetryLimit(value.round());
+                  },
                 ),
               ),
             ],
@@ -297,37 +289,54 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             ],
           ),
           SettingsSection(
-            title: LocaleKeys.adapter_proxy.tr(),
-            description: LocaleKeys.adapter_proxy_desc.tr(),
+            title: LocaleKeys.virtual_network_access.tr(),
+            description: LocaleKeys.virtual_network_access_desc.tr(),
             icon: Icons.settings_input_component_outlined,
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.disable_tun_adapter.tr()),
-                subtitle: Text(LocaleKeys.disable_tun_adapter_desc.tr()),
-                value: disableTunAdapter,
-                onChanged: services.networkConfig.updateNoTun,
+                title: Text(LocaleKeys.enable_tun_adapter.tr()),
+                subtitle: Text(LocaleKeys.enable_tun_adapter_desc.tr()),
+                value: tunAdapterEnabled,
+                onChanged:
+                    (value) => services.networkConfig.updateNoTun(!value),
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.local_socks5_proxy.tr()),
+                title: Text(LocaleKeys.socks5_proxy.tr()),
                 subtitle: Text(
-                  disableTunAdapter
-                      ? LocaleKeys.local_socks5_proxy_desc.tr()
-                      : LocaleKeys.socks5_recommends_no_tun.tr(),
+                  tunAdapterEnabled
+                      ? LocaleKeys.socks5_proxy_with_tun_desc.tr()
+                      : LocaleKeys.socks5_proxy_desc.tr(),
                 ),
-                value: localSocks5ProxyEnabled,
+                value: socks5ProxyEnabled,
                 onChanged: services.networkConfig.updateEnableSocks5,
               ),
               SettingsLinkTile(
                 icon: Icons.numbers,
                 title: LocaleKeys.socks5_listen_port.tr(),
                 subtitle: LocaleKeys.socks5_listen_address.tr(
-                  namedArgs: {'port': socks5ListenPort.toString()},
+                  namedArgs: {
+                    'address':
+                        socks5ListenAllInterfaces ? '0.0.0.0' : '127.0.0.1',
+                    'port': socks5ListenPort.toString(),
+                  },
                 ),
                 value: socks5ListenPort.toString(),
-                enabled: localSocks5ProxyEnabled,
+                enabled: socks5ProxyEnabled,
                 onTap: () => _editSocks5Port(context, socks5ListenPort),
+              ),
+              SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+                title: Text(LocaleKeys.socks5_listen_all_interfaces.tr()),
+                subtitle: Text(
+                  LocaleKeys.socks5_listen_all_interfaces_desc.tr(),
+                ),
+                value: socks5ListenAllInterfaces,
+                onChanged:
+                    socks5ProxyEnabled
+                        ? services.networkConfig.updateSocks5ListenAllInterfaces
+                        : null,
               ),
               if (SettingsAvailability.windowsOnly.isVisible)
                 SwitchListTile(

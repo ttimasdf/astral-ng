@@ -200,7 +200,7 @@ class _WindowControlsState extends State<WindowControls>
             ServiceManager().uiState.setBackground(true);
             await windowManager.minimize();
           },
-          tooltip: '最小化',
+          tooltip: LocaleKeys.window_minimize_tooltip.tr(),
           iconSize: 20,
         ),
         IconButton(
@@ -212,7 +212,10 @@ class _WindowControlsState extends State<WindowControls>
               await windowManager.maximize();
             }
           },
-          tooltip: _isMaximized ? '还原' : '最大化',
+          tooltip:
+              _isMaximized
+                  ? LocaleKeys.window_restore_tooltip.tr()
+                  : LocaleKeys.window_maximize_tooltip.tr(),
           iconSize: 20,
         ),
         IconButton(
@@ -221,7 +224,7 @@ class _WindowControlsState extends State<WindowControls>
           onPressed: () {
             windowManager.close();
           },
-          tooltip: '关闭',
+          tooltip: LocaleKeys.window_close_tooltip.tr(),
           iconSize: 20,
         ),
       ],

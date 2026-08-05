@@ -46,7 +46,10 @@ baseline.
   Network & Connection workspace. Setting storage and localization identifiers
   now match their current concepts instead of retaining historical names. This
   schema reset requires Android users to back up server and room credentials,
-  uninstall the previous APK, and install the new build. ([#12])
+  uninstall the previous APK, and install the new build. Connection retries now
+  use a 0–10 slider where 0 disables retries; the TUN control is expressed as a
+  recommended enable switch; SOCKS5 can optionally listen on all interfaces;
+  and desktop toolbar tooltips describe the action each button performs. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.

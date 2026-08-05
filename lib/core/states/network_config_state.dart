@@ -29,6 +29,7 @@ class NetworkConfigState {
   final noTun = signal(false);
   final enableSocks5 = signal(false);
   final socks5Port = signal(1080);
+  final socks5ListenAllInterfaces = signal(false);
   final useSmoltcp = signal(false);
   final dataCompressAlgo = signal(1);
   final cidrproxy = signal<List<String>>([]);
@@ -88,6 +89,7 @@ class NetworkConfigState {
     noTun.value = config.no_tun;
     enableSocks5.value = config.enable_socks5;
     socks5Port.value = normalizeSocks5Port(config.socks5_port);
+    socks5ListenAllInterfaces.value = config.socks5_listen_all_interfaces;
     useSmoltcp.value = config.use_smoltcp;
     dataCompressAlgo.value = config.data_compress_algo;
     cidrproxy.value = List<String>.from(config.cidrproxy);
