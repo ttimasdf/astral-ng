@@ -23,13 +23,13 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
           (context) => StatefulBuilder(
             builder:
                 (context, setState) => AlertDialog(
-                  title: Text(LocaleKeys.socks5_port.tr()),
+                  title: Text(LocaleKeys.socks5_listen_port.tr()),
                   content: TextField(
                     controller: controller,
                     autofocus: true,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: LocaleKeys.socks5_port.tr(),
+                      labelText: LocaleKeys.socks5_listen_port.tr(),
                       helperText: LocaleKeys.socks5_port_range.tr(),
                       errorText: error,
                       border: const OutlineInputBorder(),
@@ -79,19 +79,19 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       context: context,
       builder:
           (context) => SimpleDialog(
-            title: Text(LocaleKeys.compression_algorithm.tr()),
+            title: Text(LocaleKeys.traffic_compression.tr()),
             children: [
               ListTile(
                 selected: current == 1,
                 leading: const Icon(Icons.speed),
-                title: Text(LocaleKeys.no_compression.tr()),
+                title: Text(LocaleKeys.compression_none.tr()),
                 trailing: current == 1 ? const Icon(Icons.check) : null,
                 onTap: () => Navigator.pop(context, 1),
               ),
               ListTile(
                 selected: current == 2,
                 leading: const Icon(Icons.compress),
-                title: Text(LocaleKeys.high_performance_compression.tr()),
+                title: Text(LocaleKeys.compression_zstd.tr()),
                 trailing: current == 2 ? const Icon(Icons.check) : null,
                 onTap: () => Navigator.pop(context, 2),
               ),
@@ -111,7 +111,8 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = ServiceManager();
-    const customVpnAvailability = SettingsAvailability.androidOnlyDiscoverable;
+    const androidVpnRoutesAvailability =
+        SettingsAvailability.androidOnlyDiscoverable;
 
     return Watch((context) {
       final network = services.networkConfigState;
@@ -119,8 +120,8 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final isConnected =
           services.connectionState.connectionState.watch(context) !=
           CoState.idle;
-      final autoRetry = app.autoRetryOnFailure.watch(context);
-      final retryCount = app.maxRetryCount.watch(context);
+      final retryFailedConnections = app.retryFailedConnections.watch(context);
+      final connectionRetryLimit = app.connectionRetryLimit.watch(context);
       final protocol =
           network.defaultProtocol.watch(context).isEmpty
               ? 'tcp'
@@ -139,7 +140,7 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final kcp = network.enableKcpProxy.watch(context);
       final bindDevice = network.bindDevice.watch(context);
       final listenCount = services.playerState.listenList.watch(context).length;
-      final vpnCount = services.vpnState.customVpn.watch(context).length;
+      final vpnCount = services.vpnState.androidVpnRoutes.watch(context).length;
       final tcpWhitelist = network.tcpWhitelist.watch(context);
       final udpWhitelist = network.udpWhitelist.watch(context);
 
@@ -159,24 +160,24 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.auto_retry_on_failure.tr()),
-                subtitle: Text(LocaleKeys.auto_retry_on_failure_desc.tr()),
-                value: autoRetry,
-                onChanged: services.appSettings.updateAutoRetryOnFailure,
+                title: Text(LocaleKeys.retry_failed_connections.tr()),
+                subtitle: Text(LocaleKeys.retry_failed_connections_desc.tr()),
+                value: retryFailedConnections,
+                onChanged: services.appSettings.setRetryFailedConnections,
               ),
               ListTile(
-                enabled: autoRetry,
+                enabled: retryFailedConnections,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.max_retry_count.tr()),
+                title: Text(LocaleKeys.connection_retry_limit.tr()),
                 subtitle: Text(
-                  autoRetry
-                      ? LocaleKeys.max_retry_count_value.tr(
-                        namedArgs: {'count': retryCount.toString()},
+                  retryFailedConnections
+                      ? LocaleKeys.connection_retry_limit_value.tr(
+                        namedArgs: {'count': connectionRetryLimit.toString()},
                       )
-                      : LocaleKeys.max_retry_count_disabled.tr(),
+                      : LocaleKeys.connection_retry_limit_disabled.tr(),
                 ),
                 trailing: DropdownButton<int>(
-                  value: retryCount,
+                  value: connectionRetryLimit,
                   underline: const SizedBox.shrink(),
                   items:
                       [1, 2, 3, 5, 10]
@@ -188,10 +189,12 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
                           )
                           .toList(),
                   onChanged:
-                      autoRetry
+                      retryFailedConnections
                           ? (value) {
                             if (value != null) {
-                              services.appSettings.updateMaxRetryCount(value);
+                              services.appSettings.setConnectionRetryLimit(
+                                value,
+                              );
                             }
                           }
                           : null,
@@ -206,8 +209,8 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             children: [
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.preferred_protocol.tr()),
-                subtitle: Text(LocaleKeys.preferred_protocol_desc.tr()),
+                title: Text(LocaleKeys.preferred_peer_protocol.tr()),
+                subtitle: Text(LocaleKeys.preferred_peer_protocol_desc.tr()),
                 trailing: DropdownButton<String>(
                   value: protocol,
                   underline: const SizedBox.shrink(),
@@ -229,8 +232,8 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.enable_encryption.tr()),
-                subtitle: Text(LocaleKeys.enable_encryption_desc.tr()),
+                title: Text(LocaleKeys.encrypt_peer_traffic.tr()),
+                subtitle: Text(LocaleKeys.encrypt_peer_traffic_desc.tr()),
                 value: encryption,
                 onChanged: services.networkConfig.updateEnableEncryption,
               ),
@@ -264,26 +267,27 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
                 ),
                 onTap: () => _open(context, const ListenListPage()),
               ),
-              if (customVpnAvailability.isVisible)
+              if (androidVpnRoutesAvailability.isVisible)
                 SettingsLinkTile(
                   icon: Icons.vpn_lock_outlined,
-                  title: LocaleKeys.custom_vpn_segment.tr(),
+                  title: LocaleKeys.android_vpn_routes.tr(),
                   subtitle:
-                      customVpnAvailability.currentUnavailableReasonKey?.tr() ??
-                      LocaleKeys.custom_vpn_segment_desc.tr(),
+                      androidVpnRoutesAvailability.currentUnavailableReasonKey
+                          ?.tr() ??
+                      LocaleKeys.android_vpn_routes_desc.tr(),
                   value:
-                      customVpnAvailability.isEnabled
+                      androidVpnRoutesAvailability.isEnabled
                           ? LocaleKeys.item_count.tr(
                             namedArgs: {'count': vpnCount.toString()},
                           )
                           : null,
-                  enabled: customVpnAvailability.isEnabled,
+                  enabled: androidVpnRoutesAvailability.isEnabled,
                   onTap: () => _open(context, const VpnSegmentPage()),
                 ),
               SettingsLinkTile(
                 icon: Icons.security_outlined,
-                title: LocaleKeys.port_whitelist.tr(),
-                subtitle: LocaleKeys.port_whitelist_desc.tr(),
+                title: LocaleKeys.allowed_virtual_network_ports.tr(),
+                subtitle: LocaleKeys.allowed_virtual_network_ports_desc.tr(),
                 value:
                     tcpWhitelist.isEmpty && udpWhitelist.isEmpty
                         ? LocaleKeys.not_configured.tr()
@@ -299,17 +303,17 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.tun_device.tr()),
-                subtitle: Text(LocaleKeys.tun_device_desc.tr()),
+                title: Text(LocaleKeys.disable_tun_adapter.tr()),
+                subtitle: Text(LocaleKeys.disable_tun_adapter_desc.tr()),
                 value: disableTunAdapter,
                 onChanged: services.networkConfig.updateNoTun,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.enable_socks5.tr()),
+                title: Text(LocaleKeys.local_socks5_proxy.tr()),
                 subtitle: Text(
                   disableTunAdapter
-                      ? LocaleKeys.enable_socks5_desc.tr()
+                      ? LocaleKeys.local_socks5_proxy_desc.tr()
                       : LocaleKeys.socks5_recommends_no_tun.tr(),
                 ),
                 value: localSocks5ProxyEnabled,
@@ -317,8 +321,8 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
               ),
               SettingsLinkTile(
                 icon: Icons.numbers,
-                title: LocaleKeys.socks5_port.tr(),
-                subtitle: LocaleKeys.socks5_address_hint.tr(
+                title: LocaleKeys.socks5_listen_port.tr(),
+                subtitle: LocaleKeys.socks5_listen_address.tr(
                   namedArgs: {'port': socks5ListenPort.toString()},
                 ),
                 value: socks5ListenPort.toString(),
@@ -328,17 +332,17 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
               if (SettingsAvailability.windowsOnly.isVisible)
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text(LocaleKeys.auto_set_hop.tr()),
-                  subtitle: Text(LocaleKeys.auto_set_hop_desc.tr()),
+                  title: Text(LocaleKeys.prefer_astral_adapter.tr()),
+                  subtitle: Text(LocaleKeys.prefer_astral_adapter_desc.tr()),
                   value: preferAstralAdapter,
                   onChanged: services.networkConfig.setPreferAstralAdapter,
                 ),
               if (SettingsAvailability.windowsOnly.isVisible)
                 SettingsLinkTile(
                   icon: Icons.format_list_numbered,
-                  title: LocaleKeys.view_hop_list.tr(),
-                  subtitle: LocaleKeys.view_hop_list_desc.tr(),
-                  onTap: () => showHopList(context),
+                  title: LocaleKeys.view_adapter_priorities.tr(),
+                  subtitle: LocaleKeys.view_adapter_priorities_desc.tr(),
+                  onTap: () => showAdapterPriorities(context),
                 ),
             ],
           ),
@@ -349,10 +353,12 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             children: [
               SettingsLinkTile(
                 icon: Icons.compress,
-                title: LocaleKeys.compression_algorithm.tr(),
-                subtitle: LocaleKeys.compression_algorithm_desc.tr(),
+                title: LocaleKeys.traffic_compression.tr(),
+                subtitle: LocaleKeys.traffic_compression_desc.tr(),
                 value:
-                    compression == 1 ? LocaleKeys.no_compression.tr() : 'Zstd',
+                    compression == 1
+                        ? LocaleKeys.compression_none.tr()
+                        : 'Zstd',
                 onTap: () => _selectCompression(context, compression),
               ),
               SwitchListTile(
@@ -378,15 +384,15 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.enable_kcp_proxy.tr()),
-                subtitle: Text(LocaleKeys.enable_kcp_proxy_desc.tr()),
+                title: Text(LocaleKeys.kcp_for_tcp_streams.tr()),
+                subtitle: Text(LocaleKeys.kcp_for_tcp_streams_desc.tr()),
                 value: kcp,
                 onChanged: services.networkConfig.updateEnableKcpProxy,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.bind_device.tr()),
-                subtitle: Text(LocaleKeys.bind_device_desc.tr()),
+                title: Text(LocaleKeys.physical_interfaces_only.tr()),
+                subtitle: Text(LocaleKeys.physical_interfaces_only_desc.tr()),
                 value: bindDevice,
                 onChanged: services.networkConfig.updateBindDevice,
               ),

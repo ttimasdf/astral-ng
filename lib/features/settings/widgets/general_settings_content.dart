@@ -15,11 +15,9 @@ class GeneralSettingsContent extends StatelessWidget {
     final services = ServiceManager();
 
     return Watch((context) {
-      final startup = services.startupState.startup.watch(context);
-      final startupMinimize = services.startupState.startupMinimize.watch(
-        context,
-      );
-      final startupAutoConnect = services.startupState.startupAutoConnect.watch(
+      final launchAtLogin = services.startupState.launchAtLogin.watch(context);
+      final launchToTray = services.startupState.launchToTray.watch(context);
+      final connectAfterLaunch = services.startupState.connectAfterLaunch.watch(
         context,
       );
       final closeBehavior = services.windowState.closeBehavior.watch(context);
@@ -36,29 +34,31 @@ class GeneralSettingsContent extends StatelessWidget {
               children: [
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text(LocaleKeys.startup_on_boot.tr()),
-                  subtitle: Text(LocaleKeys.startup_on_boot_desc.tr()),
-                  value: startup,
-                  onChanged: services.appSettings.setStartup,
+                  title: Text(LocaleKeys.launch_at_login.tr()),
+                  subtitle: Text(LocaleKeys.launch_at_login_desc.tr()),
+                  value: launchAtLogin,
+                  onChanged: services.appSettings.setLaunchAtLogin,
                 ),
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text(LocaleKeys.startup_minimize.tr()),
+                  title: Text(LocaleKeys.launch_to_tray.tr()),
                   subtitle: Text(
-                    startup
-                        ? LocaleKeys.startup_minimize_desc.tr()
+                    launchAtLogin
+                        ? LocaleKeys.launch_to_tray_desc.tr()
                         : LocaleKeys.settings_requires_startup.tr(),
                   ),
-                  value: startupMinimize,
+                  value: launchToTray,
                   onChanged:
-                      startup ? services.appSettings.setStartupMinimize : null,
+                      launchAtLogin
+                          ? services.appSettings.setLaunchToTray
+                          : null,
                 ),
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text(LocaleKeys.startup_auto_connect.tr()),
-                  subtitle: Text(LocaleKeys.startup_auto_connect_desc.tr()),
-                  value: startupAutoConnect,
-                  onChanged: services.appSettings.setStartupAutoConnect,
+                  title: Text(LocaleKeys.connect_after_launch.tr()),
+                  subtitle: Text(LocaleKeys.connect_after_launch_desc.tr()),
+                  value: connectAfterLaunch,
+                  onChanged: services.appSettings.setConnectAfterLaunch,
                 ),
               ],
             ),

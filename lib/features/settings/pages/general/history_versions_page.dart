@@ -23,7 +23,7 @@ class _HistoryVersionsPageState
   String? _errorMessage;
 
   @override
-  String get title => LocaleKeys.history_versions.tr();
+  String get title => LocaleKeys.previous_versions.tr();
 
   @override
   List<Widget>? buildActions(BuildContext context) {

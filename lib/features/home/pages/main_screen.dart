@@ -46,8 +46,8 @@ class _MainScreenState extends State<MainScreen>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ServiceManager().updateState.autoCheckUpdate.value ||
-          ServiceManager().updateState.beta.value) {
+      if (ServiceManager().updateState.automaticUpdateChecks.value ||
+          ServiceManager().updateState.receiveBetaUpdates.value) {
         final checker = UpdateChecker(owner: 'ldoubil', repo: 'astral');
         if (mounted) {
           Future.delayed(const Duration(milliseconds: 1000), () {

@@ -206,7 +206,7 @@ class _SoftwareSettingsPageState
             if (SettingsAvailability.androidOnly.isVisible)
               ListTile(
                 leading: const Icon(Icons.install_mobile),
-                title: Text(LocaleKeys.get_install_permission.tr()),
+                title: Text(LocaleKeys.install_update_permission.tr()),
                 subtitle: Text(
                   _hasInstallPermission
                       ? LocaleKeys.install_permission_granted.tr()
@@ -245,8 +245,8 @@ class _SoftwareSettingsPageState
                     ServiceManager().appSettings.updateWindowCloseBehavior,
               ),
             SwitchListTile(
-              title: Text(LocaleKeys.player_list_card.tr()),
-              subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
+              title: Text(LocaleKeys.compact_peer_cards.tr()),
+              subtitle: Text(LocaleKeys.compact_peer_cards_desc.tr()),
               value: ServiceManager().displayState.compactPeerCards.watch(
                 context,
               ),
@@ -257,10 +257,10 @@ class _SoftwareSettingsPageState
             SwitchListTile(
               title: Text(LocaleKeys.reduce_animation_updates.tr()),
               subtitle: Text(LocaleKeys.reduce_animation_updates_desc.tr()),
-              value: ServiceManager().appSettingsState.reduceAnimationUpdates
+              value: ServiceManager().appSettingsState.reduceTopologyAnimations
                   .watch(context),
               onChanged: (value) async {
-                await ServiceManager().appSettings.updateReduceAnimationUpdates(
+                await ServiceManager().appSettings.setReduceTopologyAnimations(
                   value,
                 );
               },
@@ -278,23 +278,30 @@ class _SoftwareSettingsPageState
             ),
             buildDivider(),
             SwitchListTile(
-              title: Text(LocaleKeys.auto_retry_on_failure.tr()),
-              subtitle: Text(LocaleKeys.auto_retry_on_failure_desc.tr()),
-              value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
+              title: Text(LocaleKeys.retry_failed_connections.tr()),
+              subtitle: Text(LocaleKeys.retry_failed_connections_desc.tr()),
+              value:
+                  ServiceManager()
+                      .appSettingsState
+                      .retryFailedConnections
+                      .value,
               onChanged: (value) async {
-                await ServiceManager().appSettings.updateAutoRetryOnFailure(
+                await ServiceManager().appSettings.setRetryFailedConnections(
                   value,
                 );
               },
             ),
-            if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
+            if (ServiceManager().appSettingsState.retryFailedConnections.value)
               ListTile(
-                title: Text(LocaleKeys.max_retry_count.tr()),
+                title: Text(LocaleKeys.connection_retry_limit.tr()),
                 subtitle: Text(
-                  LocaleKeys.max_retry_count_value.tr(
+                  LocaleKeys.connection_retry_limit_value.tr(
                     namedArgs: {
                       'count':
-                          ServiceManager().appSettingsState.maxRetryCount.value
+                          ServiceManager()
+                              .appSettingsState
+                              .connectionRetryLimit
+                              .value
                               .toString(),
                     },
                   ),
@@ -303,7 +310,10 @@ class _SoftwareSettingsPageState
                   width: 100,
                   child: DropdownButton<int>(
                     value:
-                        ServiceManager().appSettingsState.maxRetryCount.value,
+                        ServiceManager()
+                            .appSettingsState
+                            .connectionRetryLimit
+                            .value,
                     isExpanded: true,
                     items:
                         [1, 2, 3, 5, 10].map((int count) {
@@ -314,9 +324,8 @@ class _SoftwareSettingsPageState
                         }).toList(),
                     onChanged: (int? newValue) async {
                       if (newValue != null) {
-                        await ServiceManager().appSettings.updateMaxRetryCount(
-                          newValue,
-                        );
+                        await ServiceManager().appSettings
+                            .setConnectionRetryLimit(newValue);
                       }
                     },
                   ),
@@ -336,7 +345,7 @@ class _SoftwareSettingsPageState
               buildDivider(),
               ListTile(
                 leading: const Icon(Icons.notifications),
-                title: Text(LocaleKeys.get_notification_permission.tr()),
+                title: Text(LocaleKeys.notification_permission.tr()),
                 subtitle: Text(
                   _hasNotificationPermission
                       ? LocaleKeys.notification_permission_granted.tr()
@@ -352,13 +361,11 @@ class _SoftwareSettingsPageState
                         : _requestNotificationPermission,
               ),
               SwitchListTile(
-                title: Text(LocaleKeys.enable_connection_notification.tr()),
-                subtitle: Text(
-                  LocaleKeys.enable_connection_notification_desc.tr(),
-                ),
+                title: Text(LocaleKeys.connection_notification.tr()),
+                subtitle: Text(LocaleKeys.connection_notification_desc.tr()),
                 value: ServiceManager()
                     .appSettingsState
-                    .enableConnectionNotification
+                    .connectionNotificationEnabled
                     .watch(context),
                 onChanged: (value) async {
                   if (value && !_hasNotificationPermission) {
@@ -367,7 +374,7 @@ class _SoftwareSettingsPageState
                     if (!_hasNotificationPermission) return;
                   }
                   await ServiceManager().appSettings
-                      .updateEnableConnectionNotification(value);
+                      .setConnectionNotificationEnabled(value);
                 },
               ),
               buildDivider(),

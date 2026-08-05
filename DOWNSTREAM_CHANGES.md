@@ -12,7 +12,7 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ## [settings-overhaul]: Redesign the settings experience
 
-- **Scope**: `lib/features/settings/`, `lib/shared/widgets/common/`, `assets/translations/`, `test/features/settings/`
+- **Scope**: `lib/features/settings/`, `lib/core/models/all_settings.dart`, `lib/core/states/`, `lib/core/services/`, `lib/shared/widgets/common/`, `assets/translations/`, `test/features/settings/`, `test/generated/`
 - **Type**: feature
 - **Status**: active
 - **Introduced**: settings-overhaul
@@ -28,15 +28,34 @@ one workspace, while appearance, language, permissions, updates, diagnostics,
 and About information are organized into dedicated categories with current-value
 summaries and clearer dependency and change-effect messaging.
 
+The settings overhaul intentionally resets the `AllSettings` Isar schema rather
+than preserving misleading historical property names. Persisted properties and
+runtime APIs now use current concepts such as `compactPeerCards`,
+`preferAstralAdapter`, `launchAtLogin`, `androidVpnRoutes`, and
+`updateDownloadSource`; unused banner, user-ID, server-sort, and migration-version
+properties are removed. Existing settings databases are not migrated. Android
+users must back up server and room credentials, uninstall the previous APK, and
+install the new build.
+
+English and Chinese localization identifiers likewise describe the current UI
+concepts, including adapter priority, Android VPN routes, local SOCKS5 access,
+peer-card density, versions, permissions, and update download sources. Duplicate
+or repurposed legacy keys are removed, and generated `LocaleKeys` are checked
+against both translation files in tests.
+
 ### Files affected
 
 - `lib/features/settings/pages/settings_main_page.dart`: adaptive settings shell, category search, navigation, and summaries
+- `lib/core/models/all_settings.dart`, `lib/core/models/all_settings.g.dart`: concept-based settings schema with no legacy aliases or unused migration fields
+- `lib/core/database/dao/all_settings_dao.dart`, `lib/core/states/`, `lib/core/services/`: concept-based settings persistence and runtime APIs
 - `lib/features/settings/pages/general/update_settings_page.dart`: reuse the consolidated update-settings content
 - `lib/features/settings/widgets/*_settings_content.dart`: category content for General, Appearance & Language, Network & Connection, Updates, Permissions, and Support & About
 - `lib/features/settings/widgets/settings_components.dart`: shared section, navigation-row, notice, and value-status components
 - `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`: localized theme shortcuts shared with the new Appearance category
-- `assets/translations/en.json`, `assets/translations/zh.json`: bilingual settings hierarchy, descriptions, statuses, and validation messages
+- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: synchronized concept-based localization keys, bilingual settings hierarchy, descriptions, statuses, and validation messages
 - `test/features/settings/settings_components_test.dart`: widget coverage for the shared settings presentation components
+- `test/generated/locale_keys_test.dart`: synchronization and legacy-key rejection coverage for translations and generated keys
+- `_tmp_net_sec.dart`: removed obsolete temporary settings snapshot
 
 ---
 

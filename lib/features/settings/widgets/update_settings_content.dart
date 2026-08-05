@@ -15,8 +15,11 @@ class UpdateSettingsContent extends StatelessWidget {
     final services = ServiceManager();
 
     return Watch((context) {
-      final beta = services.updateState.beta.watch(context);
-      final automatic = services.updateState.autoCheckUpdate.watch(context);
+      final receiveBetaUpdates = services.updateState.receiveBetaUpdates.watch(
+        context,
+      );
+      final automaticUpdateChecks = services.updateState.automaticUpdateChecks
+          .watch(context);
 
       return SettingsContentView(
         title: LocaleKeys.settings_updates.tr(),
@@ -29,28 +32,30 @@ class UpdateSettingsContent extends StatelessWidget {
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.join_beta.tr()),
-                subtitle: Text(LocaleKeys.join_beta_desc.tr()),
-                value: beta,
-                onChanged: services.appSettings.setBeta,
+                title: Text(LocaleKeys.receive_beta_updates.tr()),
+                subtitle: Text(LocaleKeys.receive_beta_updates_desc.tr()),
+                value: receiveBetaUpdates,
+                onChanged: services.appSettings.setReceiveBetaUpdates,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.auto_update.tr()),
+                title: Text(LocaleKeys.automatic_update_checks.tr()),
                 subtitle: Text(
-                  beta
-                      ? LocaleKeys.auto_update_beta_desc.tr()
-                      : LocaleKeys.auto_update_desc.tr(),
+                  receiveBetaUpdates
+                      ? LocaleKeys.beta_update_checks_required.tr()
+                      : LocaleKeys.automatic_update_checks_desc.tr(),
                 ),
-                value: beta || automatic,
+                value: receiveBetaUpdates || automaticUpdateChecks,
                 onChanged:
-                    beta ? null : services.appSettings.setAutoCheckUpdate,
+                    receiveBetaUpdates
+                        ? null
+                        : services.appSettings.setAutomaticUpdateChecks,
               ),
               SettingsLinkTile(
                 icon: Icons.bolt,
-                title: LocaleKeys.download_acceleration.tr(),
-                subtitle: downloadAccelerateDescription(),
-                onTap: () => editDownloadAccelerate(context),
+                title: LocaleKeys.update_download_source.tr(),
+                subtitle: updateDownloadSourceDescription(),
+                onTap: () => editUpdateDownloadSource(context),
               ),
             ],
           ),
@@ -74,8 +79,8 @@ class UpdateSettingsContent extends StatelessWidget {
               ),
               SettingsLinkTile(
                 icon: Icons.history,
-                title: LocaleKeys.history_versions.tr(),
-                subtitle: LocaleKeys.history_versions_desc.tr(),
+                title: LocaleKeys.previous_versions.tr(),
+                subtitle: LocaleKeys.previous_versions_desc.tr(),
                 onTap: () => navigateToHistoryVersions(context),
               ),
               SettingsLinkTile(
@@ -87,9 +92,12 @@ class UpdateSettingsContent extends StatelessWidget {
             ],
           ),
           SettingsNotice(
-            icon: beta ? Icons.science_outlined : Icons.verified_outlined,
+            icon:
+                receiveBetaUpdates
+                    ? Icons.science_outlined
+                    : Icons.verified_outlined,
             message:
-                beta
+                receiveBetaUpdates
                     ? LocaleKeys.beta_version_desc.tr()
                     : LocaleKeys.stable_channel_desc.tr(),
           ),

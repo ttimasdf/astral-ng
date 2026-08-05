@@ -53,15 +53,21 @@ class ConnectionNetworkMonitor {
       try {
         final netStatus = await getNetworkStatus();
         final previousProxyCidrs = extractProxyCidrs();
-                  ServiceManager().connectionState.netStatus.value = netStatus;
+        ServiceManager().connectionState.netStatus.value = netStatus;
 
         // 当 peer 子网代理路由发生变化时，刷新 Android VPN 路由。
         if (Platform.isAndroid &&
             !ServiceManager().networkConfigState.noTun.value) {
           final currentProxyCidrs = extractProxyCidrs();
           final changed =
-              currentProxyCidrs.toSet().difference(previousProxyCidrs.toSet()).isNotEmpty ||
-              previousProxyCidrs.toSet().difference(currentProxyCidrs.toSet()).isNotEmpty;
+              currentProxyCidrs
+                  .toSet()
+                  .difference(previousProxyCidrs.toSet())
+                  .isNotEmpty ||
+              previousProxyCidrs
+                  .toSet()
+                  .difference(currentProxyCidrs.toSet())
+                  .isNotEmpty;
           if (changed) {
             await ServiceManager().vpn.start(
               ipv4Addr: ServiceManager().networkConfigState.ipv4.value,
@@ -77,14 +83,15 @@ class ConnectionNetworkMonitor {
       if (Platform.isAndroid &&
           ServiceManager().connectionState.connectionState.value ==
               CoState.connected) {
-        final formattedDuration =
-            NotificationService.formatDuration(connectionDuration);
+        final formattedDuration = NotificationService.formatDuration(
+          connectionDuration,
+        );
 
         await ServiceManager().widgets.updateDuration(formattedDuration);
 
         if (ServiceManager()
             .appSettingsState
-            .enableConnectionNotification
+            .connectionNotificationEnabled
             .value) {
           await ServiceManager().notifications.showConnectionNotification(
             status: '已连接',

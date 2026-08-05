@@ -107,7 +107,7 @@ class _SupportAboutSettingsContentState
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.apps_outlined),
-                title: Text(LocaleKeys.software_version.tr()),
+                title: Text(LocaleKeys.astralng_version.tr()),
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
@@ -119,7 +119,7 @@ class _SupportAboutSettingsContentState
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.memory_outlined),
-                title: Text(LocaleKeys.kernel_version.tr()),
+                title: Text(LocaleKeys.easytier_version.tr()),
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(

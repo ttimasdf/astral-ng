@@ -225,7 +225,7 @@ class VpnManager {
     }
 
     final customRoutes =
-        ServiceManager().vpnState.customVpn.value
+        ServiceManager().vpnState.androidVpnRoutes.value
             .where((route) => isValidCIDR(route))
             .toList();
 

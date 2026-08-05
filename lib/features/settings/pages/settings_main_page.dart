@@ -211,7 +211,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     final services = ServiceManager();
     return switch (index) {
       0 =>
-        services.startupState.startupAutoConnect.value
+        services.startupState.connectAfterLaunch.value
             ? LocaleKeys.auto_connect_on.tr()
             : LocaleKeys.saved_automatically.tr(),
       1 => switch (services.themeState.themeMode.value) {
@@ -223,7 +223,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         services.networkConfigState.defaultProtocol.value.isEmpty
             ? 'TCP'
             : services.networkConfigState.defaultProtocol.value.toUpperCase(),
-      3 => services.updateState.beta.value ? 'Beta' : 'Stable',
+      3 => services.updateState.receiveBetaUpdates.value ? 'Beta' : 'Stable',
       4 => LocaleKeys.platform_specific.tr(),
       _ => AppInfoUtil.getVersionDisplay(),
     };

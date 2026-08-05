@@ -25,8 +25,8 @@ class NetworkBasicSettingsCard extends StatelessWidget {
     return _settingsCard(
       children: [
         ListTile(
-          title: Text(LocaleKeys.p2p_hole_punching.tr()),
-          subtitle: Text(LocaleKeys.preferred_protocol.tr()),
+          title: Text(LocaleKeys.peer_connection_methods.tr()),
+          subtitle: Text(LocaleKeys.preferred_peer_protocol.tr()),
           trailing: Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: Padding(
@@ -78,8 +78,8 @@ class NetworkBasicSettingsCard extends StatelessWidget {
         ),
         _divider(),
         SwitchListTile(
-          title: Text(LocaleKeys.enable_encryption.tr()),
-          subtitle: Text(LocaleKeys.auto_set_mtu.tr()),
+          title: Text(LocaleKeys.encrypt_peer_traffic.tr()),
+          subtitle: Text(LocaleKeys.encrypt_peer_traffic_desc.tr()),
           value: ServiceManager().networkConfigState.enableEncryption.watch(
             context,
           ),
@@ -98,8 +98,8 @@ class NetworkBasicSettingsCard extends StatelessWidget {
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.disable_p2p.tr()),
-          subtitle: Text(LocaleKeys.disable_p2p_desc.tr()),
+          title: Text(LocaleKeys.force_relay.tr()),
+          subtitle: Text(LocaleKeys.force_relay_desc.tr()),
           value: ServiceManager().networkConfigState.disableP2p.watch(context),
           onChanged: (value) {
             ServiceManager().networkConfig.updateDisableP2p(value);
@@ -119,8 +119,8 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
     return _settingsCard(
       children: [
         ListTile(
-          title: Text(LocaleKeys.advanced_network_settings.tr()),
-          subtitle: Text(LocaleKeys.advanced_network_settings_desc.tr()),
+          title: Text(LocaleKeys.advanced_network.tr()),
+          subtitle: Text(LocaleKeys.advanced_network_warning.tr()),
           leading: const Icon(Icons.settings_ethernet),
         ),
         _divider(),
@@ -152,8 +152,8 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           },
         ),
         ListTile(
-          title: Text(LocaleKeys.compression_algorithm.tr()),
-          subtitle: Text(LocaleKeys.compression_algorithm_desc.tr()),
+          title: Text(LocaleKeys.traffic_compression.tr()),
+          subtitle: Text(LocaleKeys.traffic_compression_desc.tr()),
           trailing: Container(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
             child: Padding(
@@ -165,14 +165,14 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
                   DropdownMenuItem(
                     value: 1,
                     child: Text(
-                      LocaleKeys.no_compression.tr(),
+                      LocaleKeys.compression_none.tr(),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
                   DropdownMenuItem(
                     value: 2,
                     child: Text(
-                      LocaleKeys.high_performance_compression.tr(),
+                      LocaleKeys.compression_zstd.tr(),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
@@ -191,8 +191,8 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           ),
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.enable_kcp_proxy.tr()),
-          subtitle: Text(LocaleKeys.enable_kcp_proxy_desc.tr()),
+          title: Text(LocaleKeys.kcp_for_tcp_streams.tr()),
+          subtitle: Text(LocaleKeys.kcp_for_tcp_streams_desc.tr()),
           value: ServiceManager().networkConfigState.enableKcpProxy.watch(
             context,
           ),
@@ -201,24 +201,24 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.bind_device.tr()),
-          subtitle: Text(LocaleKeys.bind_device_desc.tr()),
+          title: Text(LocaleKeys.physical_interfaces_only.tr()),
+          subtitle: Text(LocaleKeys.physical_interfaces_only_desc.tr()),
           value: ServiceManager().networkConfigState.bindDevice.watch(context),
           onChanged: (value) {
             ServiceManager().networkConfig.updateBindDevice(value);
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.tun_device.tr()),
-          subtitle: Text(LocaleKeys.tun_device_desc.tr()),
+          title: Text(LocaleKeys.disable_tun_adapter.tr()),
+          subtitle: Text(LocaleKeys.disable_tun_adapter_desc.tr()),
           value: ServiceManager().networkConfigState.noTun.watch(context),
           onChanged: (value) {
             ServiceManager().networkConfig.updateNoTun(value);
           },
         ),
         SwitchListTile(
-          title: Text(LocaleKeys.enable_socks5.tr()),
-          subtitle: Text(LocaleKeys.enable_socks5_desc.tr()),
+          title: Text(LocaleKeys.local_socks5_proxy.tr()),
+          subtitle: Text(LocaleKeys.local_socks5_proxy_desc.tr()),
           value: ServiceManager().networkConfigState.enableSocks5.watch(
             context,
           ),
@@ -230,8 +230,8 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           context,
         )) ...[
           ListTile(
-            title: Text(LocaleKeys.socks5_port.tr()),
-            subtitle: Text(LocaleKeys.socks5_port_desc.tr()),
+            title: Text(LocaleKeys.socks5_listen_port.tr()),
+            subtitle: Text(LocaleKeys.socks5_listen_port_desc.tr()),
             trailing: SizedBox(
               width: 100,
               child: TextFormField(
@@ -259,7 +259,7 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
           ),
           ListTile(
             title: Text(
-              LocaleKeys.socks5_address_hint.tr(
+              LocaleKeys.socks5_listen_address.tr(
                 namedArgs: {
                   'port':
                       ServiceManager().networkConfigState.socks5Port
@@ -292,8 +292,8 @@ class NetworkHopSettingsCard extends StatelessWidget {
     return _settingsCard(
       children: [
         SwitchListTile(
-          title: Text(LocaleKeys.auto_set_hop.tr()),
-          subtitle: Text(LocaleKeys.auto_set_hop_desc.tr()),
+          title: Text(LocaleKeys.prefer_astral_adapter.tr()),
+          subtitle: Text(LocaleKeys.prefer_astral_adapter_desc.tr()),
           value: ServiceManager().networkConfigState.preferAstralAdapter.watch(
             context,
           ),
@@ -304,16 +304,16 @@ class NetworkHopSettingsCard extends StatelessWidget {
         _divider(),
         ListTile(
           leading: const Icon(Icons.list),
-          title: Text(LocaleKeys.view_hop_list.tr()),
+          title: Text(LocaleKeys.view_adapter_priorities.tr()),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => showHopList(context),
+          onTap: () => showAdapterPriorities(context),
         ),
       ],
     );
   }
 }
 
-Future<void> showHopList(BuildContext context) async {
+Future<void> showAdapterPriorities(BuildContext context) async {
   try {
     final result = await getAllInterfacesMetrics();
     if (!context.mounted) return;
@@ -322,7 +322,7 @@ Future<void> showHopList(BuildContext context) async {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(LocaleKeys.network_adapter_hop_list.tr()),
+            title: Text(LocaleKeys.windows_adapter_priorities.tr()),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -350,8 +350,8 @@ Future<void> showHopList(BuildContext context) async {
     if (!context.mounted) return;
     AppSnackBars.error(
       context,
-      LocaleKeys.network_adapter_hop_list.tr(),
-      LocaleKeys.get_hop_list_failed.tr(),
+      LocaleKeys.windows_adapter_priorities.tr(),
+      LocaleKeys.load_adapter_priorities_failed.tr(),
     );
   }
 }

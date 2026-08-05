@@ -54,9 +54,9 @@ class _UserPageState extends State<UserPage> {
         );
         final connectionState = ServiceManager().connectionState.connectionState
             .watch(context);
-        final reduceAnimationUpdates = ServiceManager()
+        final reduceTopologyAnimations = ServiceManager()
             .appSettingsState
-            .reduceAnimationUpdates
+            .reduceTopologyAnimations
             .watch(context);
         final isInBackground = ServiceManager().uiState.isInBackground.watch(
           context,
@@ -116,7 +116,7 @@ class _UserPageState extends State<UserPage> {
           if (_showTopology) {
             return NetworkTopologyView(
               nodes: netStatus.nodes,
-              reduceUpdates: reduceAnimationUpdates,
+              reduceUpdates: reduceTopologyAnimations,
               isInBackground: isInBackground,
             );
           }

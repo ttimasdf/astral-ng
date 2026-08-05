@@ -93,7 +93,9 @@ class AppearanceSettingsContent extends StatelessWidget {
       final compactPeerCards = services.displayState.compactPeerCards.watch(
         context,
       );
-      final reduceMotion = services.appSettingsState.reduceAnimationUpdates
+      final reduceTopologyAnimations = services
+          .appSettingsState
+          .reduceTopologyAnimations
           .watch(context);
 
       return SettingsContentView(
@@ -150,8 +152,8 @@ class AppearanceSettingsContent extends StatelessWidget {
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.player_list_card.tr()),
-                subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
+                title: Text(LocaleKeys.compact_peer_cards.tr()),
+                subtitle: Text(LocaleKeys.compact_peer_cards_desc.tr()),
                 value: compactPeerCards,
                 onChanged: services.appSettings.setCompactPeerCards,
               ),
@@ -159,8 +161,8 @@ class AppearanceSettingsContent extends StatelessWidget {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 title: Text(LocaleKeys.reduce_animation_updates.tr()),
                 subtitle: Text(LocaleKeys.reduce_animation_updates_desc.tr()),
-                value: reduceMotion,
-                onChanged: services.appSettings.updateReduceAnimationUpdates,
+                value: reduceTopologyAnimations,
+                onChanged: services.appSettings.setReduceTopologyAnimations,
               ),
             ],
           ),

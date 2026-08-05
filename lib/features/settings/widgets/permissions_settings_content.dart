@@ -130,7 +130,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
     return Watch((context) {
       final notificationEnabled = ServiceManager()
           .appSettingsState
-          .enableConnectionNotification
+          .connectionNotificationEnabled
           .watch(context);
 
       return SettingsContentView(
@@ -149,7 +149,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
                   vertical: 5,
                 ),
                 leading: const Icon(Icons.install_mobile),
-                title: Text(LocaleKeys.get_install_permission.tr()),
+                title: Text(LocaleKeys.install_update_permission.tr()),
                 subtitle: Text(LocaleKeys.install_permission_explanation.tr()),
                 trailing: _permissionStatus(_installGranted),
                 onTap:
@@ -167,7 +167,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
                   vertical: 5,
                 ),
                 leading: const Icon(Icons.notifications_outlined),
-                title: Text(LocaleKeys.get_notification_permission.tr()),
+                title: Text(LocaleKeys.notification_permission.tr()),
                 subtitle: Text(
                   LocaleKeys.notification_permission_explanation.tr(),
                 ),
@@ -191,10 +191,10 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
             children: [
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.enable_connection_notification.tr()),
+                title: Text(LocaleKeys.connection_notification.tr()),
                 subtitle: Text(
                   _notificationGranted
-                      ? LocaleKeys.enable_connection_notification_desc.tr()
+                      ? LocaleKeys.connection_notification_desc.tr()
                       : LocaleKeys.notification_permission_needed.tr(),
                 ),
                 value: notificationEnabled && _notificationGranted,
@@ -208,7 +208,7 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
                     if (!_notificationGranted) return;
                   }
                   await ServiceManager().appSettings
-                      .updateEnableConnectionNotification(value);
+                      .setConnectionNotificationEnabled(value);
                 },
               ),
             ],

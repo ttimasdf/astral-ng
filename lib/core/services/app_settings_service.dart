@@ -10,7 +10,6 @@ import 'package:astral/core/states/vpn_state.dart';
 import 'package:astral/core/states/app_settings_state.dart';
 import 'package:astral/core/repositories/app_settings_repository.dart';
 import 'package:astral/core/database/dao/all_settings_dao.dart';
-import 'package:astral/shared/utils/github_proxy_selector.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
 
 /// 应用设置服务：协调 State 与持久化
@@ -43,175 +42,177 @@ class AppSettingsService {
     playerState.updatePlayerName(playerName);
     playerState.setListenList(listenList);
 
-    displayState.setCompactPeerCards(settings.userListSimple);
-    displayState.setSortOption(UserSortOption.fromIndex(settings.sortOption));
-    displayState.setSortOrder(UserSortOrder.fromIndex(settings.sortOrder));
+    displayState.setCompactPeerCards(settings.compactPeerCards);
+    displayState.setSortOption(
+      UserSortOption.fromIndex(settings.peerSortOption),
+    );
+    displayState.setSortOrder(UserSortOrder.fromIndex(settings.peerSortOrder));
     displayState.setDisplayMode(
-      UserDisplayMode.fromIndex(settings.displayMode),
+      UserDisplayMode.fromIndex(settings.peerDisplayMode),
     );
 
     startupState.updateAll(
-      startup: settings.startup,
-      startupMinimize: settings.startupMinimize,
-      startupAutoConnect: settings.startupAutoConnect,
+      launchAtLogin: settings.launchAtLogin,
+      launchToTray: settings.launchToTray,
+      connectAfterLaunch: settings.connectAfterLaunch,
     );
 
-    updateState.setBeta(settings.beta);
-    updateState.setAutoCheckUpdate(settings.autoCheckUpdate);
+    updateState.setReceiveBetaUpdates(settings.receiveBetaUpdates);
+    updateState.setAutomaticUpdateChecks(settings.automaticUpdateChecks);
 
-    var downloadAccelerate = settings.downloadAccelerate;
-    if (downloadAccelerate == 'https://gh.xmly.dev/') {
-      downloadAccelerate = GitHubProxySelector.autoMode;
-      await _repo.update((s) => s.downloadAccelerate = downloadAccelerate);
-    }
-    updateState.setDownloadAccelerate(downloadAccelerate);
-    updateState.setLatestVersion(settings.latestVersion);
+    updateState.setUpdateDownloadSource(settings.updateDownloadSource);
+    updateState.setLatestVersion(settings.latestAvailableVersion);
 
-    appSettingsState.updateEnableConnectionNotification(
-      settings.enableConnectionNotification,
+    appSettingsState.setConnectionNotificationEnabled(
+      settings.connectionNotificationEnabled,
     );
-    appSettingsState.updateReduceAnimationUpdates(
-      settings.reduceAnimationUpdates,
+    appSettingsState.setReduceTopologyAnimations(
+      settings.reduceTopologyAnimations,
     );
-    appSettingsState.updateAutoRetryOnFailure(settings.autoRetryOnFailure);
-    appSettingsState.updateMaxRetryCount(settings.maxRetryCount);
+    appSettingsState.setRetryFailedConnections(settings.retryFailedConnections);
+    appSettingsState.setConnectionRetryLimit(settings.connectionRetryLimit);
 
     windowState.setCloseBehavior(
-      settings.closeMinimize
+      settings.closeToTray
           ? WindowCloseBehavior.closeToTray
           : WindowCloseBehavior.exitProgram,
     );
-    vpnState.setCustomVpn(List<String>.from(settings.customVpn));
+    vpnState.setAndroidVpnRoutes(List<String>.from(settings.androidVpnRoutes));
   }
 
   Future<void> updatePlayerName(String name) async {
     playerState.updatePlayerName(name);
-    await _repo.update((s) => s.playerName = name);
+    await _repo.update((s) => s.peerName = name);
   }
 
   Future<void> setListenList(List<String> list) async {
     playerState.setListenList(list);
-    await _repo.update((s) => s.listenList = list);
+    await _repo.update((s) => s.peerListeners = list);
   }
 
   Future<void> addListen(String listen) async {
     playerState.addListen(listen);
-    await _repo.update((s) => s.listenList = playerState.listenList.value);
+    await _repo.update((s) => s.peerListeners = playerState.listenList.value);
   }
 
   Future<void> deleteListen(int index) async {
     playerState.removeListen(index);
-    await _repo.update((s) => s.listenList = playerState.listenList.value);
+    await _repo.update((s) => s.peerListeners = playerState.listenList.value);
   }
 
   Future<void> updateListen(int index, String listen) async {
     await _repo.update((s) {
-      s.listenList ??= List<String>.from(AllSettingsDao.defaultListenList);
-      s.listenList![index] = listen;
+      s.peerListeners ??= List<String>.from(AllSettingsDao.defaultListenList);
+      s.peerListeners![index] = listen;
     });
     playerState.setListenList(await _repo.getListenList());
   }
 
   Future<void> setCompactPeerCards(bool value) async {
     displayState.setCompactPeerCards(value);
-    // Keep the legacy storage field to preserve existing installations.
-    await _repo.update((s) => s.userListSimple = value);
+    await _repo.update((s) => s.compactPeerCards = value);
   }
 
   Future<void> setSortOption(UserSortOption option) async {
     displayState.setSortOption(option);
-    await _repo.update((s) => s.sortOption = option.index);
+    await _repo.update((s) => s.peerSortOption = option.index);
   }
 
   Future<void> setSortOrder(UserSortOrder order) async {
     displayState.setSortOrder(order);
-    await _repo.update((s) => s.sortOrder = order.index);
+    await _repo.update((s) => s.peerSortOrder = order.index);
   }
 
   Future<void> setDisplayMode(UserDisplayMode mode) async {
     displayState.setDisplayMode(mode);
-    await _repo.update((s) => s.displayMode = mode.index);
+    await _repo.update((s) => s.peerDisplayMode = mode.index);
   }
 
-  Future<void> setStartup(bool value) async {
-    startupState.setStartup(value);
-    await _repo.update((s) => s.startup = value);
+  Future<void> setLaunchAtLogin(bool value) async {
+    startupState.setLaunchAtLogin(value);
+    await _repo.update((s) => s.launchAtLogin = value);
     await handleStartupSetting(value);
   }
 
-  Future<void> setStartupMinimize(bool value) async {
-    startupState.setStartupMinimize(value);
-    await _repo.update((s) => s.startupMinimize = value);
+  Future<void> setLaunchToTray(bool value) async {
+    startupState.setLaunchToTray(value);
+    await _repo.update((s) => s.launchToTray = value);
   }
 
-  Future<void> setStartupAutoConnect(bool value) async {
-    startupState.setStartupAutoConnect(value);
-    await _repo.update((s) => s.startupAutoConnect = value);
+  Future<void> setConnectAfterLaunch(bool value) async {
+    startupState.setConnectAfterLaunch(value);
+    await _repo.update((s) => s.connectAfterLaunch = value);
   }
 
-  Future<void> setBeta(bool value) async {
-    updateState.setBeta(value);
-    await _repo.update((s) => s.beta = value);
+  Future<void> setReceiveBetaUpdates(bool value) async {
+    updateState.setReceiveBetaUpdates(value);
+    await _repo.update((s) => s.receiveBetaUpdates = value);
   }
 
-  Future<void> setAutoCheckUpdate(bool value) async {
-    updateState.setAutoCheckUpdate(value);
-    await _repo.update((s) => s.autoCheckUpdate = value);
+  Future<void> setAutomaticUpdateChecks(bool value) async {
+    updateState.setAutomaticUpdateChecks(value);
+    await _repo.update((s) => s.automaticUpdateChecks = value);
   }
 
-  Future<void> setDownloadAccelerate(String value) async {
-    updateState.setDownloadAccelerate(value);
-    await _repo.update((s) => s.downloadAccelerate = value);
+  Future<void> setUpdateDownloadSource(String value) async {
+    updateState.setUpdateDownloadSource(value);
+    await _repo.update((s) => s.updateDownloadSource = value);
   }
 
   Future<void> updateLatestVersion(String version) async {
     updateState.setLatestVersion(version);
-    await _repo.update((s) => s.latestVersion = version);
+    await _repo.update((s) => s.latestAvailableVersion = version);
   }
 
-  Future<void> updateEnableConnectionNotification(bool enable) async {
-    appSettingsState.updateEnableConnectionNotification(enable);
-    await _repo.update((s) => s.enableConnectionNotification = enable);
+  Future<void> setConnectionNotificationEnabled(bool enabled) async {
+    appSettingsState.setConnectionNotificationEnabled(enabled);
+    await _repo.update((s) => s.connectionNotificationEnabled = enabled);
 
-    if (!enable && Platform.isAndroid) {
+    if (!enabled && Platform.isAndroid) {
       await ServiceManager().notifications.cancelConnectionNotification();
     }
   }
 
-  Future<void> updateReduceAnimationUpdates(bool enable) async {
-    appSettingsState.updateReduceAnimationUpdates(enable);
-    await _repo.update((s) => s.reduceAnimationUpdates = enable);
+  Future<void> setReduceTopologyAnimations(bool value) async {
+    appSettingsState.setReduceTopologyAnimations(value);
+    await _repo.update((s) => s.reduceTopologyAnimations = value);
   }
 
-  Future<void> updateAutoRetryOnFailure(bool enable) async {
-    appSettingsState.updateAutoRetryOnFailure(enable);
-    await _repo.update((s) => s.autoRetryOnFailure = enable);
+  Future<void> setRetryFailedConnections(bool value) async {
+    appSettingsState.setRetryFailedConnections(value);
+    await _repo.update((s) => s.retryFailedConnections = value);
   }
 
-  Future<void> updateMaxRetryCount(int count) async {
-    appSettingsState.updateMaxRetryCount(count);
-    await _repo.update((s) => s.maxRetryCount = count);
+  Future<void> setConnectionRetryLimit(int limit) async {
+    appSettingsState.setConnectionRetryLimit(limit);
+    await _repo.update((s) => s.connectionRetryLimit = limit);
   }
 
   Future<void> updateWindowCloseBehavior(WindowCloseBehavior value) async {
     windowState.setCloseBehavior(value);
     await _repo.update(
-      (s) => s.closeMinimize = value == WindowCloseBehavior.closeToTray,
+      (s) => s.closeToTray = value == WindowCloseBehavior.closeToTray,
     );
   }
 
-  Future<void> addCustomVpn(String value) async {
-    vpnState.addCustomVpn(value);
-    await _repo.update((s) => s.customVpn = vpnState.customVpn.value);
+  Future<void> addAndroidVpnRoute(String route) async {
+    vpnState.addAndroidVpnRoute(route);
+    await _repo.update(
+      (s) => s.androidVpnRoutes = vpnState.androidVpnRoutes.value,
+    );
   }
 
-  Future<void> deleteCustomVpn(int index) async {
-    vpnState.removeCustomVpn(index);
-    await _repo.update((s) => s.customVpn = vpnState.customVpn.value);
+  Future<void> deleteAndroidVpnRoute(int index) async {
+    vpnState.removeAndroidVpnRoute(index);
+    await _repo.update(
+      (s) => s.androidVpnRoutes = vpnState.androidVpnRoutes.value,
+    );
   }
 
-  Future<void> updateCustomVpn(int index, String value) async {
-    await _repo.update((s) => s.customVpn[index] = value);
-    vpnState.setCustomVpn(List<String>.from((await _repo.get()).customVpn));
+  Future<void> updateAndroidVpnRoute(int index, String route) async {
+    await _repo.update((s) => s.androidVpnRoutes[index] = route);
+    vpnState.setAndroidVpnRoutes(
+      List<String>.from((await _repo.get()).androidVpnRoutes),
+    );
   }
 }

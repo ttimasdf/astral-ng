@@ -13,9 +13,8 @@ class NetworkConfigRepository {
       _db.netConfig.update(mutate);
 
   Future<bool> getPreferAstralAdapter() async =>
-      (await _db.allSettings.get()).autoSetMTU;
+      (await _db.allSettings.get()).preferAstralAdapter;
 
   Future<void> setPreferAstralAdapter(bool value) =>
-  // Keep the legacy storage field to preserve existing installations.
-  _db.allSettings.update((s) => s.autoSetMTU = value);
+      _db.allSettings.update((s) => s.preferAstralAdapter = value);
 }

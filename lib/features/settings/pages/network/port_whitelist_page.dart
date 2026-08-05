@@ -9,7 +9,7 @@ class PortWhitelistPage extends BaseSettingsPage {
   const PortWhitelistPage({super.key});
 
   @override
-  String get title => LocaleKeys.port_whitelist.tr();
+  String get title => LocaleKeys.allowed_virtual_network_ports.tr();
 
   @override
   Widget buildContent(BuildContext context) {
@@ -28,8 +28,8 @@ class PortWhitelistPage extends BaseSettingsPage {
           children: [
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(LocaleKeys.port_whitelist_info.tr()),
-              subtitle: Text(LocaleKeys.port_whitelist_format_desc.tr()),
+              title: Text(LocaleKeys.allowed_ports_format.tr()),
+              subtitle: Text(LocaleKeys.allowed_ports_format_desc.tr()),
             ),
           ],
         ),
@@ -149,7 +149,7 @@ class PortWhitelistPage extends BaseSettingsPage {
       builder:
           (context) => AlertDialog(
             title: Text(
-              LocaleKeys.edit_port_whitelist.tr(namedArgs: {'type': type}),
+              LocaleKeys.edit_allowed_ports.tr(namedArgs: {'type': type}),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -207,10 +207,14 @@ class PortWhitelistPage extends BaseSettingsPage {
       builder:
           (context) => AlertDialog(
             title: Text(
-              LocaleKeys.confirm_clear_ports.tr(namedArgs: {'type': type}),
+              LocaleKeys.confirm_clear_allowed_ports.tr(
+                namedArgs: {'type': type},
+              ),
             ),
             content: Text(
-              LocaleKeys.confirm_clear_ports_desc.tr(namedArgs: {'type': type}),
+              LocaleKeys.confirm_clear_allowed_ports_desc.tr(
+                namedArgs: {'type': type},
+              ),
             ),
             actions: [
               TextButton(

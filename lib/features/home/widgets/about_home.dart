@@ -61,7 +61,7 @@ class _AboutHomeState extends State<AboutHome> {
                 color: colorScheme.primary,
               ), // 软件版本图标
               Text(
-                '${LocaleKeys.software_version.tr()}: ',
+                '${LocaleKeys.astralng_version.tr()}: ',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               Watch((context) {
@@ -109,7 +109,7 @@ class _AboutHomeState extends State<AboutHome> {
                 color: colorScheme.primary,
               ),
               Text(
-                '${LocaleKeys.kernel_version.tr()}: ',
+                '${LocaleKeys.easytier_version.tr()}: ',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               Text(

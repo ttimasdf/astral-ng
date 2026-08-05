@@ -43,7 +43,10 @@ baseline.
   and cache diagnostics may be removed early by the OS or user.
 - Redesigned Settings with responsive desktop and mobile navigation, searchable
   categories, clearer status and dependency descriptions, and a consolidated
-  Network & Connection workspace. ([#12])
+  Network & Connection workspace. Setting storage and localization identifiers
+  now match their current concepts instead of retaining historical names. This
+  schema reset requires Android users to back up server and room credentials,
+  uninstall the previous APK, and install the new build. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.

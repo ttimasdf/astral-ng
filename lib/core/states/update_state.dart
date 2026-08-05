@@ -4,38 +4,38 @@ import 'package:astral/shared/utils/github_proxy_selector.dart';
 
 /// 更新相关状态
 class UpdateState {
-  /// 是否加入测试版频道
-  final beta = signal(false);
+  /// 是否接收 Beta 更新
+  final receiveBetaUpdates = signal(false);
 
   /// 是否自动检查更新
-  final autoCheckUpdate = signal(true);
+  final automaticUpdateChecks = signal(true);
 
-  /// 下载加速前缀（`auto` = 自动测速，`''` = 关闭）
-  final downloadAccelerate = signal(GitHubProxySelector.autoMode);
+  /// 更新包下载源（`auto` = 自动选择镜像，`''` = 直连 GitHub）
+  final updateDownloadSource = signal(GitHubProxySelector.autoMode);
 
-  /// 自动模式下最近一次测速选中的前缀
-  final resolvedDownloadAccelerate = signal<String?>(null);
+  /// 自动模式下最近一次测速选中的镜像前缀
+  final resolvedUpdateDownloadSource = signal<String?>(null);
 
   /// 最近一次检查到的最新版本号
   final latestVersion = signal<String?>(null);
 
-  void setBeta(bool value) {
-    beta.value = value;
+  void setReceiveBetaUpdates(bool value) {
+    receiveBetaUpdates.value = value;
   }
 
-  void setAutoCheckUpdate(bool value) {
-    autoCheckUpdate.value = value;
+  void setAutomaticUpdateChecks(bool value) {
+    automaticUpdateChecks.value = value;
   }
 
-  void setDownloadAccelerate(String value) {
-    downloadAccelerate.value = value;
+  void setUpdateDownloadSource(String value) {
+    updateDownloadSource.value = value;
     if (!GitHubProxySelector.isAutoMode(value)) {
-      resolvedDownloadAccelerate.value = null;
+      resolvedUpdateDownloadSource.value = null;
     }
   }
 
-  void setResolvedDownloadAccelerate(String? value) {
-    resolvedDownloadAccelerate.value = value;
+  void setResolvedUpdateDownloadSource(String? value) {
+    resolvedUpdateDownloadSource.value = value;
   }
 
   void setLatestVersion(String? version) {
