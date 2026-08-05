@@ -29,9 +29,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
   }) async {
     final resolvedDirectory =
         directory ??
-        Directory(
-          p.join((await getApplicationSupportDirectory()).path, 'logs'),
-        );
+        Directory(p.join((await getApplicationCacheDirectory()).path, 'logs'));
     await resolvedDirectory.create(recursive: true);
     final sink = RotatingJsonlSink._(
       directory: resolvedDirectory,

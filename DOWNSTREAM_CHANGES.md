@@ -678,11 +678,15 @@ failures inspectable without recording packet contents, credentials, room
 payloads, executable paths, or user-provided Magic Wall details. Desktop
 entrypoint arguments and debuggable Android Activity extras can activate
 process-only policies before startup; release Android builds ignore those
-extras.
+extras. Durable Isar state uses the platform Application Support directory,
+while rotating diagnostics use Application Cache and may be purged before their
+size/age retention bounds. This intentionally replaces legacy platform-specific
+and executable-relative data paths without runtime migration or fallback.
 
 ### Files affected
 
-- `lib/core/diagnostics/`, `lib/main.dart`: define the schema, sanitization, policy, sinks, error ownership, startup capture, launch arguments, correlation, and Flutter timeline integration
+- `lib/core/diagnostics/`, `lib/main.dart`: define the schema, sanitization, policy, cache-backed sinks, error ownership, startup capture, launch arguments, correlation, and Flutter timeline integration
+- `lib/core/database/app_data.dart`: open Isar under the platform Application Support directory without platform-specific path branches or legacy fallback
 - `lib/features/settings/pages/general/logs_page.dart`: add policy controls, timed presets, structured filters, pause and auto-scroll behavior, health counters, and support export
 - `rust/src/diagnostics/`, `rust/src/api/`, generated Flutter Rust Bridge files: install the Astral tracing subscriber, normalize and redact native events, batch the Dart bridge, and propagate correlation identifiers
 - `vpn_service_plugin/`: emit structured Android VPN events to logcat and Flutter, synchronize runtime filtering, and preserve null-interface establishment failures without misclassifying permission state

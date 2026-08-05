@@ -37,17 +37,31 @@ when the JSONL artifact is available.
 From the Nix development shell, validate or merge a desktop rotation set:
 
 ```sh
-python3 scripts/diagnostic_jsonl.py validate <application-support>/logs
+python3 scripts/diagnostic_jsonl.py validate <application-cache>/logs
 python3 scripts/diagnostic_jsonl.py merge \
-  <application-support>/logs \
+  <application-cache>/logs \
   --output /tmp/astral-diagnostics.jsonl
 lnav /tmp/astral-diagnostics.jsonl
 ```
 
-On Linux the production identity normally stores the set under
-`~/.local/share/pw.rabit.astralng/logs`; the canary identity uses the adjacent
-`pw.rabit.astralng.canary` directory. Pass the explicit directory instead of
-assuming this location on other desktop platforms.
+On Linux the production identity stores the set under
+`$XDG_CACHE_HOME/pw.rabit.astralng/logs` (normally
+`~/.cache/pw.rabit.astralng/logs`); canary uses
+`pw.rabit.astralng.canary`. On other platforms, resolve the directory returned
+by Flutter's `getApplicationCacheDirectory()` and append `logs`. Cache
+diagnostics are best-effort: Astral retains up to seven days or approximately
+6 MiB, but the OS or user may remove them earlier.
+
+Astral uses Flutter's storage classes directly, with no runtime migration or
+legacy fallback:
+
+| Platform | Database (`Application Support/db`) | Logs (`Application Cache/logs`) |
+| --- | --- | --- |
+| Android | `/data/user/0/<package>/files/db` | `/data/user/0/<package>/cache/logs` |
+| iOS | `<sandbox>/Library/Application Support/db` | `<sandbox>/Library/Caches/logs` |
+| Linux | `$XDG_DATA_HOME/<application-id>/db` | `$XDG_CACHE_HOME/<application-id>/logs` |
+| macOS | `~/Library/Application Support/<bundle-id>/db` | `~/Library/Caches/<bundle-id>/logs` |
+| Windows | `%APPDATA%/<company>/<product>/db` | `%LOCALAPPDATA%/<company>/<product>/logs` |
 
 For a debuggable Android build, retrieve private current and rotated files in
 chronological order with:

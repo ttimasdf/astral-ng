@@ -17,6 +17,7 @@ ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))
 PACKAGE_NAME = re.compile(r"^[A-Za-z0-9._]+$")
 REQUIRED_LEVELS = {"trace", "debug", "info", "warning", "error", "fatal"}
 ROTATED_NAMES = ("astral.jsonl.2", "astral.jsonl.1", "astral.jsonl")
+ANDROID_LOG_DIRECTORY = "cache/logs"
 
 
 class DiagnosticError(Exception):
@@ -132,7 +133,7 @@ def pull_android(package: str, device: str | None) -> list[dict[str, Any]]:
     if not PACKAGE_NAME.fullmatch(package):
         raise DiagnosticError("Android package name contains unsupported characters")
     listing = subprocess.run(
-        [*adb_base(device), "exec-out", "run-as", package, "ls", "files/logs"],
+        [*adb_base(device), "exec-out", "run-as", package, "ls", ANDROID_LOG_DIRECTORY],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
@@ -146,7 +147,7 @@ def pull_android(package: str, device: str | None) -> list[dict[str, Any]]:
     for name in ROTATED_NAMES:
         if name not in available:
             continue
-        remote = f"files/logs/{name}"
+        remote = f"{ANDROID_LOG_DIRECTORY}/{name}"
         fetched = subprocess.run(
             [*adb_base(device), "exec-out", "run-as", package, "cat", remote],
             stdout=subprocess.PIPE,
