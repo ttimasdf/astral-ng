@@ -69,6 +69,10 @@ baseline.
 
 ### Fixed
 
+- Fixed Android reporting a connection before VPN consent, TUN creation, and
+  Rust file-descriptor handoff completed. The Android TUN now uses EasyTier's
+  assigned virtual address, failed VPN setup disconnects cleanly, and requested
+  disconnects remove the VPN interface, agent, and service.
 - Fixed Android VPN startup treating a null VPN interface as revoked permission,
   preserving the original failure and correlation details for troubleshooting.
 - Fixed Android canary snapshots remaining on the white launch screen when
@@ -109,6 +113,8 @@ baseline.
 - Added a `flutter-android` development command that defaults local Android work
   to the canary identity and isolates NDK builds from NixOS desktop compiler
   settings.
+- Added the pinned EasyTier CLI to the Nix development shell for local no-TUN
+  peer and end-to-end network diagnostics.
 
 ## v2.8.1 - 2026-03-31
 

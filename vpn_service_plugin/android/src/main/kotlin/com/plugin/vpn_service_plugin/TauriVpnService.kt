@@ -22,6 +22,7 @@ class TauriVpnService : VpnService() {
         const val DISALLOWED_APPLICATIONS = "DISALLOWED_APPLICATIONS"  // 不允许使用VPN的应用列表
         const val MTU = "MTU"                                // 最大传输单元
         const val CONNECTION_ATTEMPT_ID = "CONNECTION_ATTEMPT_ID"
+        const val ACTION_STOP = "com.plugin.vpn_service_plugin.action.STOP"
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -32,6 +33,21 @@ class TauriVpnService : VpnService() {
 
     // VPN服务启动时的回调函数
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP) {
+            NativeLogger.info(
+                "vpn.tun.teardown.start",
+                "Tearing down Android TUN interface",
+            )
+            closeVpnInterface()
+            triggerCallback("vpn_service_stop", mapOf("reason" to "requested"))
+            NativeLogger.info(
+                "vpn.tun.teardown.complete",
+                "Android TUN interface torn down",
+            )
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
         val args = intent?.extras
         if (args == null) {
             NativeLogger.warning(

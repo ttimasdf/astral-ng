@@ -143,6 +143,7 @@
               flutterSdk
               flutter_rust_bridge_codegen
               flutterAndroid
+              easytier
               androidSdk
               javaSdk
               protobuf

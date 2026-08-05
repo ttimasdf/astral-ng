@@ -139,6 +139,7 @@ Optional initialization uses `<operation>.complete` at `info` and
 | `connect.complete` | info | A connection attempt succeeded |
 | `connect.cancelled` | info | A connection attempt was cancelled |
 | `connect.failed` | warning/error | A connection attempt failed |
+| `connect.vpn.failed` | error | EasyTier became ready but Android VPN setup or TUN handoff failed |
 | `connect.retry.failed` | warning | One retry iteration failed; `retry` field |
 | `connect.room-config.invalid` | warning | Room network configuration could not be parsed |
 | `connection.attempt` | timeline label | DevTools timeline task name, not a persisted event code |
@@ -257,6 +258,8 @@ when a `Throwable` is available.
 | `vpn.tun.configuration.invalid` | error | Address/route/TUN configuration threw |
 | `vpn.tun.establish.failed` | error | `Builder.establish()` returned no descriptor |
 | `vpn.tun.establish.complete` | info | TUN descriptor was established |
+| `vpn.tun.teardown.start` | info | Requested TUN teardown began |
+| `vpn.tun.teardown.complete` | info | Requested TUN teardown completed |
 | `vpn.interface.close.failed` | warning | Existing TUN descriptor could not be closed |
 
 A null descriptor from `VpnService.Builder.establish()` is intentionally an

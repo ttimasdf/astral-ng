@@ -697,4 +697,36 @@ and executable-relative data paths without runtime migration or fallback.
 
 ---
 
+## [android-vpn-readiness]: Make Android connection state follow VPN readiness
+
+- **Scope**: `lib/core/services/server_connection_manager.dart`, `lib/core/services/vpn_manager.dart`, `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/`, `docs/troubleshooting/easytier.md`
+- **Type**: patch
+- **Status**: active
+- **Introduced**: android-vpn-readiness
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Makes Android VPN authorization, TUN creation, and EasyTier file-descriptor
+handoff part of the connection contract instead of asynchronous best-effort
+work after the UI reports success. The native plugin waits for the Android
+consent result and surfaces denial or missing authorization. Astral reads the
+EasyTier-assigned virtual IPv4 address at readiness, configures Android with the
+matching address and subnet, waits for Rust to accept the TUN descriptor, and
+disconnects if any VPN step fails. Requested disconnects explicitly close the
+service-owned TUN before stopping the service so Android removes the VPN network
+agent and binding. The troubleshooting workflow documents independent checks
+for EasyTier peers, Android VPN state, packet reachability, cellular-underlay
+loss and recovery, and teardown.
+
+### Files affected
+
+- `lib/core/services/server_connection_manager.dart`: delay connected state until Android VPN readiness, use the current EasyTier-assigned address, and disconnect on setup failure
+- `lib/core/services/vpn_manager.dart`: validate the address and await the native TUN event and Rust descriptor handoff with bounded failure handling
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/VpnServicePlugin.kt`: await Android consent results, reject unauthorized start calls, and request explicit TUN teardown
+- `vpn_service_plugin/android/src/main/kotlin/com/plugin/vpn_service_plugin/TauriVpnService.kt`: close the TUN on requested stop and emit teardown lifecycle diagnostics
+- `docs/troubleshooting/easytier.md`: provide the observed no-TUN peer, Android VPN, data-plane, underlay-loss, recovery, and disconnect checks
+
+---
+
 <!-- Add new entries below using the format described in AGENTS.md. -->

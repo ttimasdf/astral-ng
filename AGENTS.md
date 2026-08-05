@@ -70,6 +70,20 @@ Use plain `flutter` for Linux desktop development. The Android helper stops
 compatible Gradle daemons before commands that can build the app because Gradle
 daemons retain their startup environment.
 
+Canary Android builds are disposable testing artifacts, not production upgrade
+artifacts. Install them as the canary package (`pw.rabit.astralng.canary`) and
+keep production installs separate. If Android rejects a canary APK because of a
+version, downgrade, or signature mismatch, uninstall the canary package from
+the target device and install the APK again:
+
+```sh
+adb uninstall pw.rabit.astralng.canary
+adb install <canary-apk>
+```
+
+Only remove the production package when the user explicitly requests a clean
+production reset.
+
 ## Pull Request CI
 
 Treat remote CI as final cross-platform validation, not as the ordinary local

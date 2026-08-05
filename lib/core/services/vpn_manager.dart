@@ -21,6 +21,7 @@ class VpnManager {
   StreamSubscription<dynamic>? _diagnosticSub;
   bool _androidHooksInitialized = false;
   bool _handlingSystemRevocation = false;
+  Completer<void>? _vpnStartCompleter;
 
   VpnManager._() : _plugin = Platform.isAndroid ? VpnServicePlugin() : null;
 
@@ -47,11 +48,22 @@ class VpnManager {
     );
 
     await _vpnStartedSub?.cancel();
-    _vpnStartedSub = plugin.onVpnServiceStarted.listen((data) {
+    _vpnStartedSub = plugin.onVpnServiceStarted.listen((data) async {
       if (services.networkConfigState.noTun.value) return;
       final fd = data['fd'];
-      if (fd is int) {
-        configureTunFd(fd);
+      if (fd is! int) {
+        _completeVpnStartError(
+          StateError(
+            'Android VPN service did not provide a TUN file descriptor',
+          ),
+        );
+        return;
+      }
+      try {
+        await configureTunFd(fd);
+        _vpnStartCompleter?.complete();
+      } catch (error, stack) {
+        _completeVpnStartError(error, stack);
       }
     });
 
@@ -64,6 +76,11 @@ class VpnManager {
 
     await _vpnErrorSub?.cancel();
     _vpnErrorSub = plugin.onVpnServiceError.listen((data) {
+      _completeVpnStartError(
+        StateError(
+          'Android VPN service failed: ${data['reason']?.toString() ?? 'unknown'}',
+        ),
+      );
       log.error(
         'vpn.service.failed',
         'Android VPN service reported a failure',
@@ -134,6 +151,12 @@ class VpnManager {
     unawaited(_applyNativePolicy());
   }
 
+  void _completeVpnStartError(Object error, [StackTrace? stack]) {
+    final completer = _vpnStartCompleter;
+    if (completer == null || completer.isCompleted) return;
+    completer.completeError(error, stack);
+  }
+
   Future<void> _applyNativePolicy() async {
     final plugin = _plugin;
     if (plugin == null) return;
@@ -192,7 +215,9 @@ class VpnManager {
   }) async {
     final plugin = _plugin;
     if (plugin == null) return;
-    if (ipv4Addr.isEmpty) return;
+    if (!isValidIpAddress(ipv4Addr, excludeLoopback: false)) {
+      throw StateError('EasyTier did not provide a valid IPv4 address for VPN');
+    }
 
     String finalIpv4 = ipv4Addr;
     if (!ipv4Addr.contains('/')) {
@@ -209,19 +234,29 @@ class VpnManager {
       ...proxyCidrs.where((route) => isValidCIDR(route)),
     ];
 
-    await plugin.startVpn(
-      ipv4Addr: finalIpv4,
-      mtu: mtu,
-      routes: routes,
-      disallowedApplications: disallowedApplications,
-      connectionAttemptId: connectionAttemptId,
-    );
+    final completer = Completer<void>();
+    _vpnStartCompleter = completer;
+    try {
+      await plugin.startVpn(
+        ipv4Addr: finalIpv4,
+        mtu: mtu,
+        routes: routes,
+        disallowedApplications: disallowedApplications,
+        connectionAttemptId: connectionAttemptId,
+      );
+      await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (identical(_vpnStartCompleter, completer)) {
+        _vpnStartCompleter = null;
+      }
+    }
   }
 
   /// 停止 VPN 服务
   Future<void> stop() async {
     final plugin = _plugin;
     if (plugin == null) return;
+    _vpnStartCompleter = null;
     await plugin.stopVpn();
   }
 

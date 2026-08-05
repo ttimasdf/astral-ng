@@ -7,6 +7,7 @@ import android.net.VpnService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.PluginRegistry.ActivityResultListener
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -14,7 +15,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.EventChannel
 
 // VPN服务插件类，实现Flutter插件、方法调用处理和Activity感知接口
-class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
+class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware, ActivityResultListener {
     // 方法通道，用于Flutter和原生代码通信
     private lateinit var channel : MethodChannel
     // 事件通道，用于向Flutter发送VPN状态变化事件
@@ -23,6 +24,8 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var applicationContext: Context
     // Activity is only required while displaying the initial VPN consent UI.
     private var activity: Activity? = null
+    private var activityBinding: ActivityPluginBinding? = null
+    private var pendingPrepareResult: Result? = null
     // 事件接收器
     private var eventSink: EventChannel.EventSink? = null
 
@@ -81,14 +84,15 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                 val currentActivity = activity
                 val intent = VpnService.prepare(currentActivity ?: applicationContext)
                 if (intent != null && currentActivity != null) {
-                    // 需要用户授权，启动授权界面
-                    currentActivity.startActivityForResult(intent, 0x0f)
-                    result.success(mapOf("errorMsg" to "again"))
+                    if (pendingPrepareResult != null) {
+                        result.error("vpn_prepare_pending", "VPN consent is already pending", null)
+                        return
+                    }
+                    pendingPrepareResult = result
+                    currentActivity.startActivityForResult(intent, VPN_PREPARE_REQUEST_CODE)
                 } else if (intent != null) {
-                    // Background engines cannot display Android's VPN consent UI.
-                    result.success(mapOf("errorMsg" to "need_activity"))
+                    result.error("vpn_activity_required", "VPN consent requires a foreground activity", null)
                 } else {
-                    // 已经获得授权
                     result.success(mapOf<String, Any>())
                 }
             }
@@ -98,8 +102,7 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                 val serviceContext = activity ?: applicationContext
                 val intent = VpnService.prepare(serviceContext)
                 if (intent != null) {
-                    // 需要先获取VPN权限
-                    result.success(mapOf("errorMsg" to "need_prepare"))
+                    result.error("vpn_permission_required", "VPN consent has not been granted", null)
                 } else {
                     // 配置并启动VPN服务. Starting an existing service replaces
                     // its TUN without treating the refresh as a revocation.
@@ -142,7 +145,10 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             // 停止VPN服务
             "stopVpn" -> {
                 val serviceContext = activity ?: applicationContext
-                serviceContext.stopService(Intent(serviceContext, TauriVpnService::class.java))
+                val stopIntent = Intent(serviceContext, TauriVpnService::class.java).apply {
+                    action = TauriVpnService.ACTION_STOP
+                }
+                serviceContext.startService(stopIntent)
                 result.success(mapOf<String, Any>())
             }
             else -> result.notImplemented()
@@ -160,17 +166,45 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
     // 插件附加到Activity时调用
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity
+        attachActivity(binding)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode != VPN_PREPARE_REQUEST_CODE) return false
+        val pending = pendingPrepareResult ?: return true
+        pendingPrepareResult = null
+        if (resultCode == Activity.RESULT_OK) {
+            pending.success(mapOf<String, Any>())
+        } else {
+            pending.error("vpn_permission_denied", "VPN consent was denied", null)
+        }
+        return true
     }
 
     // Activity生命周期相关回调
     override fun onDetachedFromActivity() {
-        activity = null
+        detachActivity()
     }
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity
+        attachActivity(binding)
     }
     override fun onDetachedFromActivityForConfigChanges() {
+        detachActivity()
+    }
+
+    private fun attachActivity(binding: ActivityPluginBinding) {
+        activityBinding = binding
+        activity = binding.activity
+        binding.addActivityResultListener(this)
+    }
+
+    private fun detachActivity() {
+        activityBinding?.removeActivityResultListener(this)
+        activityBinding = null
         activity = null
+    }
+
+    private companion object {
+        const val VPN_PREPARE_REQUEST_CODE = 0x0f
     }
 }

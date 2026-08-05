@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:uuid/uuid.dart';
@@ -404,51 +405,69 @@ class ServerConnectionManager {
   Future<void> _handleSuccessfulConnection() async {
     _statusTracker.cancelTimeout();
     _networkMonitor.resetDuration();
+    final services = ServiceManager();
+    final log = Diagnostics.logger(DiagnosticModules.connection);
 
-    batch(() {
-      ServiceManager().connectionState.connectionState.value =
-          CoState.connected;
-      _markActiveServers();
-    });
+    try {
+      if (Platform.isAndroid && !services.networkConfigState.noTun.value) {
+        // Fetch the assigned address before creating the Android TUN interface.
+        List<String> proxyCidrs = [];
+        try {
+          final netStatus = await getNetworkStatus();
+          services.connectionState.netStatus.value = netStatus;
+          proxyCidrs = ConnectionNetworkMonitor.extractProxyCidrs();
+        } catch (_) {
+          proxyCidrs = ConnectionNetworkMonitor.extractProxyCidrs();
+        }
 
-    if (Platform.isAndroid &&
-        !ServiceManager().networkConfigState.noTun.value) {
-      // 主动获取网络状态，确保能拿到子网代理路由
-      List<String> proxyCidrs = [];
-      try {
-        final netStatus = await getNetworkStatus();
-        ServiceManager().connectionState.netStatus.value = netStatus;
-        proxyCidrs = ConnectionNetworkMonitor.extractProxyCidrs();
-      } catch (_) {
-        proxyCidrs = ConnectionNetworkMonitor.extractProxyCidrs();
-      }
-
-      await ServiceManager().vpn.start(
-        ipv4Addr: ServiceManager().networkConfigState.ipv4.value,
-        mtu: ServiceManager().networkConfigState.mtu.value,
-        proxyCidrs: proxyCidrs,
-        connectionAttemptId: _connectionAttemptId,
-      );
-
-      if (ServiceManager()
-          .appSettingsState
-          .enableConnectionNotification
-          .value) {
-        await ServiceManager().notifications.showConnectionNotification(
-          status: '已连接',
-          ip: ConnectionNetworkMonitor.notificationDisplayIp(),
-          duration: NotificationService.formatDuration(
-            _networkMonitor.connectionDuration,
-          ),
+        final runningInfo = jsonDecode(await getRunningInfo());
+        final ipv4Addr = ConnectionNetworkMonitor.extractIpv4Address(
+          Map<String, dynamic>.from(runningInfo as Map),
         );
+        if (!ConnectionNetworkMonitor.isValidRuntimeIpv4(ipv4Addr)) {
+          throw StateError(
+            'EasyTier did not provide a valid IPv4 address for VPN',
+          );
+        }
+
+        await services.networkConfig.updateIpv4(ipv4Addr);
+        await services.vpn.start(
+          ipv4Addr: ipv4Addr,
+          mtu: services.networkConfigState.mtu.value,
+          proxyCidrs: proxyCidrs,
+          connectionAttemptId: _connectionAttemptId,
+        );
+
+        if (services.appSettingsState.enableConnectionNotification.value) {
+          await services.notifications.showConnectionNotification(
+            status: '已连接',
+            ip: ConnectionNetworkMonitor.notificationDisplayIp(),
+            duration: NotificationService.formatDuration(
+              _networkMonitor.connectionDuration,
+            ),
+          );
+        }
       }
-    }
 
-    if (Platform.isWindows) {
-      setInterfaceMetric(interfaceName: "astral", metric: 0);
-    }
+      batch(() {
+        services.connectionState.connectionState.value = CoState.connected;
+        _markActiveServers();
+      });
 
-    _networkMonitor.start();
+      if (Platform.isWindows) {
+        setInterfaceMetric(interfaceName: "astral", metric: 0);
+      }
+
+      _networkMonitor.start();
+    } catch (error, stack) {
+      log.error(
+        'connect.vpn.failed',
+        'Connection reached EasyTier readiness but VPN setup failed',
+        error: error,
+        stackTrace: stack,
+      );
+      await disconnect();
+    }
   }
 
   /// Mark active servers.
