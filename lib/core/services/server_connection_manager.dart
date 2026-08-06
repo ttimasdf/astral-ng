@@ -358,7 +358,7 @@ class ServerConnectionManager {
             .withRoomConfig(roomConfig)
             .withServers(room, services.serverState.servers.value)
             .withListeners(services.playerState.listenList.value)
-            .withCidrs(services.vpnState.customVpn.value)
+            .withCidrs(services.vpnState.androidVpnRoutes.value)
             .withFlags()
             .build();
 
@@ -384,7 +384,7 @@ class ServerConnectionManager {
 
     // 显示通知（Android）
     if (Platform.isAndroid &&
-        ServiceManager().appSettingsState.enableConnectionNotification.value) {
+        ServiceManager().appSettingsState.connectionNotificationEnabled.value) {
       await ServiceManager().notifications.showConnectionNotification(
         status: '连接中',
         ip: '正在获取...',
@@ -438,7 +438,7 @@ class ServerConnectionManager {
           connectionAttemptId: _connectionAttemptId,
         );
 
-        if (services.appSettingsState.enableConnectionNotification.value) {
+        if (services.appSettingsState.connectionNotificationEnabled.value) {
           await services.notifications.showConnectionNotification(
             status: '已连接',
             ip: ConnectionNetworkMonitor.notificationDisplayIp(),
