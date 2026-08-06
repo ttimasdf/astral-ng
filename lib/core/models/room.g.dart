@@ -112,7 +112,7 @@ void _roomSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.customParam);
-  writer.writeBool(offsets[1], object.encrypted);
+  writer.writeBool(offsets[1], object.simpleMode);
   writer.writeString(offsets[2], object.messageKey);
   writer.writeString(offsets[3], object.name);
   writer.writeString(offsets[4], object.networkConfigJson);
@@ -131,7 +131,7 @@ Room _roomDeserialize(
 ) {
   final object = Room(
     customParam: reader.readStringOrNull(offsets[0]) ?? "",
-    encrypted: reader.readBoolOrNull(offsets[1]) ?? false,
+    simpleMode: reader.readBoolOrNull(offsets[1]) ?? false,
     id: id,
     messageKey: reader.readStringOrNull(offsets[2]) ?? "",
     name: reader.readStringOrNull(offsets[3]) ?? "",
@@ -414,7 +414,9 @@ extension RoomQueryFilter on QueryBuilder<Room, Room, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Room, Room, QAfterFilterCondition> encryptedEqualTo(bool value) {
+  QueryBuilder<Room, Room, QAfterFilterCondition> simpleModeEqualTo(
+    bool value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'encrypted', value: value),
@@ -1687,13 +1689,13 @@ extension RoomQuerySortBy on QueryBuilder<Room, Room, QSortBy> {
     });
   }
 
-  QueryBuilder<Room, Room, QAfterSortBy> sortByEncrypted() {
+  QueryBuilder<Room, Room, QAfterSortBy> sortBySimpleMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'encrypted', Sort.asc);
     });
   }
 
-  QueryBuilder<Room, Room, QAfterSortBy> sortByEncryptedDesc() {
+  QueryBuilder<Room, Room, QAfterSortBy> sortBySimpleModeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'encrypted', Sort.desc);
     });
@@ -1785,13 +1787,13 @@ extension RoomQuerySortThenBy on QueryBuilder<Room, Room, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Room, Room, QAfterSortBy> thenByEncrypted() {
+  QueryBuilder<Room, Room, QAfterSortBy> thenBySimpleMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'encrypted', Sort.asc);
     });
   }
 
-  QueryBuilder<Room, Room, QAfterSortBy> thenByEncryptedDesc() {
+  QueryBuilder<Room, Room, QAfterSortBy> thenBySimpleModeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'encrypted', Sort.desc);
     });
@@ -1891,7 +1893,7 @@ extension RoomQueryWhereDistinct on QueryBuilder<Room, Room, QDistinct> {
     });
   }
 
-  QueryBuilder<Room, Room, QDistinct> distinctByEncrypted() {
+  QueryBuilder<Room, Room, QDistinct> distinctBySimpleMode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'encrypted');
     });
@@ -1972,7 +1974,7 @@ extension RoomQueryProperty on QueryBuilder<Room, Room, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Room, bool, QQueryOperations> encryptedProperty() {
+  QueryBuilder<Room, bool, QQueryOperations> simpleModeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'encrypted');
     });

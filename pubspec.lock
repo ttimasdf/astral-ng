@@ -265,14 +265,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2"
-  equatable:
-    dependency: transitive
-    description:
-      name: equatable
-      sha256: "3bce007a596ff8b3119c45d68aaef631272537c03d30e5d4534dd24bf4c5eaa2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   fake_async:
     dependency: transitive
     description:
@@ -363,14 +355,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_mobx:
-    dependency: transitive
-    description:
-      name: flutter_mobx
-      sha256: ba5e93467866a2991259dc51cffd41ef45f695c667c2b8e7b087bf24118b50fe
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.0"
   flutter_rust_bridge:
     dependency: "direct main"
     description:
@@ -629,22 +613,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mobx:
-    dependency: transitive
-    description:
-      name: mobx
-      sha256: "25ea9a3ee69243d578fb6288721d8eeb18550d0391c32f896d377d994154bff2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.6.0"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   objective_c:
     dependency: transitive
     description:
@@ -885,14 +853,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.3.1"
-  provider:
-    dependency: transitive
-    description:
-      name: provider
-      sha256: "4e82183fa20e5ca25703ead7e05de9e4cceed1fbd1eadc1ac3cb6f565a09f272"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.5+1"
   pub_semver:
     dependency: transitive
     description:
@@ -1264,14 +1224,6 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
-  vyuh_node_flow:
-    dependency: "direct main"
-    description:
-      name: vyuh_node_flow
-      sha256: "07e082703b15e7a4417cb46142c25746323343a6ce517c31c0b4691016ae3b4d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.22.3"
   watcher:
     dependency: transitive
     description:

@@ -21,7 +21,7 @@ class RoomDao {
       final defaultRoom = Room(
         name: "默认房间",
         roomName: randomRoomId.toString(),
-        encrypted: true, // 默认使用加密
+        simpleMode: true,
         password: randomPassword.toString(),
         messageKey: "",
         tags: [],

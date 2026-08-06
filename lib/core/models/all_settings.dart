@@ -82,6 +82,9 @@ class AllSettings {
   /// 最大重试次数
   int maxRetryCount = 3;
 
+  /// 当前设备针对各房间保存的 Mission Control 偏好覆盖。
+  String missionControlOverridesJson = '{}';
+
   /// 设置 schema 版本（用于旧库字段迁移）
   int settingsSchemaVersion = 0;
 }

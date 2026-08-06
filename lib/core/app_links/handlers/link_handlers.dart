@@ -22,14 +22,24 @@ class LinkHandlers {
 
       // 验证分享码长度
       if (cleanedCode.length < 10) {
-        AppSnackBars.error(context, '分享码无效', '分享码格式不正确，请检查链接是否完整', copyAction: true);
+        AppSnackBars.error(
+          context,
+          '分享码无效',
+          '分享码格式不正确，请检查链接是否完整',
+          copyAction: true,
+        );
         return;
       }
 
       // 解密获取房间信息
-      final room = RoomShareCodec.decryptRoom(cleanedCode);
+      final room = RoomShareCodec.decodeRoom(cleanedCode);
       if (room == null) {
-        AppSnackBars.error(context, '分享码解析失败', '无法解析房间信息，可能是分享码已过期或损坏', copyAction: true);
+        AppSnackBars.error(
+          context,
+          '分享码解析失败',
+          '无法解析房间信息，可能是分享码已过期或损坏',
+          copyAction: true,
+        );
         return;
       }
 
@@ -43,13 +53,13 @@ class LinkHandlers {
       final existingRooms = await _services.room.getAllRooms();
       final duplicateRoom =
           existingRooms.where((existingRoom) {
-            if (room.encrypted && existingRoom.encrypted) {
-              // 对于加密房间，比较房间名、房间号和密码
+            if (room.simpleMode && existingRoom.simpleMode) {
+              // Simple rooms compare generated credentials.
               return existingRoom.name == room.name &&
                   existingRoom.roomName == room.roomName &&
                   existingRoom.password == room.password;
-            } else if (!room.encrypted && !existingRoom.encrypted) {
-              // 对于非加密房间，比较房间号和密码
+            } else if (!room.simpleMode && !existingRoom.simpleMode) {
+              // Advanced rooms compare user-supplied credentials.
               return existingRoom.roomName == room.roomName &&
                   existingRoom.password == room.password;
             }
@@ -76,7 +86,12 @@ class LinkHandlers {
       }
     } catch (e) {
       if (context != null && context.mounted) {
-        AppSnackBars.error(context, '处理分享链接失败', '发生未知错误：${e.toString()}', copyAction: true);
+        AppSnackBars.error(
+          context,
+          '处理分享链接失败',
+          '发生未知错误：${e.toString()}',
+          copyAction: true,
+        );
       }
     }
   }

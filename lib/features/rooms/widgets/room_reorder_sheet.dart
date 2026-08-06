@@ -246,7 +246,9 @@ class _RoomReorderItemState extends State<_RoomReorderItem> {
             color:
                 (theme.brightness == Brightness.light)
                     ? colorScheme.surfaceContainerHighest.withValues(alpha: 1.0)
-                    : colorScheme.surfaceContainerHighest.withValues(alpha: 1.0),
+                    : colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 1.0,
+                    ),
             border: Border.all(
               // 仅在悬停时显示边框
               color: _isHovered ? colorScheme.primary : Colors.transparent,
@@ -262,7 +264,7 @@ class _RoomReorderItemState extends State<_RoomReorderItem> {
                 style: TextStyle(fontSize: 16, color: colorScheme.onSurface),
               ),
               subtitle: Text(
-                RoomMode.label(widget.room.encrypted),
+                RoomMode.label(widget.room.simpleMode),
                 style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
