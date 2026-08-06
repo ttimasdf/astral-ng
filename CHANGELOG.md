@@ -41,6 +41,22 @@ baseline.
   and move the complete Isar database file set into the new `db` subdirectory,
   while other users must reconfigure the app. Existing logs are not migrated,
   and cache diagnostics may be removed early by the OS or user.
+- Redesigned Settings with responsive desktop and mobile category navigation,
+  clearer status and dependency descriptions, and a consolidated
+  Network & Connection workspace. Setting storage and localization identifiers
+  now match their current concepts instead of retaining historical names. This
+  schema reset requires Android users to back up server and room credentials,
+  uninstall the previous APK, and install the new build. Connection retries now
+  use a 0–10 slider where 0 disables retries; the TUN control is expressed as a
+  recommended enable switch; SOCKS5 can optionally listen on all interfaces;
+  and desktop toolbar tooltips describe the action each button performs. Theme
+  mode, peer protocol, traffic compression, and update channel now use direct
+  segmented choices. Language now lives under General, while updates, versions,
+  logs, and diagnostics share one Update & About category. Settings, Tools, and
+  other destination subpages stay inside the application shell instead of
+  covering its title and navigation bars. Android back now unwinds those nested
+  views reliably, and exiting the Android engine closes its VPN service instead
+  of leaving a stale system VPN indicator. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.
@@ -201,6 +217,7 @@ changes. ([upstream-v2.7.3])
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
 [#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [#11]: https://github.com/ttimasdf/astral-ng/pull/11
+[#12]: https://github.com/ttimasdf/astral-ng/pull/12
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

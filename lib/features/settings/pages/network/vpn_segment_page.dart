@@ -9,7 +9,7 @@ class VpnSegmentPage extends BaseSettingsPage {
   const VpnSegmentPage({super.key});
 
   @override
-  String get title => LocaleKeys.custom_vpn_segment.tr();
+  String get title => LocaleKeys.android_vpn_routes.tr();
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -23,14 +23,14 @@ class VpnSegmentPage extends BaseSettingsPage {
 
   @override
   Widget buildContent(BuildContext context) {
-    final vpnList = ServiceManager().vpnState.customVpn.watch(context);
+    final vpnList = ServiceManager().vpnState.androidVpnRoutes.watch(context);
 
     if (vpnList.isEmpty) {
       return buildEmptyState(
         context: context,
         icon: Icons.vpn_lock,
-        title: 'No VPN segments configured',
-        actionLabel: LocaleKeys.add_vpn_segment.tr(),
+        title: LocaleKeys.no_android_vpn_routes.tr(),
+        actionLabel: LocaleKeys.add_android_vpn_route.tr(),
         onAction: () => _addVpnSegment(context),
       );
     }
@@ -72,12 +72,12 @@ class VpnSegmentPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(LocaleKeys.add_vpn_segment.tr()),
+            title: Text(LocaleKeys.add_android_vpn_route.tr()),
             content: TextField(
               controller: controller,
               decoration: InputDecoration(
-                labelText: LocaleKeys.vpn_segment_format_example.tr(),
-                hintText: LocaleKeys.vpn_segment_input_hint.tr(),
+                labelText: LocaleKeys.android_vpn_route_format.tr(),
+                hintText: LocaleKeys.android_vpn_route_hint.tr(),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -95,7 +95,7 @@ class VpnSegmentPage extends BaseSettingsPage {
     );
 
     if (result != null && result.isNotEmpty) {
-      await ServiceManager().appSettings.addCustomVpn(result);
+      await ServiceManager().appSettings.addAndroidVpnRoute(result);
     }
   }
 
@@ -109,11 +109,11 @@ class VpnSegmentPage extends BaseSettingsPage {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(LocaleKeys.edit_vpn_segment.tr()),
+            title: Text(LocaleKeys.edit_android_vpn_route.tr()),
             content: TextField(
               controller: controller,
               decoration: InputDecoration(
-                labelText: LocaleKeys.vpn_segment_format_example.tr(),
+                labelText: LocaleKeys.android_vpn_route_format.tr(),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -131,7 +131,7 @@ class VpnSegmentPage extends BaseSettingsPage {
     );
 
     if (result != null && result.isNotEmpty) {
-      await ServiceManager().appSettings.updateCustomVpn(index, result);
+      await ServiceManager().appSettings.updateAndroidVpnRoute(index, result);
     }
   }
 
@@ -146,7 +146,9 @@ class VpnSegmentPage extends BaseSettingsPage {
           (context) => AlertDialog(
             title: Text(LocaleKeys.confirm_delete.tr()),
             content: Text(
-              LocaleKeys.confirm_delete_vpn_segment.tr(namedArgs: {'vpn': vpn}),
+              LocaleKeys.confirm_delete_android_vpn_route.tr(
+                namedArgs: {'vpn': vpn},
+              ),
             ),
             actions: [
               TextButton(
@@ -163,7 +165,7 @@ class VpnSegmentPage extends BaseSettingsPage {
     );
 
     if (confirm == true) {
-      await ServiceManager().appSettings.deleteCustomVpn(index);
+      await ServiceManager().appSettings.deleteAndroidVpnRoute(index);
     }
   }
 }

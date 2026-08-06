@@ -12,11 +12,11 @@ import 'package:signals_flutter/signals_flutter.dart';
 String getThemeModeText(ThemeMode mode) {
   switch (mode) {
     case ThemeMode.light:
-      return '亮色模式';
+      return LocaleKeys.theme_light.tr();
     case ThemeMode.dark:
-      return '暗色模式';
+      return LocaleKeys.theme_dark.tr();
     case ThemeMode.system:
-      return '跟随系统';
+      return LocaleKeys.theme_system.tr();
   }
 }
 
@@ -24,23 +24,11 @@ List<PopupMenuEntry<Locale>> buildLanguageMenuItems() {
   return [
     PopupMenuItem(
       value: const Locale('zh'),
-      child: Row(
-        children: [
-          Text('🇨🇳'),
-          SizedBox(width: 8),
-          Text('简体中文'),
-        ],
-      ),
+      child: Row(children: [Text('🇨🇳'), SizedBox(width: 8), Text('简体中文')]),
     ),
     PopupMenuItem(
       value: const Locale('en'),
-      child: Row(
-        children: [
-          Text('🇺🇸'),
-          SizedBox(width: 8),
-          Text('English'),
-        ],
-      ),
+      child: Row(children: [Text('🇺🇸'), SizedBox(width: 8), Text('English')]),
     ),
   ];
 }
@@ -69,15 +57,15 @@ List<PopupMenuEntry<ThemeMode>> buildThemeModeMenuItems(ThemeMode current) {
   return [
     PopupMenuItem(
       value: ThemeMode.system,
-      child: row(ThemeMode.system, '跟随系统'),
+      child: row(ThemeMode.system, LocaleKeys.theme_system.tr()),
     ),
     PopupMenuItem(
       value: ThemeMode.light,
-      child: row(ThemeMode.light, '亮色模式'),
+      child: row(ThemeMode.light, LocaleKeys.theme_light.tr()),
     ),
     PopupMenuItem(
       value: ThemeMode.dark,
-      child: row(ThemeMode.dark, '暗色模式'),
+      child: row(ThemeMode.dark, LocaleKeys.theme_dark.tr()),
     ),
   ];
 }
@@ -91,7 +79,9 @@ Widget buildThemeModeMenuButton({
 
     return PopupMenuButton<ThemeMode>(
       icon: Icon(getThemeModeIcon(mode), size: iconSize),
-      tooltip: getThemeModeText(mode),
+      tooltip: LocaleKeys.change_theme_mode_tooltip.tr(
+        namedArgs: {'mode': getThemeModeText(mode)},
+      ),
       padding: padding,
       onSelected: ServiceManager().theme.updateThemeMode,
       itemBuilder: (context) => buildThemeModeMenuItems(mode),
@@ -102,13 +92,10 @@ Widget buildThemeModeMenuButton({
 /// 小窗口模式状态栏 actions
 List<Widget> buildCompactStatusBarActions(BuildContext context) {
   return [
-    buildThemeModeMenuButton(
-      iconSize: 16,
-      padding: const EdgeInsets.all(4),
-    ),
+    buildThemeModeMenuButton(iconSize: 16, padding: const EdgeInsets.all(4)),
     PopupMenuButton<Locale>(
       icon: Icon(Icons.language, size: 16),
-      tooltip: LocaleKeys.language.tr(),
+      tooltip: LocaleKeys.change_app_language_tooltip.tr(),
       onSelected: (Locale locale) {
         context.setLocale(locale);
       },
@@ -154,19 +141,16 @@ List<Widget> buildDesktopStatusBarActions(
         ),
       ),
     if (isChristmasSeason) const SizedBox(width: 8),
-    buildThemeModeMenuButton(
-      iconSize: 20,
-      padding: const EdgeInsets.all(8),
-    ),
+    buildThemeModeMenuButton(iconSize: 20, padding: const EdgeInsets.all(8)),
     IconButton(
       icon: const Icon(Icons.color_lens, size: 20),
       onPressed: () => showThemeColorPicker(context),
-      tooltip: '选择主题颜色',
+      tooltip: LocaleKeys.select_theme_color.tr(),
       padding: const EdgeInsets.all(4),
     ),
     PopupMenuButton<Locale>(
       icon: const Icon(Icons.language, size: 20),
-      tooltip: LocaleKeys.language.tr(),
+      tooltip: LocaleKeys.change_app_language_tooltip.tr(),
       onSelected: (Locale locale) {
         context.setLocale(locale);
       },

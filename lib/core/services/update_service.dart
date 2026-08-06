@@ -46,7 +46,8 @@ class UpdateChecker {
   }) async {
     try {
       final releaseInfo = await _fetchLatestRelease(
-        includePrereleases: ServiceManager().updateState.beta.value,
+        includePrereleases:
+            ServiceManager().updateState.receiveBetaUpdates.value,
       );
       if (releaseInfo == null) {
         if (!showFailureMessage) return null;

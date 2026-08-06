@@ -1,3 +1,4 @@
+import 'package:astral/core/platform/build_brand.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// 应用包信息工具
@@ -19,10 +20,24 @@ class AppInfoUtil {
     final packageInfo = _packageInfo;
     if (packageInfo == null) return '';
 
-    final buildNumber = int.tryParse(packageInfo.buildNumber);
-    if (buildNumber != null && buildNumber >= 1000000000) {
-      return '${packageInfo.version} (canary $buildNumber)';
+    return formatVersionDisplay(
+      version: packageInfo.version,
+      buildNumber: packageInfo.buildNumber,
+      isCanary: BuildBrand.isCanary,
+    );
+  }
+
+  static String formatVersionDisplay({
+    required String version,
+    required String buildNumber,
+    required bool isCanary,
+  }) {
+    if (!isCanary) return version;
+
+    final parsedBuildNumber = int.tryParse(buildNumber);
+    if (parsedBuildNumber != null && parsedBuildNumber >= 1000000000) {
+      return '$version Canary · build $parsedBuildNumber';
     }
-    return packageInfo.version;
+    return '$version Canary';
   }
 }

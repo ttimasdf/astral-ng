@@ -29,7 +29,7 @@ class ListenListPage extends BaseSettingsPage {
       return buildEmptyState(
         context: context,
         icon: Icons.list_alt,
-        title: '暂无监听项',
+        title: LocaleKeys.empty_listen_addresses.tr(),
         actionLabel: LocaleKeys.add_listen_item.tr(),
         onAction: () => _addListenItem(context),
       );

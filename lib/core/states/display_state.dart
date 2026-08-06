@@ -40,7 +40,7 @@ class DisplayState {
   final sortOption = signal(UserSortOption.none);
   final sortOrder = signal(UserSortOrder.ascending);
   final displayMode = signal(UserDisplayMode.all);
-  final userListSimple = signal(false);
+  final compactPeerCards = signal(true);
 
   void setSortOption(UserSortOption option) {
     sortOption.value = option;
@@ -54,7 +54,7 @@ class DisplayState {
     displayMode.value = mode;
   }
 
-  void setUserListSimple(bool value) {
-    userListSimple.value = value;
+  void setCompactPeerCards(bool value) {
+    compactPeerCards.value = value;
   }
 }

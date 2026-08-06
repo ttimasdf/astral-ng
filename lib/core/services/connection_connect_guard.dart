@@ -47,8 +47,8 @@ abstract final class ConnectionConnectGuard {
   }
 
   /// 启动时自动连接（静默，无 SnackBar / 对话框）
-  static Future<void> tryStartupAutoConnect() async {
-    if (!ServiceManager().startupState.startupAutoConnect.value) return;
+  static Future<void> tryConnectAfterLaunch() async {
+    if (!ServiceManager().startupState.connectAfterLaunch.value) return;
     if (!hasConnectTarget()) return;
     if (!await isNpcapReady()) return;
 

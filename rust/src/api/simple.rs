@@ -379,6 +379,8 @@ pub struct FlagsC {
     pub udp_whitelist: String,
     /// SOCKS5 监听端口，0 表示禁用
     pub socks5_port: u16,
+    /// true 时监听所有接口，否则仅监听回环地址
+    pub socks5_listen_all_interfaces: bool,
 }
 
 pub struct Forward {
@@ -476,7 +478,12 @@ pub fn create_server(
         cfg.set_flags(flags);
 
         if flag.socks5_port > 0 {
-            let portal = format!("socks5://127.0.0.1:{}", flag.socks5_port);
+            let host = if flag.socks5_listen_all_interfaces {
+                "0.0.0.0"
+            } else {
+                "127.0.0.1"
+            };
+            let portal = format!("socks5://{}:{}", host, flag.socks5_port);
             match portal.parse() {
                 Ok(url) => cfg.set_socks5_portal(Some(url)),
                 Err(e) => return Err(format!("Invalid SOCKS5 portal: {}, error: {}", portal, e)),

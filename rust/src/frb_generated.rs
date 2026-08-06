@@ -2759,6 +2759,7 @@ impl SseDecode for crate::api::simple::FlagsC {
         let mut var_tcpWhitelist = <String>::sse_decode(deserializer);
         let mut var_udpWhitelist = <String>::sse_decode(deserializer);
         let mut var_socks5Port = <u16>::sse_decode(deserializer);
+        let mut var_socks5ListenAllInterfaces = <bool>::sse_decode(deserializer);
         return crate::api::simple::FlagsC {
             default_protocol: var_defaultProtocol,
             dev_name: var_devName,
@@ -2790,6 +2791,7 @@ impl SseDecode for crate::api::simple::FlagsC {
             tcp_whitelist: var_tcpWhitelist,
             udp_whitelist: var_udpWhitelist,
             socks5_port: var_socks5Port,
+            socks5_listen_all_interfaces: var_socks5ListenAllInterfaces,
         };
     }
 }
@@ -3658,6 +3660,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::simple::FlagsC {
             self.tcp_whitelist.into_into_dart().into_dart(),
             self.udp_whitelist.into_into_dart().into_dart(),
             self.socks5_port.into_into_dart().into_dart(),
+            self.socks5_listen_all_interfaces
+                .into_into_dart()
+                .into_dart(),
         ]
         .into_dart()
     }
@@ -4151,6 +4156,7 @@ impl SseEncode for crate::api::simple::FlagsC {
         <String>::sse_encode(self.tcp_whitelist, serializer);
         <String>::sse_encode(self.udp_whitelist, serializer);
         <u16>::sse_encode(self.socks5_port, serializer);
+        <bool>::sse_encode(self.socks5_listen_all_interfaces, serializer);
     }
 }
 

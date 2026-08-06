@@ -20,7 +20,8 @@
     <application
         android:label="${appLabel}"
         android:name="${applicationName}"
-        android:icon="${appIcon}">
+        android:icon="${appIcon}"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

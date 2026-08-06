@@ -20,6 +20,7 @@ class WindowControls extends StatefulWidget {
 class _WindowControlsState extends State<WindowControls>
     with TrayListener, WindowListener {
   bool _isMaximized = false;
+  bool _isTrayInitialized = false;
   final TrayManager trayManager = TrayManager.instance;
   EffectCleanup? _connectionStateCleanup;
 
@@ -32,7 +33,9 @@ class _WindowControlsState extends State<WindowControls>
     WidgetsBinding.instance.addPostFrameCallback((_) => _initTray());
     _connectionStateCleanup = effect(() {
       ServiceManager().connectionState.connectionState.value;
-      _updateTrayMenu();
+      if (_isTrayInitialized) {
+        _updateTrayMenu();
+      }
     });
   }
 
@@ -49,6 +52,7 @@ class _WindowControlsState extends State<WindowControls>
       await trayManager.setToolTip(BuildBrand.appName);
     }
 
+    _isTrayInitialized = true;
     await _updateTrayMenu();
   }
 
@@ -118,6 +122,7 @@ class _WindowControlsState extends State<WindowControls>
     if (ServiceManager().uiState.trayHidden.value) return;
 
     ServiceManager().uiState.setTrayHidden(true);
+    _isTrayInitialized = false;
     await trayManager.destroy();
     ServiceManager().uiState.setBackground(true);
     await windowManager.hide();
@@ -195,7 +200,7 @@ class _WindowControlsState extends State<WindowControls>
             ServiceManager().uiState.setBackground(true);
             await windowManager.minimize();
           },
-          tooltip: '最小化',
+          tooltip: LocaleKeys.window_minimize_tooltip.tr(),
           iconSize: 20,
         ),
         IconButton(
@@ -207,7 +212,10 @@ class _WindowControlsState extends State<WindowControls>
               await windowManager.maximize();
             }
           },
-          tooltip: _isMaximized ? '还原' : '最大化',
+          tooltip:
+              _isMaximized
+                  ? LocaleKeys.window_restore_tooltip.tr()
+                  : LocaleKeys.window_maximize_tooltip.tr(),
           iconSize: 20,
         ),
         IconButton(
@@ -216,7 +224,7 @@ class _WindowControlsState extends State<WindowControls>
           onPressed: () {
             windowManager.close();
           },
-          tooltip: '关闭',
+          tooltip: LocaleKeys.window_close_tooltip.tr(),
           iconSize: 20,
         ),
       ],
