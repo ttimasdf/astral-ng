@@ -74,36 +74,6 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
     }
   }
 
-  Future<void> _selectCompression(BuildContext context, int current) async {
-    final selected = await showDialog<int>(
-      context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: Text(LocaleKeys.traffic_compression.tr()),
-            children: [
-              ListTile(
-                selected: current == 1,
-                leading: const Icon(Icons.speed),
-                title: Text(LocaleKeys.compression_none.tr()),
-                trailing: current == 1 ? const Icon(Icons.check) : null,
-                onTap: () => Navigator.pop(context, 1),
-              ),
-              ListTile(
-                selected: current == 2,
-                leading: const Icon(Icons.compress),
-                title: Text(LocaleKeys.compression_zstd.tr()),
-                trailing: current == 2 ? const Icon(Icons.check) : null,
-                onTap: () => Navigator.pop(context, 2),
-              ),
-            ],
-          ),
-    );
-
-    if (selected != null) {
-      await ServiceManager().networkConfig.updateDataCompressAlgo(selected);
-    }
-  }
-
   void _open(BuildContext context, Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
   }
@@ -147,8 +117,6 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final udpWhitelist = network.udpWhitelist.watch(context);
 
       return SettingsContentView(
-        title: LocaleKeys.settings_network_connection.tr(),
-        description: LocaleKeys.settings_network_connection_desc.tr(),
         children: [
           if (isConnected)
             SettingsNotice(
@@ -199,28 +167,20 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             description: LocaleKeys.core_network_desc.tr(),
             icon: Icons.hub_outlined,
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                title: Text(LocaleKeys.preferred_peer_protocol.tr()),
-                subtitle: Text(LocaleKeys.preferred_peer_protocol_desc.tr()),
-                trailing: DropdownButton<String>(
-                  value: protocol,
-                  underline: const SizedBox.shrink(),
-                  items:
-                      const ['tcp', 'udp', 'faketcp', 'ws', 'wss', 'quic']
-                          .map(
-                            (value) => DropdownMenuItem(
-                              value: value,
-                              child: Text(value.toUpperCase()),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      services.networkConfig.updateDefaultProtocol(value);
-                    }
-                  },
-                ),
+              SettingsSegmentedChoice<String>(
+                title: LocaleKeys.preferred_peer_protocol.tr(),
+                description: LocaleKeys.preferred_peer_protocol_desc.tr(),
+                value: protocol,
+                scrollable: true,
+                segments: const [
+                  ButtonSegment(value: 'tcp', label: Text('TCP')),
+                  ButtonSegment(value: 'udp', label: Text('UDP')),
+                  ButtonSegment(value: 'faketcp', label: Text('FakeTCP')),
+                  ButtonSegment(value: 'ws', label: Text('WS')),
+                  ButtonSegment(value: 'wss', label: Text('WSS')),
+                  ButtonSegment(value: 'quic', label: Text('QUIC')),
+                ],
+                onChanged: services.networkConfig.updateDefaultProtocol,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
@@ -360,15 +320,23 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
             description: LocaleKeys.advanced_network_warning.tr(),
             icon: Icons.tune,
             children: [
-              SettingsLinkTile(
-                icon: Icons.compress,
+              SettingsSegmentedChoice<int>(
                 title: LocaleKeys.traffic_compression.tr(),
-                subtitle: LocaleKeys.traffic_compression_desc.tr(),
-                value:
-                    compression == 1
-                        ? LocaleKeys.compression_none.tr()
-                        : 'Zstd',
-                onTap: () => _selectCompression(context, compression),
+                description: LocaleKeys.traffic_compression_desc.tr(),
+                value: compression,
+                segments: [
+                  ButtonSegment(
+                    value: 1,
+                    icon: const Icon(Icons.speed),
+                    label: Text(LocaleKeys.compression_none.tr()),
+                  ),
+                  ButtonSegment(
+                    value: 2,
+                    icon: const Icon(Icons.compress),
+                    label: Text(LocaleKeys.compression_zstd.tr()),
+                  ),
+                ],
+                onChanged: services.networkConfig.updateDataCompressAlgo,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),

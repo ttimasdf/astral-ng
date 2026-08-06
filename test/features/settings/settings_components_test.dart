@@ -14,8 +14,6 @@ void main() {
         theme: ThemeData(useMaterial3: true),
         home: Scaffold(
           body: SettingsContentView(
-            title: 'Network & Connection',
-            description: 'Connection defaults',
             children: [
               SettingsSection(
                 title: 'Core network',
@@ -36,11 +34,45 @@ void main() {
       ),
     );
 
-    expect(find.text('Network & Connection'), findsOneWidget);
     expect(find.text('Core network'), findsOneWidget);
     expect(find.text('Encryption'), findsOneWidget);
     expect(find.text('Latency first'), findsOneWidget);
     expect(find.byIcon(Icons.hub_outlined), findsOneWidget);
+  });
+
+  testWidgets('category routes use their app bar without a duplicate header', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () {
+                Navigator.of(tester.element(find.byType(FilledButton))).push(
+                  MaterialPageRoute<void>(
+                    builder:
+                        (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Category')),
+                          body: SettingsContentView(
+                            children: const [Text('Category content')],
+                          ),
+                        ),
+                  ),
+                );
+              },
+              child: const Text('Open category'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open category'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Category'), findsOneWidget);
+    expect(find.text('Category content'), findsOneWidget);
   });
 
   testWidgets('settings link tile exposes its current value and action', (
@@ -120,6 +152,38 @@ void main() {
 
     await tester.tap(find.text('Exit program'));
     expect(selected, WindowCloseBehavior.exitProgram);
+  });
+
+  testWidgets('scrollable segmented choice fits a compact layout', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 480));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SettingsSegmentedChoice<String>(
+            title: 'Preferred peer protocol',
+            description: 'Choose the first protocol to try',
+            value: 'tcp',
+            scrollable: true,
+            segments: const [
+              ButtonSegment(value: 'tcp', label: Text('TCP')),
+              ButtonSegment(value: 'udp', label: Text('UDP')),
+              ButtonSegment(value: 'faketcp', label: Text('FakeTCP')),
+              ButtonSegment(value: 'ws', label: Text('WS')),
+              ButtonSegment(value: 'wss', label: Text('WSS')),
+              ButtonSegment(value: 'quic', label: Text('QUIC')),
+            ],
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   test('peer cards default to the compact layout', () {

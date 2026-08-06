@@ -4,6 +4,7 @@ import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/features/settings/models/settings_availability.dart';
+import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/src/rust/api/hops.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -24,57 +25,27 @@ class NetworkBasicSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return _settingsCard(
       children: [
-        ListTile(
-          title: Text(LocaleKeys.peer_connection_methods.tr()),
-          subtitle: Text(LocaleKeys.preferred_peer_protocol.tr()),
-          trailing: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: DropdownButton<String>(
-                value:
-                    ServiceManager().networkConfigState.defaultProtocol
-                            .watch(context)
-                            .isEmpty
-                        ? 'tcp'
-                        : ServiceManager().networkConfigState.defaultProtocol
-                            .watch(context),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'tcp',
-                    child: Text('TCP', style: TextStyle(fontSize: 14)),
+        SettingsSegmentedChoice<String>(
+          title: LocaleKeys.preferred_peer_protocol.tr(),
+          description: LocaleKeys.preferred_peer_protocol_desc.tr(),
+          value:
+              ServiceManager().networkConfigState.defaultProtocol
+                      .watch(context)
+                      .isEmpty
+                  ? 'tcp'
+                  : ServiceManager().networkConfigState.defaultProtocol.watch(
+                    context,
                   ),
-                  DropdownMenuItem(
-                    value: 'udp',
-                    child: Text('UDP', style: TextStyle(fontSize: 14)),
-                  ),
-                  DropdownMenuItem(
-                    value: 'faketcp',
-                    child: Text('FakeTCP', style: TextStyle(fontSize: 14)),
-                  ),
-                  DropdownMenuItem(
-                    value: 'ws',
-                    child: Text('WebSocket', style: TextStyle(fontSize: 14)),
-                  ),
-                  DropdownMenuItem(
-                    value: 'wss',
-                    child: Text('WSS', style: TextStyle(fontSize: 14)),
-                  ),
-                  DropdownMenuItem(
-                    value: 'quic',
-                    child: Text('QUIC', style: TextStyle(fontSize: 14)),
-                  ),
-                ],
-                underline: const SizedBox(),
-                icon: const Icon(Icons.arrow_drop_down),
-                onChanged: (value) {
-                  if (value != null) {
-                    ServiceManager().networkConfig.updateDefaultProtocol(value);
-                  }
-                },
-              ),
-            ),
-          ),
+          scrollable: true,
+          segments: const [
+            ButtonSegment(value: 'tcp', label: Text('TCP')),
+            ButtonSegment(value: 'udp', label: Text('UDP')),
+            ButtonSegment(value: 'faketcp', label: Text('FakeTCP')),
+            ButtonSegment(value: 'ws', label: Text('WS')),
+            ButtonSegment(value: 'wss', label: Text('WSS')),
+            ButtonSegment(value: 'quic', label: Text('QUIC')),
+          ],
+          onChanged: ServiceManager().networkConfig.updateDefaultProtocol,
         ),
         _divider(),
         SwitchListTile(
@@ -151,44 +122,23 @@ class NetworkAdvancedSettingsCard extends StatelessWidget {
             ServiceManager().networkConfig.updateDisableSymHolePunching(value);
           },
         ),
-        ListTile(
-          title: Text(LocaleKeys.traffic_compression.tr()),
-          subtitle: Text(LocaleKeys.traffic_compression_desc.tr()),
-          trailing: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: DropdownButton<int>(
-                value: ServiceManager().networkConfigState.dataCompressAlgo
-                    .watch(context),
-                items: [
-                  DropdownMenuItem(
-                    value: 1,
-                    child: Text(
-                      LocaleKeys.compression_none.tr(),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 2,
-                    child: Text(
-                      LocaleKeys.compression_zstd.tr(),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ],
-                underline: const SizedBox(),
-                icon: const Icon(Icons.arrow_drop_down),
-                onChanged: (value) {
-                  if (value != null) {
-                    ServiceManager().networkConfig.updateDataCompressAlgo(
-                      value,
-                    );
-                  }
-                },
-              ),
-            ),
+        SettingsSegmentedChoice<int>(
+          title: LocaleKeys.traffic_compression.tr(),
+          description: LocaleKeys.traffic_compression_desc.tr(),
+          value: ServiceManager().networkConfigState.dataCompressAlgo.watch(
+            context,
           ),
+          segments: [
+            ButtonSegment(
+              value: 1,
+              label: Text(LocaleKeys.compression_none.tr()),
+            ),
+            ButtonSegment(
+              value: 2,
+              label: Text(LocaleKeys.compression_zstd.tr()),
+            ),
+          ],
+          onChanged: ServiceManager().networkConfig.updateDataCompressAlgo,
         ),
         SwitchListTile(
           title: Text(LocaleKeys.kcp_for_tcp_streams.tr()),

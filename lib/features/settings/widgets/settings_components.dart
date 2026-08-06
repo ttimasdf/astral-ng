@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
 
 class SettingsContentView extends StatelessWidget {
-  final String title;
-  final String description;
   final List<Widget> children;
 
-  const SettingsContentView({
-    super.key,
-    required this.title,
-    required this.description,
-    required this.children,
-  });
+  const SettingsContentView({super.key, required this.children});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       children: [
@@ -25,24 +16,7 @@ class SettingsContentView extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 900),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ..._withSpacing(children),
-              ],
+              children: _withSpacing(children),
             ),
           ),
         ),
@@ -218,6 +192,7 @@ class SettingsSegmentedChoice<T extends Object> extends StatelessWidget {
   final T value;
   final List<ButtonSegment<T>> segments;
   final ValueChanged<T> onChanged;
+  final bool scrollable;
 
   const SettingsSegmentedChoice({
     super.key,
@@ -226,6 +201,7 @@ class SettingsSegmentedChoice<T extends Object> extends StatelessWidget {
     required this.value,
     required this.segments,
     required this.onChanged,
+    this.scrollable = false,
   });
 
   @override
@@ -246,13 +222,24 @@ class SettingsSegmentedChoice<T extends Object> extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SegmentedButton<T>(
-            segments: segments,
-            selected: {value},
-            showSelectedIcon: false,
-            expandedInsets: EdgeInsets.zero,
-            onSelectionChanged: (selection) => onChanged(selection.first),
-          ),
+          if (scrollable)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SegmentedButton<T>(
+                segments: segments,
+                selected: {value},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) => onChanged(selection.first),
+              ),
+            )
+          else
+            SegmentedButton<T>(
+              segments: segments,
+              selected: {value},
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
+              onSelectionChanged: (selection) => onChanged(selection.first),
+            ),
         ],
       ),
     );

@@ -10,6 +10,43 @@ import 'package:signals_flutter/signals_flutter.dart';
 class GeneralSettingsContent extends StatelessWidget {
   const GeneralSettingsContent({super.key});
 
+  Future<void> _selectLanguage(BuildContext context) async {
+    final current = context.locale;
+    final selected = await showDialog<Locale>(
+      context: context,
+      builder:
+          (context) => SimpleDialog(
+            title: Text(LocaleKeys.language.tr()),
+            children: [
+              ListTile(
+                selected: current.languageCode == 'zh',
+                title: const Text('简体中文'),
+                leading: const Text('🇨🇳', style: TextStyle(fontSize: 22)),
+                trailing:
+                    current.languageCode == 'zh'
+                        ? const Icon(Icons.check)
+                        : null,
+                onTap: () => Navigator.pop(context, const Locale('zh')),
+              ),
+              ListTile(
+                selected: current.languageCode == 'en',
+                title: const Text('English'),
+                leading: const Text('🇺🇸', style: TextStyle(fontSize: 22)),
+                trailing:
+                    current.languageCode == 'en'
+                        ? const Icon(Icons.check)
+                        : null,
+                onTap: () => Navigator.pop(context, const Locale('en')),
+              ),
+            ],
+          ),
+    );
+
+    if (selected != null && context.mounted) {
+      await context.setLocale(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final services = ServiceManager();
@@ -23,9 +60,21 @@ class GeneralSettingsContent extends StatelessWidget {
       final closeBehavior = services.windowState.closeBehavior.watch(context);
 
       return SettingsContentView(
-        title: LocaleKeys.settings_general.tr(),
-        description: LocaleKeys.settings_general_desc.tr(),
         children: [
+          SettingsSection(
+            title: LocaleKeys.settings_language.tr(),
+            description: LocaleKeys.settings_language_desc.tr(),
+            icon: Icons.language,
+            children: [
+              SettingsLinkTile(
+                icon: Icons.translate,
+                title: LocaleKeys.language.tr(),
+                subtitle: LocaleKeys.language_desc.tr(),
+                value: context.locale.languageCode == 'zh' ? '简体中文' : 'English',
+                onTap: () => _selectLanguage(context),
+              ),
+            ],
+          ),
           if (SettingsAvailability.desktopOnly.isVisible)
             SettingsSection(
               title: LocaleKeys.settings_startup.tr(),

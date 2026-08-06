@@ -1,15 +1,15 @@
 import 'package:astral/core/ui/base_settings_page.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:astral/features/settings/widgets/update_about_settings_content.dart';
 import 'package:astral/features/settings/widgets/update_settings_actions.dart';
-import 'package:astral/features/settings/widgets/update_settings_content.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-class UpdateSettingsPage extends BaseSettingsPage {
-  const UpdateSettingsPage({super.key});
+class UpdateAboutSettingsPage extends BaseSettingsPage {
+  const UpdateAboutSettingsPage({super.key});
 
   @override
-  String get title => LocaleKeys.settings_updates.tr();
+  String get title => LocaleKeys.settings_update_about.tr();
 
   @override
   List<Widget>? buildActions(BuildContext context) {
@@ -24,6 +24,6 @@ class UpdateSettingsPage extends BaseSettingsPage {
 
   @override
   Widget buildContent(BuildContext context) {
-    return const UpdateSettingsContent();
+    return const UpdateAboutSettingsContent();
   }
 }

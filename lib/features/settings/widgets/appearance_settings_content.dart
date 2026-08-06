@@ -17,72 +17,6 @@ class AppearanceSettingsContent extends StatelessWidget {
     };
   }
 
-  Future<void> _selectThemeMode(BuildContext context) async {
-    final current = ServiceManager().themeState.themeMode.value;
-    final selected = await showDialog<ThemeMode>(
-      context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: Text(LocaleKeys.theme_mode.tr()),
-            children: [
-              for (final mode in ThemeMode.values)
-                ListTile(
-                  selected: mode == current,
-                  title: Text(_themeModeLabel(mode)),
-                  leading: Icon(switch (mode) {
-                    ThemeMode.system => Icons.brightness_auto,
-                    ThemeMode.light => Icons.light_mode,
-                    ThemeMode.dark => Icons.dark_mode,
-                  }),
-                  trailing: mode == current ? const Icon(Icons.check) : null,
-                  onTap: () => Navigator.pop(context, mode),
-                ),
-            ],
-          ),
-    );
-
-    if (selected != null) {
-      await ServiceManager().theme.updateThemeMode(selected);
-    }
-  }
-
-  Future<void> _selectLanguage(BuildContext context) async {
-    final current = context.locale;
-    final selected = await showDialog<Locale>(
-      context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: Text(LocaleKeys.language.tr()),
-            children: [
-              ListTile(
-                selected: current.languageCode == 'zh',
-                title: const Text('简体中文'),
-                leading: const Text('🇨🇳', style: TextStyle(fontSize: 22)),
-                trailing:
-                    current.languageCode == 'zh'
-                        ? const Icon(Icons.check)
-                        : null,
-                onTap: () => Navigator.pop(context, const Locale('zh')),
-              ),
-              ListTile(
-                selected: current.languageCode == 'en',
-                title: const Text('English'),
-                leading: const Text('🇺🇸', style: TextStyle(fontSize: 22)),
-                trailing:
-                    current.languageCode == 'en'
-                        ? const Icon(Icons.check)
-                        : null,
-                onTap: () => Navigator.pop(context, const Locale('en')),
-              ),
-            ],
-          ),
-    );
-
-    if (selected != null && context.mounted) {
-      await context.setLocale(selected);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final services = ServiceManager();
@@ -99,20 +33,34 @@ class AppearanceSettingsContent extends StatelessWidget {
           .watch(context);
 
       return SettingsContentView(
-        title: LocaleKeys.settings_appearance.tr(),
-        description: LocaleKeys.settings_appearance_desc.tr(),
         children: [
           SettingsSection(
             title: LocaleKeys.settings_theme.tr(),
             description: LocaleKeys.settings_theme_desc.tr(),
             icon: Icons.palette_outlined,
             children: [
-              SettingsLinkTile(
-                icon: Icons.contrast,
+              SettingsSegmentedChoice<ThemeMode>(
                 title: LocaleKeys.theme_mode.tr(),
-                subtitle: LocaleKeys.theme_mode_desc.tr(),
-                value: _themeModeLabel(themeMode),
-                onTap: () => _selectThemeMode(context),
+                description: LocaleKeys.theme_mode_desc.tr(),
+                value: themeMode,
+                segments: [
+                  ButtonSegment(
+                    value: ThemeMode.system,
+                    icon: const Icon(Icons.brightness_auto),
+                    label: Text(_themeModeLabel(ThemeMode.system)),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    icon: const Icon(Icons.light_mode),
+                    label: Text(_themeModeLabel(ThemeMode.light)),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    icon: const Icon(Icons.dark_mode),
+                    label: Text(_themeModeLabel(ThemeMode.dark)),
+                  ),
+                ],
+                onChanged: services.theme.updateThemeMode,
               ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(
@@ -135,13 +83,6 @@ class AppearanceSettingsContent extends StatelessWidget {
                   ),
                 ),
                 onTap: () => showThemeColorPicker(context),
-              ),
-              SettingsLinkTile(
-                icon: Icons.language,
-                title: LocaleKeys.language.tr(),
-                subtitle: LocaleKeys.language_desc.tr(),
-                value: context.locale.languageCode == 'zh' ? '简体中文' : 'English',
-                onTap: () => _selectLanguage(context),
               ),
             ],
           ),

@@ -116,8 +116,6 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
   Widget build(BuildContext context) {
     if (!SettingsAvailability.androidOnly.isSupported) {
       return SettingsContentView(
-        title: LocaleKeys.settings_permissions.tr(),
-        description: LocaleKeys.settings_permissions_desc.tr(),
         children: [
           SettingsNotice(
             icon: Icons.verified_user_outlined,
@@ -134,8 +132,6 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
           .watch(context);
 
       return SettingsContentView(
-        title: LocaleKeys.settings_permissions.tr(),
-        description: LocaleKeys.settings_permissions_desc.tr(),
         children: [
           if (_checking) const LinearProgressIndicator(),
           SettingsSection(

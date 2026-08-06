@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/github_proxy_selector.dart';
-import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/services/update_service.dart';
 import 'package:astral/shared/widgets/common/update_check_ui.dart';
 import 'package:astral/features/settings/pages/general/history_versions_page.dart';
@@ -26,35 +25,6 @@ void redownloadUpdate(BuildContext context) {
   if (context.mounted) {
     UpdateCheckUi.checkAndPresent(context, checker, forceShowDownload: true);
   }
-}
-
-void showVersionInfo(BuildContext context) {
-  showDialog(
-    context: context,
-    builder:
-        (context) => AlertDialog(
-          title: Text(LocaleKeys.version_info.tr()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${LocaleKeys.installed_version.tr()}: ${AppInfoUtil.getVersionDisplay()}',
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${LocaleKeys.update_channel.tr()}: ${ServiceManager().updateState.receiveBetaUpdates.value ? "Beta" : "Stable"}',
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(LocaleKeys.close.tr()),
-            ),
-          ],
-        ),
-  );
 }
 
 String updateDownloadSourceDescription() {
