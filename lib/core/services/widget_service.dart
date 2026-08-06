@@ -1,5 +1,9 @@
 import 'dart:io';
 import 'package:astral/core/constants/home_widget_keys.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
 import 'package:astral/core/database/app_data.dart';
 import 'package:astral/core/services/home_widget_theme_sync.dart';
 import 'package:astral/core/services/service_manager.dart';
@@ -12,24 +16,50 @@ import 'package:flutter/services.dart';
 @pragma('vm:entry-point')
 Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _ensureWidgetRuntimeReady();
-  final services = ServiceManager();
+  final diagnostics = Diagnostics.initialize();
+  ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
+  final log = diagnostics.logger(DiagnosticModules.widgets);
+  final stopwatch = Stopwatch()..start();
+  log.info(
+    'widgets.background.start',
+    'Home widget background operation started',
+    fields: {'has_uri': uri != null},
+  );
+  try {
+    await _ensureWidgetRuntimeReady();
+    final services = ServiceManager();
 
-  if (uri != null &&
-      uri.scheme == 'astral' &&
-      uri.host == 'toggle_connection') {
-    final persistedState = await HomeWidget.getWidgetData<String>(
-      HomeWidgetKeys.connectionState,
-      defaultValue: HomeWidgetKeys.connectionIdle,
-    );
-    if (persistedState == HomeWidgetKeys.connectionIdle) {
-      await services.connection.connect(isManual: false);
-    } else if (persistedState == HomeWidgetKeys.connectionConnected) {
-      await services.connection.disconnect();
+    if (uri != null &&
+        uri.scheme == 'astral' &&
+        uri.host == 'toggle_connection') {
+      final persistedState = await HomeWidget.getWidgetData<String>(
+        HomeWidgetKeys.connectionState,
+        defaultValue: HomeWidgetKeys.connectionIdle,
+      );
+      if (persistedState == HomeWidgetKeys.connectionIdle) {
+        await services.connection.connect(isManual: false);
+      } else if (persistedState == HomeWidgetKeys.connectionConnected) {
+        await services.connection.disconnect();
+      }
     }
-  }
 
-  await services.widgets.syncAll();
+    await services.widgets.syncAll();
+    log.info(
+      'widgets.background.complete',
+      'Home widget background operation completed',
+      fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+    );
+  } catch (error, stack) {
+    log.error(
+      'widgets.background.failed',
+      'Home widget background operation failed',
+      fields: {'duration_ms': stopwatch.elapsedMilliseconds},
+      error: error,
+      stackTrace: stack,
+    );
+  } finally {
+    await diagnostics.flush();
+  }
 }
 
 Future<void> _ensureWidgetRuntimeReady() async {

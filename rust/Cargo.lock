@@ -4256,6 +4256,8 @@ dependencies = [
  "surge-ping",
  "tokio",
  "tokio-util",
+ "tracing",
+ "tracing-subscriber",
  "uuid",
  "widestring",
  "winapi",

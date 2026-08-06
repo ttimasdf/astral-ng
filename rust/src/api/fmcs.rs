@@ -1,16 +1,16 @@
 mod forward;
 mod multicast;
 
-use tokio::io;
 use forward::ForwardServer;
 use multicast::MulticastSender;
+use tokio::io;
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
     // 启动 TCP 转发
     let mut server = ForwardServer::new("0.0.0.0:25568", "43.248.189.79:25565");
     server.start().await?;
-    
+
     // 启动组播发送器
     let mut multicast = MulticastSender::new(
         "224.0.2.60",
@@ -20,13 +20,16 @@ async fn main() -> io::Result<()> {
     )?;
     multicast.start().await?;
 
-    println!("TCP转发和组播服务已启动");
-    println!("监听: 0.0.0.0:25568 -> 43.248.189.79:25565");
-    println!("组播: 224.0.2.60:4445");
-    
+    tracing::info!(
+        target: "astral.connection",
+        event_code = "fmcs.services.start",
+        forward_enabled = true,
+        multicast_enabled = true,
+        "Forwarding and multicast services started"
+    );
+
     // 持续运行
     loop {
         tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await;
     }
 }
-

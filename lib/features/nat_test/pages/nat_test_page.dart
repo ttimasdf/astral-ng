@@ -1,3 +1,5 @@
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/src/rust/api/nat_test.dart';
 import 'package:flutter/material.dart';
@@ -48,8 +50,14 @@ class _NatTestPageState extends State<NatTestPage> {
           _isTestingNat = false;
         });
       }
-    } catch (e) {
-      debugPrint('NAT 检测失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.easyTier).error(
+        'nat-test.failed',
+        'NAT connectivity test failed',
+        fields: {'stun_server': _stunServer},
+        error: e,
+        stackTrace: stack,
+      );
       if (mounted) {
         setState(() {
           _isTestingNat = false;

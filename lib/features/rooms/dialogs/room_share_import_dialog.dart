@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:flutter/services.dart';
 import 'package:astral/core/models/network_config_share.dart';
 import 'package:astral/core/room/room_share_codec.dart';
@@ -22,7 +24,13 @@ class RoomShareImportDialogs {
       }
 
       return await importRoom(context, clipboardText);
-    } catch (e) {
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.appLinks).warning(
+        'room-import.clipboard.read.failed',
+        'Failed to read a room share from the clipboard',
+        error: e,
+        stackTrace: stack,
+      );
       if (!context.mounted) return false;
       AppSnackBars.error(context, '读取剪贴板失败', e.toString());
       return false;
@@ -60,21 +68,13 @@ class RoomShareImportDialogs {
 
       final room = RoomShareCodec.decryptRoom(shareCode);
       if (room == null) {
-        AppSnackBars.error(
-          context,
-          '分享码解析失败',
-          '无法解析房间信息，可能是分享码已过期或损坏',
-        );
+        AppSnackBars.error(context, '分享码解析失败', '无法解析房间信息，可能是分享码已过期或损坏');
         return false;
       }
 
       final (isValid, errorMessage) = RoomShareCodec.validateRoom(room);
       if (!isValid) {
-        AppSnackBars.error(
-          context,
-          '房间数据无效',
-          errorMessage ?? '房间数据不符合要求',
-        );
+        AppSnackBars.error(context, '房间数据无效', errorMessage ?? '房间数据不符合要求');
         return false;
       }
 
@@ -204,8 +204,13 @@ class RoomShareImportDialogs {
               AppSnackBars.info(context, '网络配置', '网络配置已应用');
             }
           }
-        } catch (e) {
-          debugPrint('解析或应用网络配置失败: $e');
+        } catch (e, stack) {
+          Diagnostics.logger(DiagnosticModules.appLinks).warning(
+            'room-import.network-config.apply.failed',
+            'Failed to parse or apply imported network configuration',
+            error: e,
+            stackTrace: stack,
+          );
         }
       }
 
@@ -213,10 +218,7 @@ class RoomShareImportDialogs {
 
       if (!context.mounted) return false;
 
-      await RoomNavigation.goToRoom(
-        cleanedRoom,
-        context: context,
-      );
+      await RoomNavigation.goToRoom(cleanedRoom, context: context);
 
       if (context.mounted) {
         String serverInfo = '';
@@ -236,7 +238,13 @@ class RoomShareImportDialogs {
       }
 
       return true;
-    } catch (e) {
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.appLinks).error(
+        'room-import.failed',
+        'Failed to import a shared room',
+        error: e,
+        stackTrace: stack,
+      );
       if (context.mounted) {
         AppSnackBars.error(context, '导入失败', e.toString());
       }

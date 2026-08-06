@@ -7,12 +7,20 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** AstralNG Canary snapshots now install separately from production releases.
+> **Highlight:** Troubleshooting is now safer and more consistent with structured diagnostics across desktop and mobile.
 >
-> **版本亮点：** AstralNG Canary 快照版本现可与正式版本独立安装。
+> **版本亮点：** 通过桌面端与移动端统一的结构化诊断，故障排查现更加安全一致。
 
 ### Added
 
+- Added structured, redacted diagnostics across desktop and mobile, including
+  runtime log controls, bounded JSONL persistence, correlation filters, and
+  reviewable support-bundle exports.
+- Added process-only pre-start diagnostic flags for desktop and debuggable
+  Android builds, plus a cross-platform troubleshooting guide covering
+  application, network, routing, and EasyTier inspection tools. The guide is
+  split by investigation type and includes a project-wide catalog of modules,
+  event codes, and native console tags across Dart, Rust, and Kotlin.
 - Added an Android Quick Settings tile that shows the current connection state
   and connects or disconnects Astral-ng with one tap. ([#10])
 - Added automatic connection retries with a configurable retry limit.
@@ -27,6 +35,12 @@ baseline.
 
 ### Changed
 
+- **Breaking:** Moved the database to the platform Application Support directory
+  and diagnostic JSONL to Application Cache on every platform. Existing
+  installations may start with reset state; desktop users can stop Astral-ng
+  and move the complete Isar database file set into the new `db` subdirectory,
+  while other users must reconfigure the app. Existing logs are not migrated,
+  and cache diagnostics may be removed early by the OS or user.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android.
@@ -55,6 +69,12 @@ baseline.
 
 ### Fixed
 
+- Fixed Android reporting a connection before VPN consent, TUN creation, and
+  Rust file-descriptor handoff completed. The Android TUN now uses EasyTier's
+  assigned virtual address, failed VPN setup disconnects cleanly, and requested
+  disconnects remove the VPN interface, agent, and service.
+- Fixed Android VPN startup treating a null VPN interface as revoked permission,
+  preserving the original failure and correlation details for troubleshooting.
 - Fixed Android canary snapshots remaining on the white launch screen when
   startup tried to resolve home-widget providers from the canary package ID.
 - Fixed Android VPN routes not refreshing when a connected peer advertises or
@@ -93,6 +113,8 @@ baseline.
 - Added a `flutter-android` development command that defaults local Android work
   to the canary identity and isolates NDK builds from NixOS desktop compiler
   settings.
+- Added the pinned EasyTier CLI to the Nix development shell for local no-TUN
+  peer and end-to-end network diagnostics.
 
 ## v2.8.1 - 2026-03-31
 

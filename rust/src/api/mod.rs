@@ -1,10 +1,11 @@
-pub mod simple;
-pub mod p2p;
+pub mod diagnostics;
 pub mod firewall;
-pub mod hops;
-pub mod nt;
-pub mod utils;
 pub mod forward;
+pub mod hops;
+pub mod magic_wall;
 pub mod multicast;
 pub mod nat_test;
-pub mod magic_wall;
+pub mod nt;
+pub mod p2p;
+pub mod simple;
+pub mod utils;

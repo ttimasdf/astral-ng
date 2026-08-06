@@ -1,10 +1,11 @@
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
 import 'package:astral/features/magic_wall/services/magic_wall_engine.dart';
 import 'package:astral/features/magic_wall/services/magic_wall_store.dart';
 import 'package:astral/features/magic_wall/services/process_monitor.dart';
-import 'package:flutter/foundation.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Magic Wall orchestration facade used by the page.
@@ -60,7 +61,13 @@ class MagicWallController {
     try {
       final loaded = await store.loadGroupsAndRules();
       applyGroupData(loaded.groups, loaded.rules);
-    } catch (e) {
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).error(
+        'magic-wall.configuration.load.failed',
+        'Failed to load Magic Wall configuration',
+        error: e,
+        stackTrace: stack,
+      );
       onError?.call('加载配置失败: $e');
     }
   }
@@ -95,8 +102,13 @@ class MagicWallController {
       final status = await engine.getStatus();
       isRunning.value = status.isRunning;
       activeRulesCount.value = status.activeRules;
-    } catch (e) {
-      debugPrint('检查状态失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).warning(
+        'magic-wall.status.read.failed',
+        'Failed to read Magic Wall status',
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -202,11 +214,8 @@ class MagicWallController {
       await store.dao.updateRule(updated);
 
       // 确保规则有完整路径
-      final updatedRuleWithPath =
-          await processMonitor.ensureRuleHasCompletePath(
-            updated,
-            groupAppPath,
-          );
+      final updatedRuleWithPath = await processMonitor
+          .ensureRuleHasCompletePath(updated, groupAppPath);
       await loadData();
       await engine.syncAfterUpdateRule(
         isRunning: isRunning.value,

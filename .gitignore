@@ -4,6 +4,10 @@
 # Nix build output
 /result
 
+# Python diagnostic tooling
+__pycache__/
+*.py[cod]
+
 # Created by https://www.toptal.com/developers/gitignore/api/dart,flatpak,flutter,intellij,androidstudio,visualstudiocode,direnv
 # Edit at https://www.toptal.com/developers/gitignore?templates=dart,flatpak,flutter,intellij,androidstudio,visualstudiocode,direnv
 

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io' show gzip;
 
-import 'package:astral/core/bootstrap/file_logger.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/models/room.dart';
 import 'package:astral/core/room/room_mode.dart';
 
@@ -161,8 +162,13 @@ $roomSummary$shareOptions
         customParam: roomData['c'] ?? '',
         networkConfigJson: networkConfigJson,
       );
-    } catch (e) {
-      FileLogger().warning('解密房间信息失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.appLinks).warning(
+        'room-share.decode.failed',
+        'Failed to decode a room share payload',
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }

@@ -18,9 +18,6 @@ class AppSettingsState {
   // 减少动画/拓扑更新频率（降低后台与低性能设备负载）
   final reduceAnimationUpdates = signal(false);
 
-  // 日志列表
-  final logs = signal<List<String>>([]);
-
   // 更新连接状态栏通知开关
   void updateEnableConnectionNotification(bool value) {
     enableConnectionNotification.value = value;

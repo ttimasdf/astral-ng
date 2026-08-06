@@ -21,6 +21,7 @@ class MethodChannelVpnServicePlugin extends VpnServicePluginPlatform {
     String? dns,
     List<String>? disallowedApplications,
     int? mtu,
+    String? connectionAttemptId,
   }) async {
     final result = await methodChannel
         .invokeMethod<Map<Object?, Object?>>('startVpn', {
@@ -29,6 +30,7 @@ class MethodChannelVpnServicePlugin extends VpnServicePluginPlatform {
           'dns': dns,
           'disallowedApplications': disallowedApplications,
           'mtu': mtu,
+          'connectionAttemptId': connectionAttemptId,
         });
     return Map<String, dynamic>.from(result ?? {});
   }
@@ -37,5 +39,12 @@ class MethodChannelVpnServicePlugin extends VpnServicePluginPlatform {
   Future<Map<String, dynamic>> stopVpn() async {
     await methodChannel.invokeMethod<void>('stopVpn');
     return {}; // Return an empty map to match the required return type
+  }
+
+  @override
+  Future<void> configureLogging({required String minimumLevel}) {
+    return methodChannel.invokeMethod<void>('configureLogging', {
+      'minimumLevel': minimumLevel,
+    });
   }
 }

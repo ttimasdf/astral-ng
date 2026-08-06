@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
-import 'package:flutter/foundation.dart';
 
 /// Resolves executable paths for Magic Wall process-based auto-manage.
 class ProcessPathResolver {
@@ -96,8 +97,13 @@ class ProcessPathResolver {
       if (anyUpdated) {
         await reloadData();
       }
-    } catch (e) {
-      debugPrint('修复应用路径失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).warning(
+        'magic-wall.paths.repair.failed',
+        'Failed to repair Magic Wall application paths',
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
@@ -228,8 +234,13 @@ class ProcessPathResolver {
         return null;
       }
       return output;
-    } catch (e) {
-      debugPrint('解析进程路径失败: $e');
+    } catch (e, stack) {
+      Diagnostics.logger(DiagnosticModules.magicWall).warning(
+        'magic-wall.process-path.resolve.failed',
+        'Failed to resolve a process executable path',
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }

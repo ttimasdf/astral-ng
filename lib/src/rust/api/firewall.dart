@@ -6,11 +6,13 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+/// 不是window就返回false
 Future<bool> getFirewallStatus({required int profileIndex}) => RustLib
     .instance
     .api
     .crateApiFirewallGetFirewallStatus(profileIndex: profileIndex);
 
+/// 不是window就返回false
 Future<void> setFirewallStatus({
   required int profileIndex,
   required bool enable,

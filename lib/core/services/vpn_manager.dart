@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/log_policy.dart';
+import 'package:astral/core/diagnostics/log_severity.dart';
 import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/network/ip_utils.dart';
 import 'package:vpn_service_plugin/vpn_service_plugin.dart';
 import 'package:astral/src/rust/api/simple.dart';
-import 'package:flutter/foundation.dart';
 
 /// VPN 管理器（仅 Android）
 class VpnManager {
@@ -14,8 +17,11 @@ class VpnManager {
   final VpnServicePlugin? _plugin;
   StreamSubscription<dynamic>? _vpnStartedSub;
   StreamSubscription<dynamic>? _vpnStoppedSub;
+  StreamSubscription<dynamic>? _vpnErrorSub;
+  StreamSubscription<dynamic>? _diagnosticSub;
   bool _androidHooksInitialized = false;
   bool _handlingSystemRevocation = false;
+  Completer<void>? _vpnStartCompleter;
 
   VpnManager._() : _plugin = Platform.isAndroid ? VpnServicePlugin() : null;
 
@@ -31,26 +37,66 @@ class VpnManager {
   /// Android 通知 + VPN TUN fd 监听（应用级一次初始化）
   Future<void> initAndroidHooks() async {
     if (!Platform.isAndroid || _androidHooksInitialized) return;
-    _androidHooksInitialized = true;
 
     final services = ServiceManager();
+    final plugin = _plugin!;
+    final diagnostics = Diagnostics.runtime;
+    final log = diagnostics.logger(DiagnosticModules.vpn);
     await services.notifications.initialize();
+    await plugin.configureLogging(
+      minimumLevel: _nativeMinimumLevel(diagnostics.policy.value),
+    );
 
     await _vpnStartedSub?.cancel();
-    _vpnStartedSub = _plugin?.onVpnServiceStarted.listen((data) {
+    _vpnStartedSub = plugin.onVpnServiceStarted.listen((data) async {
       if (services.networkConfigState.noTun.value) return;
       final fd = data['fd'];
-      if (fd is int) {
-        configureTunFd(fd);
+      if (fd is! int) {
+        _completeVpnStartError(
+          StateError(
+            'Android VPN service did not provide a TUN file descriptor',
+          ),
+        );
+        return;
+      }
+      try {
+        await configureTunFd(fd);
+        _vpnStartCompleter?.complete();
+      } catch (error, stack) {
+        _completeVpnStartError(error, stack);
       }
     });
 
     await _vpnStoppedSub?.cancel();
-    _vpnStoppedSub = _plugin?.onVpnServiceStopped.listen((data) {
+    _vpnStoppedSub = plugin.onVpnServiceStopped.listen((data) {
       if (data['reason'] == 'revoked') {
         unawaited(_handleSystemRevocation());
       }
     });
+
+    await _vpnErrorSub?.cancel();
+    _vpnErrorSub = plugin.onVpnServiceError.listen((data) {
+      _completeVpnStartError(
+        StateError(
+          'Android VPN service failed: ${data['reason']?.toString() ?? 'unknown'}',
+        ),
+      );
+      log.error(
+        'vpn.service.failed',
+        'Android VPN service reported a failure',
+        fields: {
+          'reason': data['reason']?.toString() ?? 'unknown',
+          if (data['errorType'] != null)
+            'native_error_type': data['errorType'].toString(),
+        },
+      );
+    });
+
+    await _diagnosticSub?.cancel();
+    _diagnosticSub = plugin.onDiagnosticEvent.listen(_ingestNativeDiagnostic);
+    diagnostics.policy.addListener(_syncNativePolicy);
+    _androidHooksInitialized = true;
+    log.info('vpn.hooks.ready', 'Android VPN diagnostic hooks initialized');
   }
 
   Future<void> _handleSystemRevocation() async {
@@ -58,12 +104,99 @@ class VpnManager {
     _handlingSystemRevocation = true;
 
     try {
-      debugPrint('Android revoked the active VPN; disconnecting AstralNG.');
+      Diagnostics.logger(DiagnosticModules.vpn).warning(
+        'vpn.revocation.disconnect',
+        'Disconnecting after Android revoked VPN permission',
+      );
       await ServiceManager().connection.disconnect();
     } finally {
       _handlingSystemRevocation = false;
     }
   }
+
+  void _ingestNativeDiagnostic(dynamic data) {
+    if (data is! Map) return;
+    final event = Map<String, dynamic>.from(data);
+    final timestamp = event['timestampMillis'];
+    final sourceSequence = event['sourceSequence'];
+    final rawFields = event['fields'];
+    final fields =
+        rawFields is Map
+            ? Map<String, Object?>.from(rawFields)
+            : const <String, Object?>{};
+    Diagnostics.runtime.ingestExternal(
+      sourceTimestampUtc: DateTime.fromMillisecondsSinceEpoch(
+        timestamp is num
+            ? timestamp.toInt()
+            : DateTime.now().millisecondsSinceEpoch,
+        isUtc: true,
+      ),
+      sourceSequence: sourceSequence is num ? sourceSequence.toInt() : null,
+      origin: 'android',
+      module: event['module']?.toString() ?? DiagnosticModules.vpnAndroid,
+      rawTarget: 'android.vpn',
+      level: _parseNativeLevel(event['level']?.toString()),
+      eventCode: event['eventCode']?.toString(),
+      message: event['message']?.toString() ?? 'Android VPN event',
+      fields: fields,
+      connectionAttemptId: fields['connection_attempt_id']?.toString(),
+      errorType: event['errorType']?.toString(),
+      errorMessage: event['errorMessage']?.toString(),
+      stackTrace: event['stackTrace']?.toString(),
+      consoleAlreadyReported: event['consoleAlreadyReported'] == true,
+    );
+  }
+
+  void _syncNativePolicy() {
+    unawaited(_applyNativePolicy());
+  }
+
+  void _completeVpnStartError(Object error, [StackTrace? stack]) {
+    final completer = _vpnStartCompleter;
+    if (completer == null || completer.isCompleted) return;
+    completer.completeError(error, stack);
+  }
+
+  Future<void> _applyNativePolicy() async {
+    final plugin = _plugin;
+    if (plugin == null) return;
+    try {
+      await plugin.configureLogging(
+        minimumLevel: _nativeMinimumLevel(Diagnostics.runtime.policy.value),
+      );
+    } catch (error, stack) {
+      Diagnostics.logger(DiagnosticModules.vpn).warning(
+        'vpn.logging.configure.failed',
+        'Failed to update Android VPN log policy',
+        error: error,
+        stackTrace: stack,
+      );
+    }
+  }
+
+  String _nativeMinimumLevel(LogPolicy policy) {
+    LogSeverity? minimum;
+    for (final destination in DiagnosticDestination.values) {
+      final candidate = policy.minimumLevel(
+        DiagnosticModules.vpnAndroid,
+        destination,
+      );
+      if (candidate != null &&
+          (minimum == null || candidate.index < minimum.index)) {
+        minimum = candidate;
+      }
+    }
+    return minimum?.name ?? 'info';
+  }
+
+  LogSeverity _parseNativeLevel(String? value) => switch (value) {
+    'trace' => LogSeverity.trace,
+    'debug' => LogSeverity.debug,
+    'warning' || 'warn' => LogSeverity.warning,
+    'error' => LogSeverity.error,
+    'fatal' => LogSeverity.fatal,
+    _ => LogSeverity.info,
+  };
 
   /// 准备 VPN 服务（请求权限）
   Future<void> prepare() async {
@@ -78,10 +211,13 @@ class VpnManager {
     int mtu = 1300,
     List<String> disallowedApplications = const [BuildBrand.packageId],
     List<String> proxyCidrs = const [],
+    String? connectionAttemptId,
   }) async {
     final plugin = _plugin;
     if (plugin == null) return;
-    if (ipv4Addr.isEmpty) return;
+    if (!isValidIpAddress(ipv4Addr, excludeLoopback: false)) {
+      throw StateError('EasyTier did not provide a valid IPv4 address for VPN');
+    }
 
     String finalIpv4 = ipv4Addr;
     if (!ipv4Addr.contains('/')) {
@@ -98,18 +234,29 @@ class VpnManager {
       ...proxyCidrs.where((route) => isValidCIDR(route)),
     ];
 
-    await plugin.startVpn(
-      ipv4Addr: finalIpv4,
-      mtu: mtu,
-      routes: routes,
-      disallowedApplications: disallowedApplications,
-    );
+    final completer = Completer<void>();
+    _vpnStartCompleter = completer;
+    try {
+      await plugin.startVpn(
+        ipv4Addr: finalIpv4,
+        mtu: mtu,
+        routes: routes,
+        disallowedApplications: disallowedApplications,
+        connectionAttemptId: connectionAttemptId,
+      );
+      await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (identical(_vpnStartCompleter, completer)) {
+        _vpnStartCompleter = null;
+      }
+    }
   }
 
   /// 停止 VPN 服务
   Future<void> stop() async {
     final plugin = _plugin;
     if (plugin == null) return;
+    _vpnStartCompleter = null;
     await plugin.stopVpn();
   }
 

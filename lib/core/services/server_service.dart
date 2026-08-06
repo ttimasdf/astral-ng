@@ -1,7 +1,8 @@
 ﻿import 'package:astral/core/database/app_data.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/states/server_state.dart';
 import 'package:astral/core/models/server_mod.dart';
-import 'package:flutter/foundation.dart';
 
 /// 服务器服务：协调 State 与持久化
 class ServerService {
@@ -19,7 +20,12 @@ class ServerService {
       await _db.servers.addServer(server);
       await _refreshServers();
     } catch (e, stackTrace) {
-      debugPrint('添加服务器失败: $e\n$stackTrace');
+      Diagnostics.logger(DiagnosticModules.connection).error(
+        'server.add.failed',
+        'Failed to add server',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

@@ -2,16 +2,16 @@
 cmake_minimum_required(VERSION 3.13)
 project(runner LANGUAGES CXX)
 
-# CI exports BUILD_CHANNEL before invoking Flutter. Keep local and production
-# builds on the stable identity unless canary is requested explicitly.
+# Flutter's Linux runner discovers the local executable by reading the first
+# BINARY_NAME declaration. Keep stable defaults first, then let CI override the
+# actual CMake target when a canary build is requested explicitly.
+set(BINARY_NAME "astral")
+set(APPLICATION_ID "pw.rabit.astralng")
+set(APP_DISPLAY_NAME "AstralNG")
 if("$ENV{BUILD_CHANNEL}" STREQUAL "canary")
   set(BINARY_NAME "astral-canary")
   set(APPLICATION_ID "pw.rabit.astralng.canary")
   set(APP_DISPLAY_NAME "AstralNG Canary")
-else()
-  set(BINARY_NAME "astral")
-  set(APPLICATION_ID "pw.rabit.astralng")
-  set(APP_DISPLAY_NAME "AstralNG")
 endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

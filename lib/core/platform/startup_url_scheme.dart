@@ -1,9 +1,13 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 
 const _startupRunKey =
     'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
 const _startupValueName = 'Astral';
+
+final _log = Diagnostics.logger(DiagnosticModules.appLinks);
 
 Future<void> _removeLegacyStartupShortcut() async {
   if (!Platform.isWindows) return;
@@ -16,10 +20,13 @@ Future<void> _removeLegacyStartupShortcut() async {
     if (await shortcut.exists()) {
       await shortcut.delete();
     }
-  } catch (e) {
-    if (kDebugMode) {
-      debugPrint('Failed to remove legacy startup shortcut: $e');
-    }
+  } catch (e, stack) {
+    _log.warning(
+      'startup.legacy-shortcut.remove.failed',
+      'Failed to remove legacy startup shortcut',
+      error: e,
+      stackTrace: stack,
+    );
   }
 }
 
@@ -43,8 +50,12 @@ Future<void> handleStartupSetting(bool enable) async {
       command,
       '/f',
     ]);
-    if (result.exitCode != 0 && kDebugMode) {
-      debugPrint('Failed to register startup: ${result.stderr}');
+    if (result.exitCode != 0) {
+      _log.warning(
+        'startup.registration.failed',
+        'Failed to enable launch at startup',
+        fields: {'exit_code': result.exitCode},
+      );
     }
   } else {
     final result = await Process.run('reg', [
@@ -54,8 +65,12 @@ Future<void> handleStartupSetting(bool enable) async {
       _startupValueName,
       '/f',
     ]);
-    if (result.exitCode != 0 && kDebugMode) {
-      debugPrint('Failed to unregister startup: ${result.stderr}');
+    if (result.exitCode != 0) {
+      _log.warning(
+        'startup.unregistration.failed',
+        'Failed to disable launch at startup',
+        fields: {'exit_code': result.exitCode},
+      );
     }
   }
 }
@@ -104,22 +119,26 @@ class UrlSchemeRegistrar {
         ],
       ];
 
-      for (final command in commands) {
-        final result = await Process.run('reg', command);
+      for (var index = 0; index < commands.length; index++) {
+        final result = await Process.run('reg', commands[index]);
         if (result.exitCode != 0) {
-          if (kDebugMode) {
-            debugPrint('Failed to execute reg command: ${command.join(' ')}');
-            debugPrint('Error: ${result.stderr}');
-          }
+          _log.warning(
+            'app-links.scheme.registration.failed',
+            'Failed to register the Windows URL scheme',
+            fields: {'step': index, 'exit_code': result.exitCode},
+          );
           return false;
         }
       }
 
       return true;
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error registering URL scheme: $e');
-      }
+    } catch (e, stack) {
+      _log.warning(
+        'app-links.scheme.registration.failed',
+        'Windows URL scheme registration threw an exception',
+        error: e,
+        stackTrace: stack,
+      );
       return false;
     }
   }

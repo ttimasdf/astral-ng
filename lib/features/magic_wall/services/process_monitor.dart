@@ -3,11 +3,12 @@ import 'dart:io';
 
 import 'package:astral/core/database/dao/magic_wall_dao.dart';
 import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
 import 'package:astral/features/magic_wall/services/process_path_resolver.dart';
 import 'package:astral/src/rust/api/magic_wall.dart' as rust_api;
-import 'package:flutter/foundation.dart';
 
 /// Process monitoring and auto-manage lifecycle for Magic Wall.
 ///
@@ -217,8 +218,14 @@ class MagicWallProcessMonitor {
             fallbackAppPath: executablePath,
           ),
         );
-      } catch (e) {
-        debugPrint('⚠️  添加规则失败: ${rule.name}, 错误: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.magicWall).warning(
+          'magic-wall.process-rule.add.failed',
+          'Failed to add an auto-managed Magic Wall rule',
+          fields: {'rule_id': rule.ruleId},
+          error: e,
+          stackTrace: stack,
+        );
         // 如果规则已存在，忽略错误继续
         if (!e.toString().contains('已存在')) {
           rethrow;
@@ -254,8 +261,14 @@ class MagicWallProcessMonitor {
 
       try {
         await rust_api.removeMagicWallRule(ruleId: rule.ruleId);
-      } catch (e) {
-        debugPrint('⚠️  移除规则失败: ${rule.name}, 错误: $e');
+      } catch (e, stack) {
+        Diagnostics.logger(DiagnosticModules.magicWall).warning(
+          'magic-wall.process-rule.remove.failed',
+          'Failed to remove an auto-managed Magic Wall rule',
+          fields: {'rule_id': rule.ruleId},
+          error: e,
+          stackTrace: stack,
+        );
         // 继续移除其他规则
       }
     }

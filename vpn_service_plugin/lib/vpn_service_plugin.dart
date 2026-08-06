@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'vpn_service_plugin_platform_interface.dart';
 
 class VpnServicePlugin {
-  static const MethodChannel _channel = MethodChannel('vpn_service');
   static const EventChannel _eventChannel = EventChannel('vpn_service_events');
 
   // VPN服务事件流
@@ -37,6 +36,7 @@ class VpnServicePlugin {
     String? dns,
     List<String>? disallowedApplications,
     int? mtu,
+    String? connectionAttemptId,
   }) {
     return VpnServicePluginPlatform.instance.startVpn(
       ipv4Addr: ipv4Addr,
@@ -44,6 +44,7 @@ class VpnServicePlugin {
       dns: dns,
       disallowedApplications: disallowedApplications,
       mtu: mtu,
+      connectionAttemptId: connectionAttemptId,
     );
   }
 
@@ -64,5 +65,23 @@ class VpnServicePlugin {
     return onVpnStatusChanged
         .where((event) => event['event'] == 'vpn_service_stop')
         .map((event) => Map<String, dynamic>.from(event['data'] as Map));
+  }
+
+  Stream<Map<String, dynamic>> get onVpnServiceError {
+    return onVpnStatusChanged
+        .where((event) => event['event'] == 'vpn_service_error')
+        .map((event) => Map<String, dynamic>.from(event['data'] as Map));
+  }
+
+  Stream<Map<String, dynamic>> get onDiagnosticEvent {
+    return onVpnStatusChanged
+        .where((event) => event['event'] == 'diagnostic')
+        .map((event) => Map<String, dynamic>.from(event['data'] as Map));
+  }
+
+  Future<void> configureLogging({required String minimumLevel}) {
+    return VpnServicePluginPlatform.instance.configureLogging(
+      minimumLevel: minimumLevel,
+    );
   }
 }

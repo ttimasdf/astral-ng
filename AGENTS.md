@@ -70,12 +70,47 @@ Use plain `flutter` for Linux desktop development. The Android helper stops
 compatible Gradle daemons before commands that can build the app because Gradle
 daemons retain their startup environment.
 
+Canary Android builds are disposable testing artifacts, not production upgrade
+artifacts. Install them as the canary package (`pw.rabit.astralng.canary`) and
+keep production installs separate. If Android rejects a canary APK because of a
+version, downgrade, or signature mismatch, uninstall the canary package from
+the target device and install the APK again:
+
+```sh
+adb uninstall pw.rabit.astralng.canary
+adb install <canary-apk>
+```
+
+Only remove the production package when the user explicitly requests a clean
+production reset.
+
 ## Pull Request CI
 
 Treat remote CI as final cross-platform validation, not as the ordinary local
 iteration loop. After the user accepts the local demonstration and final local
 checks pass, read `docs/CI.md` for `full-ci` label behavior, expected runner
 timing, and bounded waiting instructions.
+
+## Breaking Changes and Compatibility
+
+Do not preserve backward compatibility by default when a requested change
+replaces an obsolete path, format, interface, default, or workflow. Before
+implementing an intentional compatibility break:
+
+1. Warn the user explicitly that the proposed change is breaking.
+2. State who or what is affected, what will stop working or become inaccessible,
+   and the exact migration or cleanup action required.
+3. Wait for explicit user authorization of that breaking scope. Approval of the
+   broader feature is not implicit approval of a newly discovered break.
+4. After authorization, implement the simpler canonical behavior without a
+   compatibility shim unless the user specifically requests one.
+5. Add a `**Breaking:**` entry under `Unreleased` in `CHANGELOG.md` following
+   `docs/CHANGELOG_GUIDELINES.md`, including affected users and migration steps.
+6. Record the behavior in `DOWNSTREAM_CHANGES.md` when it is a downstream
+   application, build, packaging, release, or documentation difference.
+
+Developer-only instruction changes remain exempt from the downstream ledger as
+described below.
 
 ## Changelog Maintenance
 

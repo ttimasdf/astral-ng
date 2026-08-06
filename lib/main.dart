@@ -1,159 +1,316 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'dart:io';
-import 'package:astral/src/rust/api/utils.dart';
+
 import 'package:easy_localization/easy_localization.dart';
-import 'package:astral/core/platform/app_info.dart';
-import 'package:astral/core/platform/startup_url_scheme.dart';
-import 'package:astral/core/bootstrap/log_capture.dart';
-import 'package:astral/core/bootstrap/file_logger.dart';
-import 'package:astral/core/bootstrap/global_error_handler.dart';
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/platform/window_manager.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/app_links/app_link_registry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
     show ExternalLibrary;
 import 'package:path/path.dart' as p;
-import 'package:astral/src/rust/frb_generated.dart';
 import 'package:astral/app.dart';
+import 'package:astral/core/app_links/app_link_registry.dart';
+import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
+import 'package:astral/core/bootstrap/startup_host.dart';
+import 'package:astral/core/database/app_data.dart';
+import 'package:astral/core/diagnostics/diagnostic_context.dart';
+import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
+import 'package:astral/core/diagnostics/module_logger.dart';
+import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:astral/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
+import 'package:astral/core/diagnostics/sources/rust_diagnostic_source.dart';
+import 'package:astral/core/platform/app_info.dart';
+import 'package:astral/core/platform/startup_url_scheme.dart';
+import 'package:astral/core/platform/window_manager.dart';
+import 'package:astral/core/services/connection_connect_guard.dart';
+import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/src/rust/api/utils.dart';
+import 'package:astral/src/rust/frb_generated.dart';
+import 'package:uuid/uuid.dart';
 
-void main() async {
-  // 初始化文件日志系统（Release 模式下不会创建文件）
-  await FileLogger().init();
-  GlobalErrorHandler.initialize();
+void main(List<String> arguments) {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // 使用错误处理包装主应用
-  runZonedGuarded(
-    () async {
-      await _initializeApp();
-    },
-    (error, stack) {
-      GlobalErrorHandler.logError(
-        'Uncaught error in main zone',
-        error: error,
-        stack: stack,
-      );
-    },
+  final launchOptions = DiagnosticLaunchOptions.parse(arguments);
+  final diagnostics = Diagnostics.initialize(
+    initialPolicy: launchOptions.initialPolicy(debugBuild: kDebugMode),
   );
+  launchOptions.applyTo(diagnostics);
+  EasyLocalizationDiagnosticSource.install(diagnostics);
+  ErrorHookRegistration.install(ErrorCoordinator(diagnostics));
+  WidgetsBinding.instance.addObserver(
+    _DiagnosticsLifecycleObserver(diagnostics),
+  );
+  diagnostics
+      .logger(DiagnosticModules.bootstrap)
+      .info(
+        'session.start',
+        'AstralNG diagnostic session started',
+        fields: {
+          'session': diagnostics.sessionId,
+          'build_mode': kDebugMode ? 'debug' : 'release',
+          'policy': diagnostics.policy.value.name,
+          'platform': defaultTargetPlatform.name,
+          ...launchOptions.safeSummary,
+        },
+      );
+
+  runApp(
+    StartupHost(
+      diagnostics: diagnostics,
+      bootstrap: () => _bootstrapApp(diagnostics),
+    ),
+  );
+  unawaited(_initializeDiagnosticFile(diagnostics));
 }
 
-/// 初始化 FRB 动态库。
-///
-/// 生成代码里 `kDefaultExternalLibraryLoaderConfig` 会优先从
-/// `rust/target/release/` 加载；若本机曾单独 `cargo build --release`，
-/// 会一直误用那份旧 dll（与当前 Dart 绑定 content hash 不一致）。
-/// Flutter Windows 会把 cargokit 编好的 `rust_lib_astral.dll` 放在 exe 同目录，
-/// 因此桌面端优先从该路径显式加载。
-Future<void> _initRustLib() async {
-  if (!kIsWeb && Platform.isWindows) {
-    final bundledPath = p.join(
-      File(Platform.resolvedExecutable).parent.path,
-      'rust_lib_astral.dll',
+Future<void> _initializeDiagnosticFile(DiagnosticsRuntime diagnostics) =>
+    _optional(
+      diagnostics.logger(DiagnosticModules.logging),
+      'logging.file.initialize',
+      () async => diagnostics.attachSink(
+        await RotatingJsonlSink.open(),
+        replayStoredRecords: true,
+      ),
     );
-    if (File(bundledPath).existsSync()) {
-      await RustLib.init(
-        externalLibrary: ExternalLibrary.open(bundledPath),
-      );
+
+/// Initializes the FRB dynamic library.
+///
+/// Desktop builds open the Cargokit library beside the running executable.
+/// This prevents a stale development library on `LD_LIBRARY_PATH` or under
+/// `rust/target/release` from being paired with current Dart bindings.
+Future<void> _initRustLib() async {
+  if (!kIsWeb) {
+    final executableDirectory = File(Platform.resolvedExecutable).parent.path;
+    final bundledPath = switch (Platform.operatingSystem) {
+      'windows' => p.join(executableDirectory, 'rust_lib_astral.dll'),
+      'linux' => p.join(executableDirectory, 'lib', 'librust_lib_astral.so'),
+      'macos' => p.normalize(
+        p.join(
+          executableDirectory,
+          '..',
+          'Frameworks',
+          'librust_lib_astral.dylib',
+        ),
+      ),
+      _ => null,
+    };
+    if (bundledPath != null && File(bundledPath).existsSync()) {
+      await RustLib.init(externalLibrary: ExternalLibrary.open(bundledPath));
       return;
     }
   }
   await RustLib.init();
 }
 
-Future<void> _initializeApp() async {
-  try {
-    await _initRustLib();
-    FileLogger().info('RustLib initialized');
-
-    WidgetsFlutterBinding.ensureInitialized();
-
-    if (Platform.isMacOS) {
-      checkSudo().then((elevated) {
-        if (!elevated) {
-          FileLogger().warning('macOS elevation failed, exiting');
-          exit(0); // 当前进程退出，交由新进程运行
-        }
-      });
-    }
-
-    await EasyLocalization.ensureInitialized();
-    FileLogger().info('EasyLocalization initialized');
-
-    await AppDatabase().init();
-    FileLogger().info('Database initialized');
-
-    // 初始化新的服务管理器
-    final services = ServiceManager();
-    await services.init();
-    FileLogger().info('ServiceManager initialized');
-
-    // 初始化贴片服务
-    services.widgets.initialize();
-    if (Platform.isAndroid) {
-      await services.widgets.syncAll();
-    }
-    FileLogger().info('WidgetService initialized');
-
-    try {
-      await AppInfoUtil.init().timeout(const Duration(seconds: 3));
-      FileLogger().info('AppInfoUtil initialized');
-    } catch (e) {
-      FileLogger().warning('AppInfoUtil init timeout/failure, continue: $e');
-    }
-
-    await LogCapture().startCapture();
-    FileLogger().info('LogCapture started');
-
-    await UrlSchemeRegistrar.registerUrlScheme();
-    FileLogger().info('URL scheme registered');
-
-    await _initAppLinks();
-
-    if (!kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-      await WindowManagerUtils.initializeWindow();
-      FileLogger().info('Window manager initialized');
-    }
-
-    _runApp();
-  } catch (e, stack) {
-    GlobalErrorHandler.logError(
-      'Failed to initialize app',
-      error: e,
-      stack: stack,
-    );
-    rethrow;
-  }
-}
-
-void _runApp() {
-  FileLogger().info('Starting Flutter app');
-  runApp(
-    EasyLocalization(
-      supportedLocales: const [
-        Locale('zh'),
-        Locale('en'),
-      ],
-      path: 'assets/translations',
-      fallbackLocale: const Locale('zh'),
-      child: const KevinApp(),
-    ),
+Future<Widget> _bootstrapApp(DiagnosticsRuntime diagnostics) {
+  final operationId = const Uuid().v4().split('-').first.toUpperCase();
+  return DiagnosticContext.run(
+    DiagnosticContext(operationId: operationId),
+    () => _bootstrapAppWithinContext(diagnostics),
   );
 }
 
-Future<void> _initAppLinks() async {
+Future<Widget> _bootstrapAppWithinContext(
+  DiagnosticsRuntime diagnostics,
+) async {
+  final log = diagnostics.logger(DiagnosticModules.bootstrap);
+  log.info('bootstrap.start', 'Application bootstrap started');
+
+  await _criticalStage(log, 'rust', _initRustLib);
+  await _optional(
+    diagnostics.logger(DiagnosticModules.logging),
+    'rust-diagnostics.initialize',
+    () => RustDiagnosticSource(diagnostics).start(),
+  );
+
+  if (Platform.isMacOS) {
+    final elevated = await _criticalStage(log, 'macos.elevation', checkSudo);
+    if (!elevated) {
+      log.warning(
+        'bootstrap.macos.elevation.relaunch',
+        'Current macOS process is not elevated; exiting after relaunch request',
+      );
+      exit(0);
+    }
+  }
+
+  await _criticalStage(log, 'localization', EasyLocalization.ensureInitialized);
+  await _criticalStage(log, 'database', AppDatabase().init);
+
+  final services = ServiceManager();
+  await _criticalStage(
+    log,
+    'services',
+    () =>
+        services.init(runStartupActions: false, initializePlatformHooks: false),
+  );
+
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    await _criticalStage(log, 'window', WindowManagerUtils.initializeWindow);
+  }
+
+  log.info('bootstrap.complete', 'Critical bootstrap completed');
+  unawaited(_initializeOptionalServices(diagnostics, services));
+
+  return EasyLocalization(
+    supportedLocales: const [Locale('zh'), Locale('en')],
+    path: 'assets/translations',
+    fallbackLocale: const Locale('zh'),
+    child: const KevinApp(),
+  );
+}
+
+Future<T> _criticalStage<T>(
+  ModuleLogger log,
+  String stage,
+  Future<T> Function() action,
+) async {
+  final stopwatch = Stopwatch()..start();
+  final timeline =
+      developer.TimelineTask()
+        ..start('bootstrap.$stage', arguments: {'stage': stage});
+  log.debug(
+    'bootstrap.stage.start',
+    'Bootstrap stage started',
+    fields: {'stage': stage},
+  );
   try {
-    final registry = AppLinkRegistry();
-    await registry.initialize();
-    FileLogger().info('App links initialized');
-  } catch (e, stack) {
-    FileLogger().warning('App links 初始化失败: $e');
-    GlobalErrorHandler.logError(
-      'Failed to initialize app links',
-      error: e,
-      stack: stack,
+    final result = await action();
+    log.info(
+      'bootstrap.stage.complete',
+      'Bootstrap stage completed',
+      fields: {'stage': stage, 'duration_ms': stopwatch.elapsedMilliseconds},
     );
+    return result;
+  } catch (error, stack) {
+    Error.throwWithStackTrace(
+      BootstrapStageFailure(
+        stage: stage,
+        durationMilliseconds: stopwatch.elapsedMilliseconds,
+        error: error,
+        stackTrace: stack,
+      ),
+      stack,
+    );
+  } finally {
+    timeline.finish(arguments: {'duration_ms': stopwatch.elapsedMilliseconds});
+  }
+}
+
+Future<void> _initializeOptionalServices(
+  DiagnosticsRuntime diagnostics,
+  ServiceManager services,
+) async {
+  if (Platform.isAndroid) {
+    await _optional(
+      diagnostics.logger(DiagnosticModules.vpn),
+      'vpn.hooks.initialize',
+      services.vpn.initAndroidHooks,
+    );
+  }
+  await _optional(
+    diagnostics.logger(DiagnosticModules.widgets),
+    'widgets.initialize',
+    () async => services.widgets.initialize(),
+  );
+  if (Platform.isAndroid) {
+    await _optional(
+      diagnostics.logger(DiagnosticModules.widgets),
+      'widgets.sync',
+      () => services.widgets.syncAll().timeout(const Duration(seconds: 5)),
+    );
+  }
+
+  await _optional(
+    diagnostics.logger(DiagnosticModules.bootstrap),
+    'metadata.initialize',
+    () => AppInfoUtil.init().timeout(const Duration(seconds: 3)),
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.appLinks),
+    'url-scheme.register',
+    () async {
+      final registered = await UrlSchemeRegistrar.registerUrlScheme().timeout(
+        const Duration(seconds: 5),
+      );
+      if (!registered) throw StateError('URL scheme registration failed');
+    },
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.appLinks),
+    'app-links.initialize',
+    () => AppLinkRegistry().initialize().timeout(const Duration(seconds: 5)),
+  );
+  await _optional(
+    diagnostics.logger(DiagnosticModules.connection),
+    'startup-auto-connect',
+    ConnectionConnectGuard.tryStartupAutoConnect,
+  );
+}
+
+final class _DiagnosticsLifecycleObserver with WidgetsBindingObserver {
+  _DiagnosticsLifecycleObserver(this.diagnostics);
+
+  final DiagnosticsRuntime diagnostics;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      unawaited(diagnostics.flush());
+    }
+  }
+}
+
+Future<void> _optional(
+  ModuleLogger log,
+  String operation,
+  Future<void> Function() action,
+) {
+  final operationId = const Uuid().v4().split('-').first.toUpperCase();
+  return DiagnosticContext.run(
+    DiagnosticContext(operationId: operationId),
+    () => _optionalWithinContext(log, operation, action),
+  );
+}
+
+Future<void> _optionalWithinContext(
+  ModuleLogger log,
+  String operation,
+  Future<void> Function() action,
+) async {
+  final stopwatch = Stopwatch()..start();
+  final timeline =
+      developer.TimelineTask()
+        ..start('optional.$operation', arguments: {'operation': operation});
+  try {
+    await action();
+    log.info(
+      '$operation.complete',
+      'Optional initialization completed',
+      fields: {
+        'operation': operation,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+    );
+  } catch (error, stack) {
+    log.warning(
+      '$operation.failed',
+      'Optional initialization failed; continuing',
+      fields: {
+        'operation': operation,
+        'duration_ms': stopwatch.elapsedMilliseconds,
+      },
+      error: error,
+      stackTrace: stack,
+    );
+  } finally {
+    timeline.finish(arguments: {'duration_ms': stopwatch.elapsedMilliseconds});
   }
 }

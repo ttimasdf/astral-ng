@@ -24,6 +24,8 @@ bytecodec = "0.4"
 rand = "0.8"
 surge-ping = "0.8"
 uuid = { version = "1.0", features = ["v4"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "registry"] }
 
 easytier = { git = "https://github.com/EasyTier/EasyTier.git", tag = "v2.6.4", features = ["wireguard", "websocket", "quic", "tun", "smoltcp", "socks5", "kcp", "faketcp", "magic-dns", "zstd"] }
 elevated-command = "1.1.2"

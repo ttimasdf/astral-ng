@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/github_proxy_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -106,7 +107,7 @@ class UpdateDownloader {
 
       onProgress(1.0);
       return file.path;
-    } catch (e) {
+    } catch (e, stack) {
       if (sink != null) {
         try {
           await sink.close();
@@ -121,7 +122,13 @@ class UpdateDownloader {
         }
       } catch (_) {}
 
-      debugPrint('下载失败: $e');
+      Diagnostics.logger(DiagnosticModules.updates).error(
+        'update.download.failed',
+        'Update download failed',
+        fields: {'file_name': fileName},
+        error: e,
+        stackTrace: stack,
+      );
       return null;
     }
   }

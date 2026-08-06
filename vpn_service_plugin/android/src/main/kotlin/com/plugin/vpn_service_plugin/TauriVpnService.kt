@@ -7,14 +7,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import java.io.IOException
 
 // VPN服务类，继承自Android系统的VpnService
 class TauriVpnService : VpnService() {
     companion object {
-        private const val TAG = "TauriVpnService"
-
         // 用于触发回调的函数引用
         var triggerCallback: (String, Map<String, Any>) -> Unit = { _, _ -> }
 
@@ -24,6 +21,8 @@ class TauriVpnService : VpnService() {
         const val DNS = "DNS"                                // DNS服务器
         const val DISALLOWED_APPLICATIONS = "DISALLOWED_APPLICATIONS"  // 不允许使用VPN的应用列表
         const val MTU = "MTU"                                // 最大传输单元
+        const val CONNECTION_ATTEMPT_ID = "CONNECTION_ATTEMPT_ID"
+        const val ACTION_STOP = "com.plugin.vpn_service_plugin.action.STOP"
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -34,20 +33,79 @@ class TauriVpnService : VpnService() {
 
     // VPN服务启动时的回调函数
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("vpn on start command ${intent?.extras} $intent")
-
-        val args = intent?.extras
-        if (args == null) {
-            Log.w(TAG, "Ignoring service restart without VPN configuration")
+        if (intent?.action == ACTION_STOP) {
+            NativeLogger.info(
+                "vpn.tun.teardown.start",
+                "Tearing down Android TUN interface",
+            )
+            closeVpnInterface()
+            triggerCallback("vpn_service_stop", mapOf("reason" to "requested"))
+            NativeLogger.info(
+                "vpn.tun.teardown.complete",
+                "Android TUN interface torn down",
+            )
             stopSelf(startId)
             return START_NOT_STICKY
         }
 
+        val args = intent?.extras
+        if (args == null) {
+            NativeLogger.warning(
+                "vpn.service.restart.without_config",
+                "Ignoring VPN service restart without configuration",
+            )
+            triggerCallback(
+                "vpn_service_error",
+                mapOf("reason" to "missing_configuration"),
+            )
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
+        val connectionAttemptId = args.getString(CONNECTION_ATTEMPT_ID)
+        val attemptFields = mapOf("connection_attempt_id" to connectionAttemptId)
+        NativeLogger.info(
+            "vpn.tun.establish.start",
+            "Establishing Android TUN interface",
+            mapOf(
+                "mtu" to args.getInt(MTU, 1500),
+                "route_count" to (args.getStringArray(ROUTES)?.size ?: 0),
+                "connection_attempt_id" to connectionAttemptId,
+            ),
+        )
+
         // Establish the replacement before closing the old TUN. Android keeps
         // the old interface active if establishing the replacement fails.
-        val replacement = createVpnInterface(args)
+        val replacement = try {
+            createVpnInterface(args)
+        } catch (error: Exception) {
+            NativeLogger.error(
+                "vpn.tun.configuration.invalid",
+                "VPN configuration or TUN establishment threw an exception",
+                attemptFields,
+                error,
+            )
+            triggerCallback(
+                "vpn_service_error",
+                mapOf(
+                    "reason" to "invalid_configuration",
+                    "errorType" to error.javaClass.simpleName,
+                ),
+            )
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         if (replacement == null) {
-            handleRevocation()
+            NativeLogger.error(
+                "vpn.tun.establish.failed",
+                "Android returned no TUN interface",
+                attemptFields,
+            )
+            triggerCallback(
+                "vpn_service_error",
+                mapOf("reason" to "establish_failed"),
+            )
+            stopSelf(startId)
             return START_NOT_STICKY
         }
 
@@ -55,30 +113,44 @@ class TauriVpnService : VpnService() {
         vpnInterface = replacement
         revocationReported = false
         previous.closeSafely()
-        println("vpn created ${replacement.fd}")
+        NativeLogger.info(
+            "vpn.tun.establish.complete",
+            "Android TUN interface established",
+            mapOf(
+                "fd" to replacement.fd,
+                "connection_attempt_id" to connectionAttemptId,
+            ),
+        )
 
-        // 创建并发送启动事件数据
-        triggerCallback("vpn_service_start", mapOf("fd" to replacement.fd))
-
+        triggerCallback(
+            "vpn_service_start",
+            mapOf(
+                "fd" to replacement.fd,
+                "connectionAttemptId" to (connectionAttemptId ?: ""),
+            ),
+        )
         return START_NOT_STICKY
     }
 
     // 服务创建时的回调函数
     override fun onCreate() {
         super.onCreate()
-        println("vpn on create")
+        NativeLogger.debug("vpn.service.create", "Android VPN service created")
     }
 
     // 服务销毁时的回调函数
     override fun onDestroy() {
-        println("vpn on destroy")
+        NativeLogger.info("vpn.service.destroy", "Android VPN service destroyed")
         closeVpnInterface()
         super.onDestroy()
     }
 
     // VPN权限被系统撤销时的回调函数
     override fun onRevoke() {
-        println("vpn on revoke")
+        NativeLogger.warning(
+            "vpn.permission.revoked",
+            "Android revoked VPN permission",
+        )
         runOnMainThread(::handleRevocation)
     }
 
@@ -106,7 +178,11 @@ class TauriVpnService : VpnService() {
         try {
             close()
         } catch (exception: IOException) {
-            Log.w(TAG, "Failed to close VPN interface", exception)
+            NativeLogger.warning(
+                "vpn.interface.close.failed",
+                "Failed to close Android TUN interface",
+                error = exception,
+            )
         }
     }
 
@@ -128,7 +204,6 @@ class TauriVpnService : VpnService() {
         // 获取VPN配置参数，如果未指定则使用默认值
         val mtu = if (args.containsKey(MTU)) args.getInt(MTU) else 1500
         val ipv4Addr = args.getString(IPV4_ADDR) ?: "100.100.100.0/24"
-        val dns = args.getString(DNS) ?: "114.114.114.114"
         
         // 从ipv4Addr中计算网段地址
         val ipAddrParts = ipv4Addr.split("/")
@@ -155,9 +230,17 @@ class TauriVpnService : VpnService() {
 
         val disallowedApplications = args.getStringArray(DISALLOWED_APPLICATIONS) ?: emptyArray()
 
-        println("vpn create vpn interface. mtu: $mtu, ipv4Addr: $ipv4Addr, networkCidr: $networkCidr, dns:" +
-            "$dns, routes: ${java.util.Arrays.toString(routes)}," +
-            "disallowedApplications:  ${java.util.Arrays.toString(disallowedApplications)}")
+        NativeLogger.debug(
+            "vpn.tun.configuration.ready",
+            "Android TUN configuration validated",
+            mapOf(
+                "mtu" to mtu,
+                "route_count" to routes.size,
+                "disallowed_application_count" to disallowedApplications.size,
+                "address_family" to "ipv4",
+                "connection_attempt_id" to args.getString(CONNECTION_ATTEMPT_ID),
+            ),
+        )
 
         // 设置VPN的IP地址
         builder.addAddress(ipAddrParts[0], ipAddrParts[1].toInt())

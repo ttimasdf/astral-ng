@@ -12,6 +12,8 @@ class AppInfoUtil {
   /// 获取应用版本号 (例如: 1.0.0).
   static String getVersion() => _packageInfo?.version ?? '';
 
+  static String getBuildNumber() => _packageInfo?.buildNumber ?? '';
+
   /// Human-readable version, including the CI canary channel when applicable.
   static String getVersionDisplay() {
     final packageInfo = _packageInfo;
