@@ -27,8 +27,11 @@ content headers, search fields, keyword maps, or category value summaries.
 Network and connection behavior are consolidated into
 one workspace. Language is grouped under General, and update controls, versions,
 logs, diagnostics, and About information share one Update & About category.
-Appearance and platform permissions remain focused categories with current-value
-summaries and clearer dependency and change-effect messaging.
+Its Support tools read directly from the structured diagnostics store, deep-link
+the latest uncaught error into the diagnostics viewer, and export the redacted
+schema-v3 support bundle; no legacy string-log list is restored. Appearance and
+platform permissions remain focused categories with clearer dependency and
+change-effect messaging.
 
 The settings overhaul intentionally resets the `AllSettings` Isar schema rather
 than preserving misleading historical property names. Persisted properties and
@@ -75,12 +78,12 @@ the active destination navigator.
 - `lib/core/database/dao/all_settings_dao.dart`, `lib/core/states/`, `lib/core/services/`: concept-based settings persistence, bounded retry state, and runtime APIs
 - `lib/core/models/net_config.dart`, `lib/core/builders/server_config_builder.dart`, `lib/src/rust/`, `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: persisted SOCKS5 bind scope and Dart/Rust bridge propagation
 - `lib/features/settings/pages/general/update_about_settings_page.dart`: reusable Update & About page with update action
-- `lib/features/settings/widgets/*_settings_content.dart`: category content for General (including language), Appearance, Network & Connection, Permissions, and Update & About
+- `lib/features/settings/widgets/*_settings_content.dart`, `lib/features/settings/models/settings_diagnostics.dart`: category content plus structured diagnostic count, error deep-link, and support-bundle integration for Update & About
 - `lib/features/settings/widgets/settings_components.dart`: shared section, navigation-row, notice, value-status, and responsive segmented-choice components
 - `lib/features/home/pages/main_screen.dart`, `lib/shared/widgets/navigation/content_navigator.dart`: persistent per-destination route stacks contained within the application shell
 - `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`, `lib/shared/widgets/common/windows_controls.dart`: localized theme shortcuts and action-oriented toolbar/window tooltips
 - `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: synchronized concept-based localization keys, bilingual settings hierarchy, descriptions, statuses, and validation messages
-- `test/features/settings/settings_components_test.dart`: widget coverage for the shared settings presentation components and compact segmented choices
+- `test/features/settings/settings_components_test.dart`, `test/features/settings/settings_diagnostics_test.dart`: widget coverage for shared presentation, compact segmented choices, and structured error deep-link selection
 - `test/shared/widgets/navigation/content_navigator_test.dart`: verifies pushed subpages remain inside the application shell
 - `test/generated/locale_keys_test.dart`: synchronization and legacy-key rejection coverage for translations and generated keys
 - `_tmp_net_sec.dart`: removed obsolete temporary settings snapshot

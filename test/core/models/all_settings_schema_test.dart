@@ -29,6 +29,14 @@ void main() {
     }
   });
 
+  test('AppSettingsState does not restore the legacy log list', () {
+    final source =
+        File('lib/core/states/app_settings_state.dart').readAsStringSync();
+
+    expect(source, isNot(contains('signal<List<String>>')));
+    expect(source, isNot(contains('final logs')));
+  });
+
   test('NetConfig stores the SOCKS5 bind scope', () {
     final source = File('lib/core/models/net_config.dart').readAsStringSync();
 

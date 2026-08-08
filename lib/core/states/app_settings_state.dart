@@ -15,9 +15,6 @@ class AppSettingsState {
   // 降低拓扑动画与刷新频率
   final reduceTopologyAnimations = signal(false);
 
-  // 日志列表
-  final logs = signal<List<String>>([]);
-
   void setConnectionNotificationEnabled(bool value) {
     connectionNotificationEnabled.value = value;
   }

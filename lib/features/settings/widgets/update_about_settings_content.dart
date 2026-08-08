@@ -1,6 +1,11 @@
+import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:astral/core/diagnostics/diagnostic_record.dart';
+import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:astral/core/diagnostics/support_bundle.dart';
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/features/settings/models/settings_diagnostics.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/features/settings/widgets/update_settings_actions.dart';
@@ -31,10 +36,53 @@ class _UpdateAboutSettingsContentState
     });
   }
 
-  void _openLogs(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const LogsPage()));
+  void _openLogs(BuildContext context, List<DiagnosticRecord> records) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (_) => LogsPage(initialErrorId: latestUncaughtErrorId(records)),
+      ),
+    );
+  }
+
+  Future<void> _copySupportBundle(
+    BuildContext context,
+    List<DiagnosticRecord> records,
+  ) async {
+    final approved = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(LocaleKeys.copy_support_bundle.tr()),
+            content: Text(LocaleKeys.copy_support_bundle_warning.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(LocaleKeys.cancel.tr()),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(LocaleKeys.copy.tr()),
+              ),
+            ],
+          ),
+    );
+    if (approved != true || !context.mounted) return;
+
+    final bundle = SupportBundle.encode(
+      diagnostics: Diagnostics.runtime,
+      records: records,
+    );
+    await Clipboard.setData(ClipboardData(text: bundle));
+    Diagnostics.logger(DiagnosticModules.logging).info(
+      'support-bundle.copied',
+      'Redacted support bundle copied',
+      fields: {'record_count': records.length},
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(LocaleKeys.support_bundle_copied.tr())),
+    );
   }
 
   @override
@@ -48,8 +96,6 @@ class _UpdateAboutSettingsContentState
       );
       final automaticUpdateChecks = services.updateState.automaticUpdateChecks
           .watch(context);
-      final logs = services.appSettingsState.logs.watch(context);
-
       return SettingsContentView(
         children: [
           Container(
@@ -199,43 +245,35 @@ class _UpdateAboutSettingsContentState
               ),
             ],
           ),
-          SettingsSection(
-            title: LocaleKeys.support_tools.tr(),
-            description: LocaleKeys.support_tools_desc.tr(),
-            icon: Icons.support_agent,
-            children: [
-              SettingsLinkTile(
-                icon: Icons.article_outlined,
-                title: LocaleKeys.logs.tr(),
-                subtitle: LocaleKeys.logs_desc.tr(),
-                value: LocaleKeys.log_count.tr(
-                  namedArgs: {'count': logs.length.toString()},
-                ),
-                onTap: () => _openLogs(context),
-              ),
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                leading: const Icon(Icons.copy_all_outlined),
-                title: Text(LocaleKeys.copy_diagnostics.tr()),
-                subtitle: Text(LocaleKeys.copy_diagnostics_desc.tr()),
-                trailing: const Icon(Icons.copy_outlined),
-                onTap: () async {
-                  final details = [
-                    '${BuildBrand.appName} ${AppInfoUtil.getVersionDisplay()}',
-                    if (_kernelVersion.isNotEmpty) 'EasyTier: $_kernelVersion',
-                    'Logs: ${logs.length}',
-                  ].join('\n');
-                  await Clipboard.setData(ClipboardData(text: details));
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(LocaleKeys.diagnostics_copied.tr()),
+          ValueListenableBuilder<List<DiagnosticRecord>>(
+            valueListenable: Diagnostics.runtime.store,
+            builder:
+                (context, records, _) => SettingsSection(
+                  title: LocaleKeys.support_tools.tr(),
+                  description: LocaleKeys.support_tools_desc.tr(),
+                  icon: Icons.support_agent,
+                  children: [
+                    SettingsLinkTile(
+                      icon: Icons.article_outlined,
+                      title: LocaleKeys.logs.tr(),
+                      subtitle: LocaleKeys.logs_desc.tr(),
+                      value: LocaleKeys.log_count.tr(
+                        namedArgs: {'count': records.length.toString()},
                       ),
-                    );
-                  }
-                },
-              ),
-            ],
+                      onTap: () => _openLogs(context, records),
+                    ),
+                    ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                      ),
+                      leading: const Icon(Icons.inventory_2_outlined),
+                      title: Text(LocaleKeys.copy_support_bundle.tr()),
+                      subtitle: Text(LocaleKeys.copy_support_bundle_desc.tr()),
+                      trailing: const Icon(Icons.copy_outlined),
+                      onTap: () => _copySupportBundle(context, records),
+                    ),
+                  ],
+                ),
           ),
           SettingsNotice(
             icon:

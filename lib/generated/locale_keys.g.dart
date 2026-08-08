@@ -40,6 +40,7 @@ abstract class  LocaleKeys {
   static const permission_denied = 'permission_denied';
   static const permission_denied_message = 'permission_denied_message';
   static const cancel = 'cancel';
+  static const copy = 'copy';
   static const go_settings = 'go_settings';
   static const edit = 'edit';
   static const delete = 'delete';
@@ -269,9 +270,10 @@ abstract class  LocaleKeys {
   static const logs = 'logs';
   static const logs_desc = 'logs_desc';
   static const log_count = 'log_count';
-  static const copy_diagnostics = 'copy_diagnostics';
-  static const copy_diagnostics_desc = 'copy_diagnostics_desc';
-  static const diagnostics_copied = 'diagnostics_copied';
+  static const copy_support_bundle = 'copy_support_bundle';
+  static const copy_support_bundle_desc = 'copy_support_bundle_desc';
+  static const copy_support_bundle_warning = 'copy_support_bundle_warning';
+  static const support_bundle_copied = 'support_bundle_copied';
   static const saved_automatically = 'saved_automatically';
   static const auto_connect_on = 'auto_connect_on';
   static const platform_specific = 'platform_specific';
