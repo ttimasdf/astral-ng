@@ -59,9 +59,10 @@ baseline.
   of leaving a stale system VPN indicator. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
-  grayscale-and-gold icon on Linux, Windows, and Android. Linux development
-  builds retain Flutter's discoverable executable name so canary sessions work
-  with `flutter run`, while packaged artifacts still expose `astral-canary`.
+  grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
+  development builds retain Flutter's discoverable executable name so canary
+  sessions work with `flutter run`, while packaged artifacts still expose
+  `astral-canary`.
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
 - Improved Android and iOS server management with short, spring-back gestures:

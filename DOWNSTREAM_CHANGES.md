@@ -722,21 +722,22 @@ executable and Linux package, Android application ID
 `pw.rabit.astralng.canary`, an independent Windows installer and single-instance
 mutex, and grayscale-and-gold launcher and tray icons. This allows canary and
 production builds to be installed and launched side by side while production
-tags preserve the existing names and identifiers. On Linux, the CMake target
-keeps Flutter's discoverable `astral` name for local `flutter run`; CI renames
-that executable to `astral-canary` before packaging canary artifacts.
+tags preserve the existing names and identifiers. On Linux and Windows, the
+CMake target keeps Flutter's discoverable `astral`/`astral.exe` name for local
+`flutter run`; CI renames those executables to `astral-canary`/
+`astral-canary.exe` before packaging canary artifacts.
 
 ### Files affected
 
 - `scripts/version.py`, `docs/VERSIONING.md`: resolve and document channel-specific display, executable, package, and installer identities
-- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, rename the stable Linux build target to the resolved package executable, generate wrappers and desktop entries from that identity, and package canary artifacts separately
+- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, rename stable Linux and Windows build targets to the resolved package executable, generate wrappers and desktop entries from that identity, and package canary artifacts separately
 - `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
 - `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
 - `lib/core/constants/home_widget_keys.dart`, `lib/core/services/widget_service.dart`: resolve Android widget providers from their Kotlin namespace so canary startup does not depend on the application ID
 - `scripts/generate_icons.py`, `assets/`, `android/app/src/main/res/mipmap-*`, `windows/runner/resources/`: generate and ship the grayscale-and-gold icon set
 - `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
 - `linux/CMakeLists.txt`, `linux/runner/`: keep Flutter's executable target stable while selecting the canary GTK application ID and window name
-- `windows/CMakeLists.txt`, `windows/runner/`: select the canary executable, metadata, icon, window title, and single-instance boundary
+- `windows/CMakeLists.txt`, `windows/runner/`: keep Flutter's executable target stable while selecting canary metadata, icon, window title, and single-instance boundary
 
 ---
 

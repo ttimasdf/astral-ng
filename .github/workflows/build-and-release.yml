@@ -251,6 +251,11 @@ jobs:
           --build-number "$env:FLUTTER_BUILD_NUMBER"
           --dart-define "BUILD_CHANNEL=$env:BUILD_CHANNEL"
 
+      - name: Rename packaged canary executable
+        if: env.APP_EXECUTABLE != 'astral'
+        run: |
+          Rename-Item -Path "build\windows\x64\runner\Release\astral.exe" -NewName "$env:APP_EXECUTABLE.exe"
+
       - name: Copy DLLs
         run: |
           Copy-Item -Path "$env:GITHUB_WORKSPACE\dlls\*" -Destination "build\windows\x64\runner\Release\" -Recurse -Force
