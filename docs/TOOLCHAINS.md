@@ -61,7 +61,8 @@ Flutter and Android. The flake accepts the Android SDK license and enables the
 unfree Android command line tools required by this environment.
 
 The development shell's plain `flutter` command adds the matching compile-time
-channel to `build`, `drive`, `run`, and `test`, keeping Dart branding and native
+channel, current seven-character Git commit, and local canary run number to
+`build`, `drive`, `run`, and `test`, keeping Dart branding, SemVer, and native
 desktop identity synchronized. Production validation remains explicit:
 
 ```bash
@@ -91,8 +92,9 @@ Gradle daemon retains the environment from its initial invocation. Continue to
 use the development shell's plain, canary-defaulting `flutter` command for Linux
 desktop development.
 
-The helper defaults to the canary application identity and passes that channel
-to both Gradle and Dart while leaving all Flutter arguments unchanged. Place an
+The helper defaults to the canary application identity and passes that channel,
+the current seven-character commit, and the local run number to both Gradle and
+Dart while leaving all Flutter arguments unchanged. Place an
 explicit production override before the Flutter subcommand when needed:
 
 ```bash

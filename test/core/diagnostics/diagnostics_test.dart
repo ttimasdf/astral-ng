@@ -379,7 +379,7 @@ void main() {
     final encoded = SupportBundle.encode(
       diagnostics: runtime,
       records: runtime.store.value,
-      appVersion: '3.0.0',
+      appVersion: '3.0.0-alpha.42+abcdef0',
       buildNumber: '42',
       platform: 'test',
       buildMode: 'debug',
@@ -394,7 +394,7 @@ void main() {
     expect(decoded['support_bundle_schema_version'], 3);
     expect(
       (decoded['session'] as Map<String, dynamic>)['app_version'],
-      '3.0.0',
+      '3.0.0-alpha.42+abcdef0',
     );
     expect(fields['password'], '<redacted>');
     expect(encoded, isNot(contains('hunter2')));

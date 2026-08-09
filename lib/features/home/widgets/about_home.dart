@@ -65,14 +65,14 @@ class _AboutHomeState extends State<AboutHome> {
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               Watch((context) {
-                final currentVersion = AppInfoUtil.getVersion();
+                final currentVersion = AppInfoUtil.getSemanticVersion();
                 final latestVersion = ServiceManager().updateState.latestVersion
                     .watch(context);
                 final hasNewVersion = VersionUtil.hasNewVersion(
                   currentVersion,
                   latestVersion,
                 );
-                final currentDisplay = AppInfoUtil.getVersionDisplay();
+                final currentDisplay = AppInfoUtil.getAboutVersion();
                 final versionText =
                     hasNewVersion
                         ? '$currentDisplay → ${latestVersion!.replaceFirst(RegExp(r'^v'), '')}'

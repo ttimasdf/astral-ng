@@ -262,8 +262,9 @@ Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for
 testing. Full-CI artifacts use exact output paths and expire after seven days.
 Each package is uploaded as a direct single-file artifact without an additional
 ZIP wrapper. Snapshot and release filenames end with the resolved
-`ASSET_VERSION`, so canary files include their CI build identity and production
-files use the `vX.Y.Z` suffix.
+`ASSET_VERSION`, so canary files use the ordered
+`X.Y.Z-alpha.CI_RUN+SHORTREF` SemVer and production files use `X.Y.Z` without a
+`v` prefix.
 Superseded non-release runs are cancelled, while tag builds are never
 cancelled.
 
@@ -529,7 +530,7 @@ encryption setting.
 
 ## [version-source]: Establish Astral-ng-owned release and canary versioning
 
-- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
+- **Scope**: `VERSION`, `pubspec.yaml`, `package.nix`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/`, `lib/core/diagnostics/support_bundle.dart`, `lib/core/services/update_service.dart`, `lib/shared/utils/version_util.dart`, `lib/features/settings/`, `lib/features/home/`, `docs/VERSIONING.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `version-source`
@@ -537,15 +538,16 @@ encryption setting.
 
 ### What this changes
 
-Makes `VERSION` the only human-edited source for Astral-ng's application version and production build number. The cross-platform Python tool validates the Flutter mirror, derives package and installer versions, supports semantic version bumps, and logs an observable build identity. CI requires production tags to match the source and gives canary builds a separate CI-unique build number and artifact label.
+Makes `VERSION` the only human-edited source for Astral-ng's application version and production build number. The cross-platform Python tool validates the Flutter mirror, derives package and installer versions, supports semantic version bumps, and logs an observable build identity. CI requires production tags to match the source. Production identity is canonical `X.Y.Z`; canaries use ordered `X.Y.Z-alpha.CI_RUN+SHORTREF` SemVer with a seven-character commit, while platform-required numeric build fields remain monotonic.
 
 ### Files affected
 
-- `VERSION`, `scripts/version.py`: cross-platform version source management, derivation, bumping, and mirror validation
-- `pubspec.yaml`: Flutter-required mirror of the source version
-- `.github/workflows/build-and-release.yml`: production-tag validation and version-derived build/package metadata
-- `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
-- `docs/VERSIONING.md`: maintainer workflow and versioning contract
+- `VERSION`, `scripts/version.py`, `test/scripts/version_test.py`: cross-platform version source management, canonical SemVer derivation, bumping, mirror validation, and regression coverage
+- `pubspec.yaml`, `package.nix`: Flutter-required mirror and Nix package version derived from the source release SemVer
+- `.github/workflows/build-and-release.yml`: production-tag validation, commit injection, canonical SemVer artifact names, and platform-compatible package metadata
+- `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_about_settings_content.dart`, `lib/features/home/widgets/about_home.dart`: expose friendly, About-row, and canonical SemVer identities with the exact build commit
+- `lib/shared/utils/version_util.dart`, `lib/core/services/update_service.dart`, `lib/core/diagnostics/support_bundle.dart`: SemVer-compliant update precedence and canonical version reporting in support data
+- `docs/VERSIONING.md`: maintainer workflow, artifact-name migration, and versioning contract
 
 ---
 
@@ -567,7 +569,7 @@ code-signed. Android debug builds use one short-lived test upload, while
 production keystore setup and signed release APKs remain restricted to `v*` tag
 pushes. Packaged files are uploaded directly without an extra ZIP wrapper, use
 the same naming scheme for every event, and end with `ASSET_VERSION`, identifying
-the exact canary or production build.
+the exact canary or production SemVer build.
 
 ### Files affected
 
@@ -726,12 +728,13 @@ tags preserve the existing names and identifiers. On Linux and Windows, the
 CMake target keeps Flutter's discoverable `astral`/`astral.exe` name for local
 `flutter run`; CI renames those executables to `astral-canary`/
 `astral-canary.exe` before packaging canary artifacts. Nix development shells
-default plain Flutter compilation commands to canary while preserving an
-explicit `BUILD_CHANNEL=production` override.
+default plain Flutter compilation commands to canary, inject the current
+seven-character commit, and preserve an explicit `BUILD_CHANNEL=production`
+override.
 
 ### Files affected
 
-- `scripts/version.py`, `scripts/flutter_dev.sh`, `docs/VERSIONING.md`, `docs/TOOLCHAINS.md`: resolve channel-specific identities and default Nix-shell Flutter compilation to canary with an explicit production override
+- `scripts/version.py`, `scripts/flutter_dev.sh`, `scripts/flutter_android.sh`, `docs/VERSIONING.md`, `docs/TOOLCHAINS.md`: resolve channel-specific SemVer and commit identities and default Nix-shell Flutter compilation to canary with an explicit production override
 - `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, rename stable Linux and Windows build targets to the resolved package executable, generate wrappers and desktop entries from that identity, and package canary artifacts separately
 - `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
 - `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN

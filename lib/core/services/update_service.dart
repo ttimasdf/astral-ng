@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:math';
-
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/shared/utils/version_util.dart';
 import 'package:http/http.dart' as http;
 
 enum UpdateCheckKind { updateAvailable, upToDate, failed }
@@ -84,7 +83,8 @@ class UpdateChecker {
         fallback: _releasesPage,
       );
 
-      if (_shouldUpdate(currentVersion, latestVersion) || forceShowDownload) {
+      if (VersionUtil.hasNewVersion(currentVersion, latestVersion) ||
+          forceShowDownload) {
         return UpdateCheckResult(
           kind: UpdateCheckKind.updateAvailable,
           version: latestVersion,
@@ -160,59 +160,10 @@ class UpdateChecker {
 
   Future<String> _getCurrentVersion() async {
     try {
-      return AppInfoUtil.getVersion();
+      return AppInfoUtil.getSemanticVersion();
     } catch (_) {
       return '0.0.0';
     }
-  }
-
-  bool _shouldUpdate(String currentVersion, String latestVersion) {
-    final current = currentVersion.replaceAll(RegExp(r'^v'), '');
-    final latest = latestVersion.replaceAll(RegExp(r'^v'), '');
-
-    final currentParts = current.split('-');
-    final latestParts = latest.split('-');
-
-    final currentMain = _parseVersionParts(currentParts[0]);
-    final latestMain = _parseVersionParts(latestParts[0]);
-
-    for (int i = 0; i < 3; i++) {
-      final curr = i < currentMain.length ? currentMain[i] : 0;
-      final lat = i < latestMain.length ? latestMain[i] : 0;
-
-      if (lat > curr) return true;
-      if (lat < curr) return false;
-    }
-
-    if (currentParts.length == 1) return latestParts.length > 1;
-    if (latestParts.length == 1) return true;
-
-    return _comparePreRelease(currentParts[1], latestParts[1]) < 0;
-  }
-
-  List<int> _parseVersionParts(String version) {
-    return version.split('.').map((s) => int.tryParse(s) ?? 0).toList();
-  }
-
-  int _comparePreRelease(String a, String b) {
-    final aParts = a.split('.');
-    final bParts = b.split('.');
-
-    for (int i = 0; i < max(aParts.length, bParts.length); i++) {
-      final aVal = i < aParts.length ? aParts[i] : '';
-      final bVal = i < bParts.length ? bParts[i] : '';
-
-      final aNum = int.tryParse(aVal);
-      final bNum = int.tryParse(bVal);
-
-      if (aNum != null && bNum != null) {
-        if (aNum != bNum) return aNum.compareTo(bNum);
-      } else {
-        final cmp = aVal.compareTo(bVal);
-        if (cmp != 0) return cmp;
-      }
-    }
-    return 0;
   }
 
   String _extractString(

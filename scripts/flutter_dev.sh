@@ -48,13 +48,24 @@ if [[ "$channel" != production && "$channel" != canary ]]; then
   fail "unsupported BUILD_CHANNEL '$channel'; expected production or canary"
 fi
 
+build_commit="${BUILD_COMMIT:-$(git rev-parse --short=7 HEAD 2>/dev/null || printf local)}"
+build_run_number="${BUILD_RUN_NUMBER:-${GITHUB_RUN_NUMBER:-0}}"
+[[ "$build_run_number" =~ ^[0-9]+$ ]] ||
+  fail "unsupported BUILD_RUN_NUMBER '$build_run_number'; expected a non-negative integer"
+
 export BUILD_CHANNEL="$channel"
+export BUILD_COMMIT="$build_commit"
+export BUILD_RUN_NUMBER="$build_run_number"
 flutter_args=("$@")
 case "$flutter_command" in
   build|drive|run|test)
     if [[ "$explicit_channel" == false ]]; then
       flutter_args+=("--dart-define=BUILD_CHANNEL=$channel")
     fi
+    flutter_args+=(
+      "--dart-define=BUILD_COMMIT=$build_commit"
+      "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
+    )
     ;;
 esac
 

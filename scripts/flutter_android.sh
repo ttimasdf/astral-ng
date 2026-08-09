@@ -127,11 +127,22 @@ export BINDGEN_EXTRA_CLANG_ARGS_i686_linux_android
 export BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android
 export FLUTTER_ROOT="$ASTRAL_FLUTTER_ROOT"
 
+build_commit="${BUILD_COMMIT:-$(git rev-parse --short=7 HEAD 2>/dev/null || printf local)}"
+build_run_number="${BUILD_RUN_NUMBER:-${GITHUB_RUN_NUMBER:-0}}"
+[[ "$build_run_number" =~ ^[0-9]+$ ]] ||
+  fail "unsupported BUILD_RUN_NUMBER '$build_run_number'; expected a non-negative integer"
+
 flutter_args=("$@")
 export BUILD_CHANNEL="$astral_channel"
+export BUILD_COMMIT="$build_commit"
+export BUILD_RUN_NUMBER="$build_run_number"
 case "$flutter_command" in
   build|drive|run|test)
-    flutter_args+=("--dart-define=BUILD_CHANNEL=$astral_channel")
+    flutter_args+=(
+      "--dart-define=BUILD_CHANNEL=$astral_channel"
+      "--dart-define=BUILD_COMMIT=$build_commit"
+      "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
+    )
     ;;
 esac
 

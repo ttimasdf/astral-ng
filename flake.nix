@@ -137,6 +137,11 @@
             ${syncToolchains}/bin/sync-toolchains --check
             touch "$out"
           '';
+          version-semantics = pkgs.runCommand "version-semantics" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+            cd ${./.}
+            python3 test/scripts/version_test.py
+            touch "$out"
+          '';
           flutter-dev-channel =
             pkgs.runCommand "flutter-dev-channel"
               {
@@ -158,14 +163,20 @@
                 chmod +x "$fake_flutter"
 
                 env -u BUILD_CHANNEL \
+                  BUILD_COMMIT=abcdef0 \
+                  BUILD_RUN_NUMBER=42 \
                   ASTRAL_FLUTTER_BIN="$fake_flutter" \
                   ASTRAL_TEST_ARGS_FILE="$args_file" \
                   ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
                   bash ${./scripts/flutter_dev.sh} run -d linux
                 grep -Fx -- '--dart-define=BUILD_CHANNEL=canary' "$args_file"
+                grep -Fx -- '--dart-define=BUILD_COMMIT=abcdef0' "$args_file"
+                grep -Fx -- '--dart-define=BUILD_RUN_NUMBER=42' "$args_file"
                 grep -Fx -- 'canary' "$channel_file"
 
                 BUILD_CHANNEL=canary \
+                  BUILD_COMMIT=abcdef0 \
+                  BUILD_RUN_NUMBER=42 \
                   ASTRAL_FLUTTER_BIN="$fake_flutter" \
                   ASTRAL_TEST_ARGS_FILE="$args_file" \
                   ASTRAL_TEST_CHANNEL_FILE="$channel_file" \

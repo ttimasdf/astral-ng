@@ -6,6 +6,15 @@ abstract final class BuildBrand {
     defaultValue: 'production',
   );
 
+  static const commit = String.fromEnvironment(
+    'BUILD_COMMIT',
+    defaultValue: 'local',
+  );
+  static const runNumber = int.fromEnvironment(
+    'BUILD_RUN_NUMBER',
+    defaultValue: 0,
+  );
+
   static const isCanary = channel == 'canary';
   static const appName = isCanary ? 'AstralNG Canary' : 'AstralNG';
   static const packageId =

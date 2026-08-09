@@ -35,6 +35,12 @@ baseline.
 
 ### Changed
 
+- **Breaking:** Replaced artifact and package version suffixes with canonical
+  SemVer. Canary files now use `3.0.0-alpha.CI_RUN+SHORTREF`, production files
+  use `3.0.0`, and Linux package managers receive an equivalent `~alpha`
+  prerelease. Download automation must stop matching
+  `v3.0.0-canary.CI_RUN-SHORTREF` or `v3.0.0` suffixes and use the new SemVer
+  names.
 - **Breaking:** Moved the database to the platform Application Support directory
   and diagnostic JSONL to Application Cache on every platform. Existing
   installations may start with reset state; desktop users can stop Astral-ng
@@ -63,7 +69,9 @@ baseline.
   development builds retain Flutter's discoverable executable name so canary
   sessions work with `flutter run`, while packaged artifacts still expose
   `astral-canary`. Nix development shells default Flutter build, run, drive,
-  and test commands to the canary identity.
+  and test commands to the canary identity. About now identifies canary builds
+  by their seven-character commit, showing a compact friendly version in the
+  hero and SemVer in installed-version rows.
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
 - Improved Android and iOS server management with short, spring-back gestures:
@@ -72,8 +80,9 @@ baseline.
   red indicator. ([#11])
 - Replaced the desktop server switch and overflow menu with direct toggle and
   delete icon buttons; clicking the row opens editing. ([#11])
-- Added version suffixes to downloadable CI snapshots and release assets, and
-  made workflow artifacts downloadable without an additional ZIP wrapper.
+- Added canonical SemVer suffixes to downloadable CI snapshots and release
+  assets, and made workflow artifacts downloadable without an additional ZIP
+  wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
   generates credentials; Advanced mode accepts shared credentials. This choice
   is separate from network-traffic encryption. ([#3])

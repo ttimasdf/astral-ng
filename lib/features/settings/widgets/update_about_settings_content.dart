@@ -140,7 +140,7 @@ class _UpdateAboutSettingsContentState
                       ),
                       const SizedBox(height: 10),
                       SettingsValueChip(
-                        label: AppInfoUtil.getVersionDisplay(),
+                        label: AppInfoUtil.getFriendlyVersion(),
                         color: colorScheme.primary,
                       ),
                     ],
@@ -161,7 +161,7 @@ class _UpdateAboutSettingsContentState
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
-                    AppInfoUtil.getVersionDisplay(),
+                    AppInfoUtil.getAboutVersion(),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

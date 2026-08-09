@@ -15,29 +15,72 @@ class AppInfoUtil {
 
   static String getBuildNumber() => _packageInfo?.buildNumber ?? '';
 
-  /// Human-readable version, including the CI canary channel when applicable.
-  static String getVersionDisplay() {
-    final packageInfo = _packageInfo;
-    if (packageInfo == null) return '';
-
-    return formatVersionDisplay(
-      version: packageInfo.version,
-      buildNumber: packageInfo.buildNumber,
+  static String getFriendlyVersion() {
+    final version = getVersion();
+    if (version.isEmpty) return '';
+    return formatFriendlyVersion(
+      version: version,
+      commit: BuildBrand.commit,
       isCanary: BuildBrand.isCanary,
     );
   }
 
-  static String formatVersionDisplay({
+  static String getAboutVersion() {
+    final version = getVersion();
+    if (version.isEmpty) return '';
+    return formatAboutVersion(
+      version: version,
+      commit: BuildBrand.commit,
+      isCanary: BuildBrand.isCanary,
+    );
+  }
+
+  static String getSemanticVersion() {
+    final version = getVersion();
+    if (version.isEmpty) return '';
+    return formatSemanticVersion(
+      version: version,
+      commit: BuildBrand.commit,
+      runNumber: BuildBrand.runNumber,
+      isCanary: BuildBrand.isCanary,
+    );
+  }
+
+  static String formatFriendlyVersion({
     required String version,
-    required String buildNumber,
+    required String commit,
     required bool isCanary,
   }) {
     if (!isCanary) return version;
+    return '$version Canary ${_normalizeCommit(commit)}';
+  }
 
-    final parsedBuildNumber = int.tryParse(buildNumber);
-    if (parsedBuildNumber != null && parsedBuildNumber >= 1000000000) {
-      return '$version Canary · build $parsedBuildNumber';
+  static String formatAboutVersion({
+    required String version,
+    required String commit,
+    required bool isCanary,
+  }) {
+    if (!isCanary) return version;
+    return '$version-alpha+${_normalizeCommit(commit)}';
+  }
+
+  static String formatSemanticVersion({
+    required String version,
+    required String commit,
+    required int runNumber,
+    required bool isCanary,
+  }) {
+    if (!isCanary) return version;
+    final normalizedRunNumber = runNumber < 0 ? 0 : runNumber;
+    return '$version-alpha.$normalizedRunNumber+'
+        '${_normalizeCommit(commit)}';
+  }
+
+  static String _normalizeCommit(String commit) {
+    final normalized = commit.trim().toLowerCase();
+    if (RegExp(r'^[0-9a-f]{7}$').hasMatch(normalized)) {
+      return normalized;
     }
-    return '$version Canary';
+    return 'local';
   }
 }
