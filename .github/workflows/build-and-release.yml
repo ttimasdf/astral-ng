@@ -91,6 +91,9 @@ jobs:
 
           BUNDLE="$GITHUB_WORKSPACE/build/linux/x64/release/bundle"
           pushd "$BUNDLE"
+          if [ "$APP_EXECUTABLE" != astral ]; then
+            mv -- astral "$APP_EXECUTABLE"
+          fi
           patchelf "$APP_EXECUTABLE" --add-needed libisar.so --add-needed librust_lib_astral.so
           tar -czf "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.tar.gz" ./*
           popd
