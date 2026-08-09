@@ -90,6 +90,14 @@
             exec python3 ${./scripts/sync_toolchains.py} ${syncArgs} "$@"
           '';
         };
+        flutterDev = pkgs.writeShellApplication {
+          name = "flutter";
+          runtimeEnv = {
+            ASTRAL_FLUTTER_BIN = "${flutterSdk}/bin/flutter";
+          };
+          meta.description = "Run Flutter with Astral-ng's default canary identity";
+          text = builtins.readFile ./scripts/flutter_dev.sh;
+        };
         flutterAndroid = pkgs.writeShellApplication {
           name = "flutter-android";
           runtimeInputs = [
@@ -123,11 +131,52 @@
           meta.description = "Synchronize toolchain mirrors from locked nixpkgs";
         };
 
-        checks.toolchain-mirrors = pkgs.runCommand "toolchain-mirrors" { } ''
-          cd ${./.}
-          ${syncToolchains}/bin/sync-toolchains --check
-          touch "$out"
-        '';
+        checks = {
+          toolchain-mirrors = pkgs.runCommand "toolchain-mirrors" { } ''
+            cd ${./.}
+            ${syncToolchains}/bin/sync-toolchains --check
+            touch "$out"
+          '';
+          flutter-dev-channel =
+            pkgs.runCommand "flutter-dev-channel"
+              {
+                nativeBuildInputs = [
+                  pkgs.bash
+                  pkgs.coreutils
+                  pkgs.gnugrep
+                ];
+              }
+              ''
+                fake_flutter="$TMPDIR/flutter"
+                args_file="$TMPDIR/args"
+                channel_file="$TMPDIR/channel"
+                cat > "$fake_flutter" <<'EOF'
+                #!${pkgs.runtimeShell}
+                printf '%s\n' "$@" > "$ASTRAL_TEST_ARGS_FILE"
+                printf '%s\n' "$BUILD_CHANNEL" > "$ASTRAL_TEST_CHANNEL_FILE"
+                EOF
+                chmod +x "$fake_flutter"
+
+                env -u BUILD_CHANNEL \
+                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
+                  ASTRAL_TEST_ARGS_FILE="$args_file" \
+                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  bash ${./scripts/flutter_dev.sh} run -d linux
+                grep -Fx -- '--dart-define=BUILD_CHANNEL=canary' "$args_file"
+                grep -Fx -- 'canary' "$channel_file"
+
+                BUILD_CHANNEL=canary \
+                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
+                  ASTRAL_TEST_ARGS_FILE="$args_file" \
+                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  bash ${./scripts/flutter_dev.sh} run \
+                    --dart-define=BUILD_CHANNEL=production
+                test "$(grep -Fxc -- '--dart-define=BUILD_CHANNEL=production' "$args_file")" -eq 1
+                grep -Fx -- 'production' "$channel_file"
+
+                touch "$out"
+              '';
+        };
 
         devShells.default =
           with pkgs;
@@ -161,7 +210,10 @@
               libayatana-appindicator
             ];
 
-            nativeBuildInputs = [ pkg-config ];
+            nativeBuildInputs = [
+              flutterDev
+              pkg-config
+            ];
 
             env = {
               RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";
@@ -171,8 +223,10 @@
               ANDROID_SDK_ROOT = "${androidSdk}/libexec/android-sdk";
               ANDROID_NDK_ROOT = "${androidSdk}/libexec/android-sdk/ndk/${toolchainVersions.android.ndk}";
               ACT_DISABLE_VERSION_CHECK = 1;
+              BUILD_CHANNEL = "canary";
             };
             shellHook = ''
+              export PATH="${flutterDev}/bin:$PATH"
               export LD_LIBRARY_PATH="$PWD/build/linux/x64/debug/bundle/lib:$LD_LIBRARY_PATH"
               export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=$(echo "$ANDROID_HOME/build-tools/"*"/aapt2") ''${GRADLE_OPTS:-}"
 

@@ -725,11 +725,13 @@ production builds to be installed and launched side by side while production
 tags preserve the existing names and identifiers. On Linux and Windows, the
 CMake target keeps Flutter's discoverable `astral`/`astral.exe` name for local
 `flutter run`; CI renames those executables to `astral-canary`/
-`astral-canary.exe` before packaging canary artifacts.
+`astral-canary.exe` before packaging canary artifacts. Nix development shells
+default plain Flutter compilation commands to canary while preserving an
+explicit `BUILD_CHANNEL=production` override.
 
 ### Files affected
 
-- `scripts/version.py`, `docs/VERSIONING.md`: resolve and document channel-specific display, executable, package, and installer identities
+- `scripts/version.py`, `scripts/flutter_dev.sh`, `docs/VERSIONING.md`, `docs/TOOLCHAINS.md`: resolve channel-specific identities and default Nix-shell Flutter compilation to canary with an explicit production override
 - `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, rename stable Linux and Windows build targets to the resolved package executable, generate wrappers and desktop entries from that identity, and package canary artifacts separately
 - `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
 - `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
@@ -738,6 +740,7 @@ CMake target keeps Flutter's discoverable `astral`/`astral.exe` name for local
 - `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
 - `linux/CMakeLists.txt`, `linux/runner/`: keep Flutter's executable target stable while selecting the canary GTK application ID and window name
 - `windows/CMakeLists.txt`, `windows/runner/`: keep Flutter's executable target stable while selecting canary metadata, icon, window title, and single-instance boundary
+- `flake.nix`: expose canary as the default development channel and wrap plain Flutter compilation commands so native and Dart identities stay synchronized
 
 ---
 

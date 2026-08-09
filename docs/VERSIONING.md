@@ -47,3 +47,8 @@ production release. CI brands them as **AstralNG Canary**, uses the
 ID `pw.rabit.astralng.canary`, gives the Windows installer its own application
 ID, and selects the grayscale-and-gold canary icon. Production tags retain the
 `AstralNG`, `astral`, and `pw.rabit.astralng` identities.
+
+Nix development shells default `BUILD_CHANNEL` and compile-time Dart branding
+to `canary` for Flutter build, run, drive, and test commands. Prefix a command
+with `BUILD_CHANNEL=production` when intentionally validating production
+identity.
