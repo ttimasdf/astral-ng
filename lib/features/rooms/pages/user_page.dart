@@ -48,7 +48,7 @@ class _UserPageState extends State<UserPage> {
           FloatingActionButton(
             heroTag: 'room_settings',
             onPressed: () => RoomSettingsSheet.show(context),
-            tooltip: '房间设置',
+            tooltip: LocaleKeys.rooms_settings.tr(),
             child: const Icon(Icons.bar_chart),
           ),
         ],
@@ -72,7 +72,7 @@ class _UserPageState extends State<UserPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '无数据',
+                  LocaleKeys.rooms_no_data.tr(),
                   style: TextStyle(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -93,7 +93,7 @@ class _UserPageState extends State<UserPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  '房间内暂无成员',
+                  LocaleKeys.rooms_no_members.tr(),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class _UserPageState extends State<UserPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '当前没有其他玩家连接到房间',
+                  LocaleKeys.rooms_no_other_peers.tr(),
                   style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),

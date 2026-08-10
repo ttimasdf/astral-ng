@@ -840,7 +840,10 @@ Replaces the hierarchical room topology editor with a default constellation
 that gives peers equal visual weight and draws only routes observed from the
 local device. Local devices, ordinary hosts, and relay/forwarding nodes use
 distinct icons and labels. The member list remains available as a secondary
-view. The old `vyuh_node_flow` implementation and dependency are removed.
+view. Room view settings and member-list details use synchronized English and
+Chinese strings; compact NAT badges show the reported technical NAT category
+instead of opaque quality grades. The old `vyuh_node_flow` implementation and
+dependency are removed.
 
 Renames the server destination to Relay, places it before Tools in the main
 navigation, makes desktop relay rows toggle on click, and exposes editing from
@@ -852,10 +855,10 @@ remain unchanged.
 - `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, mesh summary, integrated connection action, staged quick controls, and session details
 - `lib/core/models/mission_control_preferences.dart`, `lib/core/states/mission_control_state.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/models/all_settings.dart`: preference precedence and persisted device-local room overrides
 - `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
-- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`: default non-hierarchical constellation and secondary list view
+- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`: default non-hierarchical constellation, localized secondary list view and room-view controls, and technical NAT labels
 - `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
 - `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/features/servers/widgets/server_list_tile.dart`: reorder the Relay destination and update desktop relay interactions
-- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control, Relay, and constellation strings
+- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control, Relay, Tools, constellation, room-view settings, and member-list strings
 - `test/`: preference, responsive layout, room-mode compatibility, and constellation coverage
 
 ---

@@ -185,7 +185,7 @@ class _MainScreenState extends State<MainScreen>
     NavigationItem(
       icon: Icons.build_outlined,
       activeIcon: Icons.build,
-      label: '工具',
+      label: LocaleKeys.nav_tools.tr(),
       page: const ToolsPage(),
     ),
     NavigationItem(

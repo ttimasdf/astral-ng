@@ -1,43 +1,51 @@
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 
-/// 小卡：等级制 NAT 文案与颜色
+/// Compact-card technical NAT labels and colors.
 class MiniUserCardNat {
   const MiniUserCardNat._();
 
   static String mapNatType(String natType) {
     switch (natType) {
-      case 'Unknown':
-        return '未知';
       case 'OpenInternet':
+        return LocaleKeys.rooms_nat_open_internet;
       case 'NoPat':
-        return '传奇';
+        return LocaleKeys.rooms_nat_no_pat;
       case 'FullCone':
-        return '史诗';
+        return LocaleKeys.rooms_nat_full_cone;
       case 'Restricted':
+        return LocaleKeys.rooms_nat_restricted;
       case 'PortRestricted':
-        return '优质';
+        return LocaleKeys.rooms_nat_port_restricted;
       case 'Symmetric':
-        return '困难';
+        return LocaleKeys.rooms_nat_symmetric;
       case 'SymUdpFirewall':
+        return LocaleKeys.rooms_nat_symmetric_udp_firewall;
       case 'SymmetricEasyInc':
+        return LocaleKeys.rooms_nat_symmetric_easy_inc;
       case 'SymmetricEasyDec':
-        return '普通';
+        return LocaleKeys.rooms_nat_symmetric_easy_dec;
+      case 'Unknown':
       default:
-        return '未知';
+        return LocaleKeys.rooms_nat_unknown;
     }
   }
 
   static IconData getNatTypeIcon(String natType) {
     switch (natType) {
-      case '传奇':
+      case LocaleKeys.rooms_nat_open_internet:
+      case LocaleKeys.rooms_nat_no_pat:
         return Icons.workspace_premium;
-      case '史诗':
+      case LocaleKeys.rooms_nat_full_cone:
         return Icons.military_tech;
-      case '优质':
+      case LocaleKeys.rooms_nat_restricted:
+      case LocaleKeys.rooms_nat_port_restricted:
         return Icons.verified;
-      case '普通':
+      case LocaleKeys.rooms_nat_symmetric_udp_firewall:
+      case LocaleKeys.rooms_nat_symmetric_easy_inc:
+      case LocaleKeys.rooms_nat_symmetric_easy_dec:
         return Icons.circle;
-      case '困难':
+      case LocaleKeys.rooms_nat_symmetric:
         return Icons.block;
       default:
         return Icons.help_outline;
@@ -46,15 +54,19 @@ class MiniUserCardNat {
 
   static Color getNatTypeColor(String natType) {
     switch (natType) {
-      case '传奇':
+      case LocaleKeys.rooms_nat_open_internet:
+      case LocaleKeys.rooms_nat_no_pat:
         return const Color(0xFFFF6B00);
-      case '史诗':
+      case LocaleKeys.rooms_nat_full_cone:
         return const Color(0xFFA335EE);
-      case '优质':
+      case LocaleKeys.rooms_nat_restricted:
+      case LocaleKeys.rooms_nat_port_restricted:
         return const Color(0xFF0070DD);
-      case '普通':
+      case LocaleKeys.rooms_nat_symmetric_udp_firewall:
+      case LocaleKeys.rooms_nat_symmetric_easy_inc:
+      case LocaleKeys.rooms_nat_symmetric_easy_dec:
         return const Color(0xFF1EFF00);
-      case '困难':
+      case LocaleKeys.rooms_nat_symmetric:
         return const Color(0xFF9D9D9D);
       default:
         return Colors.grey;

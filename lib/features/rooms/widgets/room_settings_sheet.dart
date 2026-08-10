@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/core/states/display_state.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 // 房间设置弹窗组件
@@ -121,7 +123,7 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '房间设置',
+                      LocaleKeys.rooms_settings.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: colorScheme.primary,
@@ -132,7 +134,7 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '点击下方设置项进行配置，所有更改将实时生效',
+                  LocaleKeys.rooms_settings_desc.tr(),
                   textAlign: TextAlign.left,
                   maxLines: null,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -149,33 +151,41 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 // 显示模式
-                _buildSettingSection('显示模式', [
-                  _buildOptionButton('简约', compactPeerCards, () {
-                    ServiceManager().appSettings.setCompactPeerCards(true);
-                  }),
-                  _buildOptionButton('详细', !compactPeerCards, () {
-                    ServiceManager().appSettings.setCompactPeerCards(false);
-                  }),
+                _buildSettingSection(LocaleKeys.rooms_display_style.tr(), [
+                  _buildOptionButton(
+                    LocaleKeys.rooms_compact.tr(),
+                    compactPeerCards,
+                    () {
+                      ServiceManager().appSettings.setCompactPeerCards(true);
+                    },
+                  ),
+                  _buildOptionButton(
+                    LocaleKeys.rooms_detailed.tr(),
+                    !compactPeerCards,
+                    () {
+                      ServiceManager().appSettings.setCompactPeerCards(false);
+                    },
+                  ),
                 ], colorScheme),
 
                 // 用户显示
-                _buildSettingSection('用户显示', [
+                _buildSettingSection(LocaleKeys.rooms_peer_filter.tr(), [
                   _buildOptionButton(
-                    '默认',
+                    LocaleKeys.rooms_filter_all.tr(),
                     displayMode == UserDisplayMode.all,
                     () => ServiceManager().appSettings.setDisplayMode(
                       UserDisplayMode.all,
                     ),
                   ),
                   _buildOptionButton(
-                    '用户',
+                    LocaleKeys.rooms_filter_hosts.tr(),
                     displayMode == UserDisplayMode.users,
                     () => ServiceManager().appSettings.setDisplayMode(
                       UserDisplayMode.users,
                     ),
                   ),
                   _buildOptionButton(
-                    '服务器',
+                    LocaleKeys.rooms_filter_relays.tr(),
                     displayMode == UserDisplayMode.servers,
                     () => ServiceManager().appSettings.setDisplayMode(
                       UserDisplayMode.servers,
@@ -184,23 +194,23 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
                 ], colorScheme),
 
                 // 用户排序
-                _buildSettingSection('用户排序', [
+                _buildSettingSection(LocaleKeys.rooms_sort_by.tr(), [
                   _buildOptionButton(
-                    '默认',
+                    LocaleKeys.rooms_sort_default.tr(),
                     sortOption == UserSortOption.none,
                     () => ServiceManager().appSettings.setSortOption(
                       UserSortOption.none,
                     ),
                   ),
                   _buildOptionButton(
-                    '延迟',
+                    LocaleKeys.rooms_sort_latency.tr(),
                     sortOption == UserSortOption.latency,
                     () => ServiceManager().appSettings.setSortOption(
                       UserSortOption.latency,
                     ),
                   ),
                   _buildOptionButton(
-                    '用户名',
+                    LocaleKeys.rooms_sort_hostname.tr(),
                     sortOption == UserSortOption.nameLength,
                     () => ServiceManager().appSettings.setSortOption(
                       UserSortOption.nameLength,
@@ -209,16 +219,16 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
                 ], colorScheme),
 
                 // 排序方式
-                _buildSettingSection('排序方式', [
+                _buildSettingSection(LocaleKeys.rooms_sort_order.tr(), [
                   _buildOptionButton(
-                    '升序',
+                    LocaleKeys.rooms_sort_ascending.tr(),
                     sortOrder == UserSortOrder.ascending,
                     () => ServiceManager().appSettings.setSortOrder(
                       UserSortOrder.ascending,
                     ),
                   ),
                   _buildOptionButton(
-                    '降序',
+                    LocaleKeys.rooms_sort_descending.tr(),
                     sortOrder == UserSortOrder.descending,
                     () => ServiceManager().appSettings.setSortOrder(
                       UserSortOrder.descending,

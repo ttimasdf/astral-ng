@@ -2,6 +2,8 @@ import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/features/rooms/widgets/all_user_card_body.dart';
 import 'package:astral/features/rooms/widgets/all_user_card_nat.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Desktop list-item body for [AllUserCard].
@@ -30,7 +32,9 @@ class AllUserCardTile extends StatelessWidget {
       player.ipv4,
       localIPv4,
     );
-    final connectionIcon = PeerConnectionStyle.getConnectionIcon(connectionType);
+    final connectionIcon = PeerConnectionStyle.getConnectionIcon(
+      connectionType,
+    );
     final connectionTypeColor = PeerConnectionStyle.getConnectionTypeColor(
       connectionType,
       colorScheme,
@@ -100,7 +104,7 @@ class AllUserCardTile extends StatelessWidget {
                       Icon(connectionIcon, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
-                        connectionType,
+                        connectionType.tr(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -111,10 +115,10 @@ class AllUserCardTile extends StatelessWidget {
                   ),
                 ),
                 // 只有不是本机时才显示延迟和丢包
-                if (connectionType != '本机') ...[
+                if (connectionType != LocaleKeys.rooms_connection_local) ...[
                   // Latency
                   Tooltip(
-                    message: "延迟",
+                    message: LocaleKeys.mission_latency.tr(),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -137,7 +141,7 @@ class AllUserCardTile extends StatelessWidget {
                   ),
                   // Packet Loss
                   Tooltip(
-                    message: "丢包率",
+                    message: LocaleKeys.rooms_packet_loss.tr(),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -184,7 +188,7 @@ class AllUserCardTile extends StatelessWidget {
           context: context,
           player: player,
           colorScheme: colorScheme,
-          natTypeString: natTypeString,
+          natTypeString: natTypeString.tr(),
           natTypeColor: natTypeColor,
           natTypeIcon: natTypeIcon,
         ),

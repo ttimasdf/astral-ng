@@ -1,5 +1,7 @@
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -25,7 +27,7 @@ class PlayerCardStats {
             children: [
               buildStatItem(
                 Icons.upload_rounded,
-                '累计上传',
+                LocaleKeys.rooms_total_upload.tr(),
                 formatSpeed(uploadSpeedKB),
                 colorScheme.primary,
                 colorScheme,
@@ -33,7 +35,7 @@ class PlayerCardStats {
               const SizedBox(height: 10),
               buildStatItem(
                 Icons.arrow_upward_rounded,
-                '累计发送包',
+                LocaleKeys.rooms_total_sent_packets.tr(),
                 '$sentPackets',
                 colorScheme.primary,
                 colorScheme,
@@ -48,7 +50,7 @@ class PlayerCardStats {
             children: [
               buildStatItem(
                 Icons.download_rounded,
-                '累计下载',
+                LocaleKeys.rooms_total_download.tr(),
                 formatSpeed(downloadSpeedKB),
                 colorScheme.secondary,
                 colorScheme,
@@ -56,7 +58,7 @@ class PlayerCardStats {
               const SizedBox(height: 10),
               buildStatItem(
                 Icons.arrow_downward_rounded,
-                '累计接收包',
+                LocaleKeys.rooms_total_received_packets.tr(),
                 '$receivedPackets',
                 colorScheme.secondary,
                 colorScheme,
@@ -142,13 +144,15 @@ class PlayerCardStats {
             icon: const Icon(Icons.copy, size: 18),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            tooltip: '复制$label',
+            tooltip: LocaleKeys.rooms_copy_value.tr(
+              namedArgs: {'label': label},
+            ),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               AppSnackBars.success(
                 context,
-                '已复制',
-                'IP地址: $value',
+                LocaleKeys.rooms_copied.tr(),
+                LocaleKeys.rooms_ip_copied.tr(namedArgs: {'ip': value}),
                 duration: const Duration(seconds: 2),
               );
             },

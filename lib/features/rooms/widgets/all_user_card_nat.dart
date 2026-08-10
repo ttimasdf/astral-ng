@@ -1,3 +1,4 @@
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 
 /// 大卡：技术 NAT 文案与颜色
@@ -6,71 +7,57 @@ class AllUserCardNat {
 
   static String mapNatType(String natType) {
     switch (natType) {
-      case 'Unknown':
-        return '未知';
       case 'OpenInternet':
-        return '开放网络';
+        return LocaleKeys.rooms_nat_open_internet;
       case 'NoPat':
-        return '无PAT';
+        return LocaleKeys.rooms_nat_no_pat;
       case 'FullCone':
-        return '全锥形';
+        return LocaleKeys.rooms_nat_full_cone;
       case 'Restricted':
-        return '受限锥形';
+        return LocaleKeys.rooms_nat_restricted;
       case 'PortRestricted':
-        return '端口受限锥形';
+        return LocaleKeys.rooms_nat_port_restricted;
       case 'Symmetric':
-        return '对称型';
+        return LocaleKeys.rooms_nat_symmetric;
       case 'SymUdpFirewall':
-        return '对称UDP防火墙';
+        return LocaleKeys.rooms_nat_symmetric_udp_firewall;
       case 'SymmetricEasyInc':
-        return '对称递增型';
+        return LocaleKeys.rooms_nat_symmetric_easy_inc;
       case 'SymmetricEasyDec':
-        return '对称递减型';
+        return LocaleKeys.rooms_nat_symmetric_easy_dec;
+      case 'Unknown':
       default:
-        return '未知';
+        return LocaleKeys.rooms_nat_unknown;
     }
   }
 
   static IconData getNatTypeIcon(String natType) {
-    if (natType.contains('开放') || natType.contains('全锥形')) {
-      return Icons.public;
-    }
-    if (natType.contains('端口受限')) {
-      return Icons.security;
-    }
-    if (natType.contains('受限')) {
-      return Icons.shield;
-    }
-    if (natType.contains('对称')) {
-      return Icons.sync_alt;
-    }
-    if (natType.contains('防火墙')) {
-      return Icons.fireplace;
-    }
-    if (natType.contains('递增')) {
-      return Icons.trending_up;
-    }
-    if (natType.contains('递减')) {
-      return Icons.trending_down;
-    }
-    if (natType.contains('无PAT')) {
-      return Icons.router;
-    }
-    return Icons.help_outline;
+    return switch (natType) {
+      LocaleKeys.rooms_nat_open_internet ||
+      LocaleKeys.rooms_nat_full_cone => Icons.public,
+      LocaleKeys.rooms_nat_port_restricted => Icons.security,
+      LocaleKeys.rooms_nat_restricted => Icons.shield,
+      LocaleKeys.rooms_nat_symmetric => Icons.sync_alt,
+      LocaleKeys.rooms_nat_symmetric_udp_firewall => Icons.fireplace,
+      LocaleKeys.rooms_nat_symmetric_easy_inc => Icons.trending_up,
+      LocaleKeys.rooms_nat_symmetric_easy_dec => Icons.trending_down,
+      LocaleKeys.rooms_nat_no_pat => Icons.router,
+      _ => Icons.help_outline,
+    };
   }
 
   static Color getNatTypeColor(String natType) {
-    if (natType.contains('开放') ||
-        natType.contains('全锥形') ||
-        natType.contains('无PAT')) {
-      return Colors.green;
-    }
-    if (natType.contains('受限') || natType.contains('端口受限')) {
-      return Colors.orange;
-    }
-    if (natType.contains('对称') || natType.contains('防火墙')) {
-      return Colors.red;
-    }
-    return Colors.grey;
+    return switch (natType) {
+      LocaleKeys.rooms_nat_open_internet ||
+      LocaleKeys.rooms_nat_full_cone ||
+      LocaleKeys.rooms_nat_no_pat => Colors.green,
+      LocaleKeys.rooms_nat_restricted ||
+      LocaleKeys.rooms_nat_port_restricted => Colors.orange,
+      LocaleKeys.rooms_nat_symmetric ||
+      LocaleKeys.rooms_nat_symmetric_udp_firewall ||
+      LocaleKeys.rooms_nat_symmetric_easy_inc ||
+      LocaleKeys.rooms_nat_symmetric_easy_dec => Colors.red,
+      _ => Colors.grey,
+    };
   }
 }
