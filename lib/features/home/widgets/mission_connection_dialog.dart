@@ -3,6 +3,22 @@ import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+
+/// Returns the room instance owned by [rooms] for a selected room ID.
+///
+/// DropdownButton compares values using object equality, while Isar can return
+/// separate Room instances for the same persisted object.
+Room? canonicalRoomSelection(Room? selected, Iterable<Room> rooms) {
+  if (selected == null) return null;
+  for (final room in rooms) {
+    if (identical(room, selected)) return room;
+  }
+  for (final room in rooms) {
+    if (room.id == selected.id) return room;
+  }
+  return null;
+}
 
 class MissionConnectionDialog extends StatefulWidget {
   const MissionConnectionDialog({super.key});
@@ -63,12 +79,16 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate() || _room == null) return;
+    final room = canonicalRoomSelection(
+      _room,
+      _services.roomState.rooms.value,
+    );
+    if (!_formKey.currentState!.validate() || room == null) return;
     setState(() => _saving = true);
     // Player name and selected room share the AllSettings record, so persist
     // them sequentially to avoid overlapping read-modify-write transactions.
     await _services.appSettings.updatePlayerName(_nameController.text.trim());
-    await _services.room.setRoom(_room!);
+    await _services.room.setRoom(room);
     await _services.networkConfig.updateDhcp(_automaticIp);
     if (!_automaticIp) {
       await _services.networkConfig.updateIpv4(_ipController.text.trim());
@@ -78,7 +98,6 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final rooms = _services.roomState.rooms.value;
     final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
@@ -105,23 +124,36 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
                               : null,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<Room>(
-                  initialValue: _room,
-                  decoration: InputDecoration(
-                    labelText: LocaleKeys.select_room.tr(),
-                    prefixIcon: const Icon(Icons.hub_outlined),
-                  ),
-                  items: [
-                    for (final room in rooms)
-                      DropdownMenuItem(value: room, child: Text(room.name)),
-                  ],
-                  onChanged: (room) => setState(() => _room = room),
-                  validator:
-                      (room) =>
-                          room == null
-                              ? LocaleKeys.select_room_first.tr()
-                              : null,
-                ),
+                Watch((context) {
+                  final rooms = _services.roomState.rooms.watch(context);
+                  final roomsById = <int, Room>{};
+                  for (final room in rooms) {
+                    roomsById.putIfAbsent(room.id, () => room);
+                  }
+                  final dropdownRooms = roomsById.values.toList();
+                  final dropdownValue = canonicalRoomSelection(
+                    _room,
+                    dropdownRooms,
+                  );
+
+                  return DropdownButtonFormField<Room>(
+                    initialValue: dropdownValue,
+                    decoration: InputDecoration(
+                      labelText: LocaleKeys.select_room.tr(),
+                      prefixIcon: const Icon(Icons.hub_outlined),
+                    ),
+                    items: [
+                      for (final room in dropdownRooms)
+                        DropdownMenuItem(value: room, child: Text(room.name)),
+                    ],
+                    onChanged: (room) => setState(() => _room = room),
+                    validator:
+                        (room) =>
+                            room == null
+                                ? LocaleKeys.select_room_first.tr()
+                                : null,
+                  );
+                }),
                 const SizedBox(height: 16),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
