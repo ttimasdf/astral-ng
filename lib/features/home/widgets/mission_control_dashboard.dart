@@ -44,12 +44,12 @@ class MissionControlDashboard extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
+        final desktop = constraints.maxWidth >= 840;
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            wide ? 28 : 16,
-            wide ? 26 : 16,
-            wide ? 28 : 16,
+            desktop ? 28 : 16,
+            desktop ? 26 : 16,
+            desktop ? 28 : 16,
             28 + MediaQuery.paddingOf(context).bottom,
           ),
           child: Center(
@@ -58,51 +58,80 @@ class MissionControlDashboard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _MissionHero(
-                    connectionState: connectionState,
-                    room: room,
-                    username: username,
-                    virtualIp: virtualIp,
-                    automaticIp: automaticIp,
-                    summary: summary,
-                    reduceMotion: reduceMotion,
-                    wide: wide,
-                  ),
-                  const SizedBox(height: 18),
-                  if (wide)
+                  if (desktop)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          flex: 7,
-                          child: MissionQuickControls(
-                            room: room,
-                            connectionState: connectionState,
-                            effective: effectivePreferences,
-                            active: activePreferences,
+                          flex: 6,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _MissionHero(
+                                connectionState: connectionState,
+                                room: room,
+                                username: username,
+                                virtualIp: virtualIp,
+                                automaticIp: automaticIp,
+                                wide: true,
+                              ),
+                              const SizedBox(height: 18),
+                              _MissionMeshCard(
+                                summary: summary,
+                                connectionState: connectionState,
+                                reduceMotion: reduceMotion,
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 18),
                         Expanded(
-                          flex: 4,
-                          child: _SessionCard(
-                            room: room,
-                            username: username,
-                            virtualIp: virtualIp,
-                            automaticIp: automaticIp,
-                            encryptedTraffic: encryptedTraffic,
-                            connectionState: connectionState,
-                            summary: summary,
+                          flex: 5,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              MissionQuickControls(
+                                room: room,
+                                connectionState: connectionState,
+                                effective: effectivePreferences,
+                                active: activePreferences,
+                              ),
+                              const SizedBox(height: 18),
+                              _SessionCard(
+                                room: room,
+                                username: username,
+                                virtualIp: virtualIp,
+                                automaticIp: automaticIp,
+                                encryptedTraffic: encryptedTraffic,
+                                connectionState: connectionState,
+                                summary: summary,
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     )
                   else ...[
+                    _MissionHero(
+                      connectionState: connectionState,
+                      room: room,
+                      username: username,
+                      virtualIp: virtualIp,
+                      automaticIp: automaticIp,
+                      wide: false,
+                    ),
+                    const SizedBox(height: 18),
                     MissionQuickControls(
                       room: room,
                       connectionState: connectionState,
                       effective: effectivePreferences,
                       active: activePreferences,
+                    ),
+                    const SizedBox(height: 18),
+                    _MissionMeshCard(
+                      summary: summary,
+                      connectionState: connectionState,
+                      reduceMotion: reduceMotion,
                     ),
                     const SizedBox(height: 18),
                     _SessionCard(
@@ -131,8 +160,6 @@ class _MissionHero extends StatelessWidget {
   final String username;
   final String virtualIp;
   final bool automaticIp;
-  final _MissionSummary summary;
-  final bool reduceMotion;
   final bool wide;
 
   const _MissionHero({
@@ -141,8 +168,6 @@ class _MissionHero extends StatelessWidget {
     required this.username,
     required this.virtualIp,
     required this.automaticIp,
-    required this.summary,
-    required this.reduceMotion,
     required this.wide,
   });
 
@@ -258,28 +283,6 @@ class _MissionHero extends StatelessWidget {
       ),
     );
 
-    final mesh = Container(
-      constraints: BoxConstraints(minHeight: wide ? 292 : 210),
-      padding: const EdgeInsets.all(16),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: MissionMeshPreview(
-              peerCount: summary.peerCount,
-              directCount: summary.directCount,
-              connected: connectionState == CoState.connected,
-              connecting: connectionState == CoState.connecting,
-              reduceMotion: reduceMotion,
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _HeroMetrics(summary: summary, state: connectionState),
-          ),
-        ],
-      ),
-    );
-
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
@@ -304,26 +307,7 @@ class _MissionHero extends StatelessWidget {
                 ),
               ),
             ),
-            if (wide)
-              Row(
-                children: [
-                  Expanded(flex: 6, child: content),
-                  Container(
-                    width: 1,
-                    height: 260,
-                    color: colorScheme.outlineVariant,
-                  ),
-                  Expanded(flex: 5, child: mesh),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  content,
-                  Divider(height: 1, color: colorScheme.outlineVariant),
-                  mesh,
-                ],
-              ),
+            content,
           ],
         ),
       ),
@@ -335,6 +319,55 @@ class _MissionHero extends StatelessWidget {
     CoState.connecting => LocaleKeys.mission_connecting.tr().toUpperCase(),
     CoState.connected => LocaleKeys.mission_mesh_online.tr().toUpperCase(),
   };
+}
+
+class _MissionMeshCard extends StatelessWidget {
+  final _MissionSummary summary;
+  final CoState connectionState;
+  final bool reduceMotion;
+
+  const _MissionMeshCard({
+    required this.summary,
+    required this.connectionState,
+    required this.reduceMotion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: colorScheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
+      child: SizedBox(
+        height: 292,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: MissionMeshPreview(
+                  peerCount: summary.peerCount,
+                  directCount: summary.directCount,
+                  connected: connectionState == CoState.connected,
+                  connecting: connectionState == CoState.connecting,
+                  reduceMotion: reduceMotion,
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: _HeroMetrics(summary: summary, state: connectionState),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _HeroMetrics extends StatelessWidget {

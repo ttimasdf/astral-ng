@@ -6,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  for (final size in [const Size(1200, 850), const Size(390, 844)]) {
+  for (final size in [
+    const Size(1200, 850),
+    const Size(900, 900),
+    const Size(390, 844),
+  ]) {
     testWidgets('Mission Control has no layout errors at $size', (
       tester,
     ) async {

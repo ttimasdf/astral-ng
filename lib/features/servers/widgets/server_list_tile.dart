@@ -27,7 +27,7 @@ class ServerListTile extends StatelessWidget {
     final card = Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        onTap: onEdit,
+        onTap: useMobileActions ? onEdit : () => onToggle(!server.enable),
         horizontalTitleGap: 0,
         leading: Container(
           key: ValueKey('server-state-indicator-${server.id}'),
@@ -103,16 +103,9 @@ class ServerListTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          tooltip: server.enable ? '停用' : '启用',
-          onPressed: () {
-            onToggle(!server.enable);
-          },
-          icon: Icon(
-            server.enable
-                ? Icons.toggle_on_outlined
-                : Icons.toggle_off_outlined,
-            color: server.enable ? colorScheme.primary : colorScheme.outline,
-          ),
+          tooltip: '编辑',
+          onPressed: onEdit,
+          icon: const Icon(Icons.edit_outlined),
         ),
         IconButton(
           tooltip: '删除',

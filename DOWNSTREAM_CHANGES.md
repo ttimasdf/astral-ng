@@ -820,7 +820,7 @@ loss and recovery, and teardown.
 
 ## [mission-control-home]: Replace Home and room topology with mesh-native views
 
-- **Scope**: `lib/features/home/`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation*`, `lib/core/models/mission_control_preferences.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/states/`, `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `assets/translations/`, `pubspec.yaml`
+- **Scope**: `lib/features/home/`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation*`, `lib/features/servers/widgets/server_list_tile.dart`, `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/core/models/mission_control_preferences.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/states/`, `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `assets/translations/`, `pubspec.yaml`
 - **Type**: override
 - **Status**: active
 - **Introduced**: mission-control-home
@@ -841,6 +841,11 @@ that gives peers equal visual weight and draws only routes observed from the
 local device. The member list remains available as a secondary view. The old
 `vyuh_node_flow` implementation and dependency are removed.
 
+Renames the server destination to Relay, places it before Tools in the main
+navigation, makes desktop relay rows toggle on click, and exposes editing from
+the explicit edit button. On mobile, the existing edit-on-tap and swipe actions
+remain unchanged.
+
 ### Files affected
 
 - `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, mesh summary, integrated connection action, staged quick controls, and session details
@@ -848,7 +853,8 @@ local device. The member list remains available as a secondary view. The old
 - `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
 - `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`: default non-hierarchical constellation and secondary list view
 - `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
-- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control and constellation strings
+- `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/features/servers/widgets/server_list_tile.dart`: reorder the Relay destination and update desktop relay interactions
+- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control, Relay, and constellation strings
 - `test/`: preference, responsive layout, room-mode compatibility, and constellation coverage
 
 ---

@@ -2,8 +2,8 @@
 enum MainTab {
   home,
   room,
-  tools,
   servers,
+  tools,
   settings;
 
   static MainTab? tryFromIndex(int index) {

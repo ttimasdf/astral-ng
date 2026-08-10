@@ -17,8 +17,39 @@ class ConnectButton extends StatelessWidget {
 
   const ConnectButton({super.key, this.expanded = false});
 
+  Future<void> _showRoomSelectionPrompt(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            icon: const Icon(Icons.meeting_room_outlined),
+            title: Text(LocaleKeys.select_room_first.tr()),
+            content: Text(LocaleKeys.select_room_hint.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(LocaleKeys.cancel.tr()),
+              ),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  ServiceManager().uiState.goTo(MainTab.room);
+                },
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: Text(LocaleKeys.go_select_room.tr()),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _handleConnect(BuildContext context) async {
     final targetIssue = ConnectionConnectGuard.connectTargetIssue();
+    if (targetIssue == ConnectTargetIssue.noRoom) {
+      if (!context.mounted) return;
+      await _showRoomSelectionPrompt(context);
+      return;
+    }
     if (targetIssue != null) {
       final (title, actionLabel, icon, tab) = switch (targetIssue) {
         ConnectTargetIssue.noRoom => (

@@ -45,50 +45,51 @@ void main() {
     expect(editCount, 1);
   });
 
-  testWidgets('desktop row uses direct toggle and delete icon actions', (
-    tester,
-  ) async {
-    var editCount = 0;
-    bool? toggledValue;
-    var confirmationCount = 0;
-    var deleteCount = 0;
+  testWidgets(
+    'desktop row toggles on tap and exposes edit and delete actions',
+    (tester) async {
+      var editCount = 0;
+      bool? toggledValue;
+      var confirmationCount = 0;
+      var deleteCount = 0;
 
-    await tester.pumpWidget(
-      _testApp(
-        ServerListTile(
-          server: server,
-          useMobileActions: false,
-          onEdit: () {
-            editCount++;
-          },
-          onToggle: (value) async {
-            toggledValue = value;
-          },
-          onConfirmDelete: () async {
-            confirmationCount++;
-            return true;
-          },
-          onDelete: () async {
-            deleteCount++;
-          },
+      await tester.pumpWidget(
+        _testApp(
+          ServerListTile(
+            server: server,
+            useMobileActions: false,
+            onEdit: () {
+              editCount++;
+            },
+            onToggle: (value) async {
+              toggledValue = value;
+            },
+            onConfirmDelete: () async {
+              confirmationCount++;
+              return true;
+            },
+            onDelete: () async {
+              deleteCount++;
+            },
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.byType(Switch), findsNothing);
-    expect(find.byType(PopupMenuButton<String>), findsNothing);
-    expect(find.byType(IconButton), findsNWidgets(2));
+      expect(find.byType(Switch), findsNothing);
+      expect(find.byType(PopupMenuButton<String>), findsNothing);
+      expect(find.byType(IconButton), findsNWidgets(2));
 
-    await tester.tap(find.text('Primary server'));
-    await tester.tap(find.byIcon(Icons.toggle_on_outlined));
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pump();
+      await tester.tap(find.text('Primary server'));
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pump();
 
-    expect(editCount, 1);
-    expect(toggledValue, isFalse);
-    expect(confirmationCount, 1);
-    expect(deleteCount, 1);
-  });
+      expect(editCount, 1);
+      expect(toggledValue, isFalse);
+      expect(confirmationCount, 1);
+      expect(deleteCount, 1);
+    },
+  );
 
   testWidgets('indicator and text spacing reflect enabled state', (
     tester,

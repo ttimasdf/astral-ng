@@ -79,10 +79,7 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
   }
 
   Future<void> _save() async {
-    final room = canonicalRoomSelection(
-      _room,
-      _services.roomState.rooms.value,
-    );
+    final room = canonicalRoomSelection(_room, _services.roomState.rooms.value);
     if (!_formKey.currentState!.validate() || room == null) return;
     setState(() => _saving = true);
     // Player name and selected room share the AllSettings record, so persist

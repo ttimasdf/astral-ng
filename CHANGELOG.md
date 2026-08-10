@@ -69,6 +69,8 @@ baseline.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths; the detailed member list remains available.
   ([#13])
+- Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
+  relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
