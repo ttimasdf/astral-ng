@@ -10,6 +10,7 @@ void main() {
       final nodes = [
         _node(1, 'Local', '10.1.0.1', 0),
         _node(2, 'Peer', '10.1.0.2', 1),
+        _node(3, 'PublicServer_Relay', '0.0.0.0', 1),
       ];
 
       await tester.pumpWidget(
@@ -17,7 +18,10 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(InkWell), findsNWidgets(2));
+      expect(find.byType(InkWell), findsNWidgets(3));
+      expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.computer_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.dns_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

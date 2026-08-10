@@ -128,7 +128,7 @@ class MeshConstellation extends StatelessWidget {
                             Text(
                               node.isLocal
                                   ? LocaleKeys.rooms_this_device.tr()
-                                  : node.isTransit
+                                  : node.isRelay
                                   ? LocaleKeys.rooms_forwarding_peer.tr()
                                   : LocaleKeys.rooms_mesh_peer.tr(),
                               style: TextStyle(
@@ -199,7 +199,11 @@ class _ConstellationNode extends StatelessWidget {
     return Semantics(
       button: true,
       label:
-          '${node.name}, ${node.isLocal ? LocaleKeys.rooms_this_device.tr() : LocaleKeys.rooms_mesh_peer.tr()}',
+          '${node.name}, ${node.isLocal
+              ? LocaleKeys.rooms_this_device.tr()
+              : node.isRelay
+              ? LocaleKeys.rooms_forwarding_peer.tr()
+              : LocaleKeys.rooms_mesh_peer.tr()}',
       child: Tooltip(
         message: node.ip.isEmpty ? node.name : '${node.name}\n${node.ip}',
         child: InkWell(
@@ -253,7 +257,7 @@ class _NodeGlyph extends StatelessWidget {
     final color =
         node.isLocal
             ? colorScheme.primary
-            : node.isTransit
+            : node.isRelay
             ? colorScheme.tertiary
             : colorScheme.secondary;
     return Container(
@@ -281,10 +285,10 @@ class _NodeGlyph extends StatelessWidget {
       child: Icon(
         node.isLocal
             ? Icons.my_location_rounded
-            : node.isTransit
-            ? Icons.alt_route_rounded
-            : Icons.circle,
-        size: node.isTransit ? size * .36 : size * .28,
+            : node.isRelay
+            ? Icons.dns_rounded
+            : Icons.computer_rounded,
+        size: node.isRelay ? size * .36 : size * .32,
         color: color,
       ),
     );

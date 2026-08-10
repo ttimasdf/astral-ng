@@ -838,8 +838,9 @@ session and shown as pending until the user explicitly reconnects.
 
 Replaces the hierarchical room topology editor with a default constellation
 that gives peers equal visual weight and draws only routes observed from the
-local device. The member list remains available as a secondary view. The old
-`vyuh_node_flow` implementation and dependency are removed.
+local device. Local devices, ordinary hosts, and relay/forwarding nodes use
+distinct icons and labels. The member list remains available as a secondary
+view. The old `vyuh_node_flow` implementation and dependency are removed.
 
 Renames the server destination to Relay, places it before Tools in the main
 navigation, makes desktop relay rows toggle on click, and exposes editing from

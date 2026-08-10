@@ -65,7 +65,7 @@
   "rooms_observed_here": "Observed from this device",
   "rooms_visible_summary": "{nodes} visible · {direct} direct · {forwarded} forwarded",
   "rooms_this_device": "This device",
-  "rooms_forwarding_peer": "Forwarding peer",
+  "rooms_forwarding_peer": "Relay server",
   "rooms_mesh_peer": "Mesh peer",
   "rooms_packet_loss": "Packet loss",
   "rooms_transport": "Transport",

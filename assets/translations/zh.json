@@ -65,7 +65,7 @@
   "rooms_observed_here": "从此设备观察",
   "rooms_visible_summary": "{nodes} 个可见 · {direct} 个直连 · {forwarded} 个转发",
   "rooms_this_device": "此设备",
-  "rooms_forwarding_peer": "转发节点",
+  "rooms_forwarding_peer": "中转服务器",
   "rooms_mesh_peer": "网络节点",
   "rooms_packet_loss": "丢包率",
   "rooms_transport": "传输协议",

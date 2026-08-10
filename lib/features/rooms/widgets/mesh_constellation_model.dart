@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:astral/shared/utils/network/node_utils.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,7 @@ class MeshConstellationNode {
   final String ip;
   final bool isLocal;
   final bool isTransit;
+  final bool isRelay;
   final double latencyMs;
   final double lossRate;
   final int cost;
@@ -21,6 +23,7 @@ class MeshConstellationNode {
     required this.ip,
     required this.isLocal,
     required this.isTransit,
+    required this.isRelay,
     required this.latencyMs,
     required this.lossRate,
     required this.cost,
@@ -63,6 +66,11 @@ class MeshConstellationModel {
     final nodes = <String, MeshConstellationNode>{};
     final idsByPeer = <int, String>{};
     final idsByIp = <String, String>{};
+    final transitIds = <String>{
+      for (final node in networkNodes)
+        for (final hop in node.hops)
+          _nodeId(hop.peerId, hop.targetIp, hop.nodeName),
+    };
 
     for (final node in networkNodes) {
       final id = _nodeId(node.peerId, node.ipv4, node.hostname);
@@ -73,7 +81,8 @@ class MeshConstellationModel {
         name: _displayName(node.hostname),
         ip: node.ipv4,
         isLocal: localIp.isNotEmpty && node.ipv4 == localIp,
-        isTransit: false,
+        isTransit: transitIds.contains(id),
+        isRelay: isServerNode(node) || transitIds.contains(id),
         latencyMs: node.latencyMs,
         lossRate: node.lossRate,
         cost: node.cost,
@@ -126,6 +135,7 @@ class MeshConstellationModel {
               ip: hop.targetIp,
               isLocal: false,
               isTransit: true,
+              isRelay: true,
               latencyMs: hop.latencyMs,
               lossRate: hop.packetLoss,
               cost: 0,

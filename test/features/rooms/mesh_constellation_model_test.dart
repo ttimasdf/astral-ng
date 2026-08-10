@@ -37,6 +37,18 @@ void main() {
     ], localIp: local.ipv4);
 
     expect(model.nodes, hasLength(3));
+    expect(
+      model.nodes.singleWhere((node) => node.id == 'peer_1').isRelay,
+      isFalse,
+    );
+    expect(
+      model.nodes.singleWhere((node) => node.id == 'peer_2').isRelay,
+      isTrue,
+    );
+    expect(
+      model.nodes.singleWhere((node) => node.id == 'peer_3').isRelay,
+      isFalse,
+    );
     expect(model.directPeerCount, 1);
     expect(model.forwardedPeerCount, 1);
     expect(model.edges.map((edge) => edge.key).toSet(), {
