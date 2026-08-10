@@ -12,7 +12,7 @@ class UpdateDownloader {
   static const requestTimeout = Duration(seconds: 15);
 
   Future<String> resolveAcceleratedUrl(String rawUrl) async {
-    final setting = ServiceManager().updateState.downloadAccelerate.value;
+    final setting = ServiceManager().updateState.updateDownloadSource.value;
     if (!GitHubProxySelector.isAccelerationEnabled(setting)) {
       return rawUrl;
     }
@@ -23,7 +23,7 @@ class UpdateDownloader {
     }
 
     if (GitHubProxySelector.isAutoMode(setting)) {
-      ServiceManager().updateState.setResolvedDownloadAccelerate(prefix);
+      ServiceManager().updateState.setResolvedUpdateDownloadSource(prefix);
     }
 
     return GitHubProxySelector.buildProxiedUrl(prefix, rawUrl);

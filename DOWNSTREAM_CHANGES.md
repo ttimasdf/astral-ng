@@ -10,6 +10,86 @@ All entries below are fork-only and exist only in `ttimasdf/astral-ng`.
 
 ---
 
+## [settings-overhaul]: Redesign the settings experience
+
+- **Scope**: `lib/features/settings/`, `lib/core/models/`, `lib/core/states/`, `lib/core/services/`, `lib/core/builders/`, `lib/shared/widgets/common/`, `lib/src/rust/`, `rust/src/api/`, `assets/translations/`, `test/features/settings/`, `test/generated/`
+- **Type**: feature
+- **Status**: active
+- **Introduced**: settings-overhaul
+- **Superseded by upstream**: N/A
+
+### What this changes
+
+Replaces the upstream settings launcher and disconnected configuration surfaces
+with a responsive settings hub. Wide layouts use persistent category navigation,
+and compact layouts use focused drill-down pages without redundant category
+content headers, search fields, keyword maps, or category value summaries.
+Network and connection behavior are consolidated into
+one workspace. Language is grouped under General, and update controls, versions,
+logs, diagnostics, and About information share one Update & About category.
+Its Support tools read directly from the structured diagnostics store, deep-link
+the latest uncaught error into the diagnostics viewer, and export the redacted
+schema-v3 support bundle; no legacy string-log list is restored. Appearance and
+platform permissions remain focused categories with clearer dependency and
+change-effect messaging.
+
+The settings overhaul intentionally resets the `AllSettings` Isar schema rather
+than preserving misleading historical property names. Persisted properties and
+runtime APIs now use current concepts such as `compactPeerCards`,
+`preferAstralAdapter`, `launchAtLogin`, `androidVpnRoutes`, and
+`updateDownloadSource`; unused banner, user-ID, server-sort, and migration-version
+properties are removed. Existing settings databases are not migrated. Android
+users must back up server and room credentials, uninstall the previous APK, and
+install the new build.
+
+English and Chinese localization identifiers likewise describe the current UI
+concepts, including adapter priority, Android VPN routes, local SOCKS5 access,
+peer-card density, versions, permissions, and update download sources. Duplicate
+or repurposed legacy keys are removed, and generated `LocaleKeys` are checked
+against both translation files in tests.
+
+Connection recovery uses one 0–10 retry slider instead of a separate enable
+switch and limit selector; 0 disables retries, while positive values count
+retries after the initial connection attempt. Virtual-network access presents
+TUN as a recommended enable switch. SOCKS5 remains loopback-only by default but
+can explicitly bind `0.0.0.0` on trusted networks; the setting is persisted in
+`NetConfig` and carried through `FlagsC` to both Rust startup paths. Desktop
+status-bar and window-button tooltips are localized, action-oriented labels.
+Theme mode, preferred peer protocol, traffic compression, and update channel use
+segmented choices; the six-protocol control scrolls horizontally on compact
+layouts. Language is part of General, and Updates and Support & About are merged
+into a single Update & About workspace. Its About section appears first with
+concise installed-version rows, while update channel and update tools share one
+section without a separate version-details dialog. Locale changes key the active
+settings content by language so every category refreshes immediately. Each main
+destination tracks its route depth explicitly so consecutive Android back actions
+unwind detail and category views before exiting. Android also stops its native VPN
+service when the owning Flutter engine exits, preventing a stale VPN indicator.
+The compression segment uses the compact “Zstd” label on mobile. Each main
+destination owns a persistent nested navigator inside the
+shell content region, so Settings, Tools, and other destination subpages retain
+the global title bar and desktop/mobile navigation. System back is delegated to
+the active destination navigator.
+
+### Files affected
+
+- `lib/features/settings/pages/settings_main_page.dart`: adaptive settings shell and category navigation
+- `lib/core/models/all_settings.dart`, `lib/core/models/all_settings.g.dart`: concept-based settings schema with no legacy aliases or unused migration fields
+- `lib/core/database/dao/all_settings_dao.dart`, `lib/core/states/`, `lib/core/services/`: concept-based settings persistence, bounded retry state, and runtime APIs
+- `lib/core/models/net_config.dart`, `lib/core/builders/server_config_builder.dart`, `lib/src/rust/`, `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: persisted SOCKS5 bind scope and Dart/Rust bridge propagation
+- `lib/features/settings/pages/general/update_about_settings_page.dart`: reusable Update & About page with update action
+- `lib/features/settings/widgets/*_settings_content.dart`, `lib/features/settings/models/settings_diagnostics.dart`: category content plus structured diagnostic count, error deep-link, and support-bundle integration for Update & About
+- `lib/features/settings/widgets/settings_components.dart`: shared section, navigation-row, notice, value-status, and responsive segmented-choice components
+- `lib/features/home/pages/main_screen.dart`, `lib/shared/widgets/navigation/content_navigator.dart`: persistent per-destination route stacks contained within the application shell
+- `lib/shared/widgets/common/status_bar_actions.dart`, `lib/shared/widgets/common/theme_selector.dart`, `lib/shared/widgets/common/windows_controls.dart`: localized theme shortcuts and action-oriented toolbar/window tooltips
+- `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: synchronized concept-based localization keys, bilingual settings hierarchy, descriptions, statuses, and validation messages
+- `test/features/settings/settings_components_test.dart`, `test/features/settings/settings_diagnostics_test.dart`: widget coverage for shared presentation, compact segmented choices, and structured error deep-link selection
+- `test/shared/widgets/navigation/content_navigator_test.dart`: verifies pushed subpages remain inside the application shell
+- `test/generated/locale_keys_test.dart`: synchronization and legacy-key rejection coverage for translations and generated keys
+- `_tmp_net_sec.dart`: removed obsolete temporary settings snapshot
+
+---
+
 ## [rebrand-astral-ng]: Rebrand GUI from Astral to AstralNG
 
 - **Scope**: `lib/core/states/`, `lib/features/settings/`, `lib/shared/`, `ios/`, `windows/`, `android/`, `assets/`, `scripts/`
@@ -182,8 +262,9 @@ Linux tar/DEB/RPM, Windows ZIP/installer, and Android debug APK artifacts for
 testing. Full-CI artifacts use exact output paths and expire after seven days.
 Each package is uploaded as a direct single-file artifact without an additional
 ZIP wrapper. Snapshot and release filenames end with the resolved
-`ASSET_VERSION`, so canary files include their CI build identity and production
-files use the `vX.Y.Z` suffix.
+`ASSET_VERSION`, so canary files use the ordered
+`X.Y.Z-alpha.CI_RUN+SHORTREF` SemVer and production files use `X.Y.Z` without a
+`v` prefix.
 Superseded non-release runs are cancelled, while tag builds are never
 cancelled.
 
@@ -449,7 +530,7 @@ encryption setting.
 
 ## [version-source]: Establish Astral-ng-owned release and canary versioning
 
-- **Scope**: `VERSION`, `pubspec.yaml`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`, `docs/VERSIONING.md`
+- **Scope**: `VERSION`, `pubspec.yaml`, `package.nix`, `scripts/version.py`, `.github/workflows/build-and-release.yml`, `lib/core/platform/`, `lib/core/diagnostics/support_bundle.dart`, `lib/core/services/update_service.dart`, `lib/shared/utils/version_util.dart`, `lib/features/settings/`, `lib/features/home/`, `docs/VERSIONING.md`
 - **Type**: config
 - **Status**: active
 - **Introduced**: `version-source`
@@ -457,15 +538,16 @@ encryption setting.
 
 ### What this changes
 
-Makes `VERSION` the only human-edited source for Astral-ng's application version and production build number. The cross-platform Python tool validates the Flutter mirror, derives package and installer versions, supports semantic version bumps, and logs an observable build identity. CI requires production tags to match the source and gives canary builds a separate CI-unique build number and artifact label.
+Makes `VERSION` the only human-edited source for Astral-ng's application version and production build number. The cross-platform Python tool validates the Flutter mirror, derives package and installer versions, supports semantic version bumps, and logs an observable build identity. CI requires production tags to match the source. Production identity is canonical `X.Y.Z`; canaries use ordered `X.Y.Z-alpha.CI_RUN+SHORTREF` SemVer with a seven-character commit, while platform-required numeric build fields remain monotonic.
 
 ### Files affected
 
-- `VERSION`, `scripts/version.py`: cross-platform version source management, derivation, bumping, and mirror validation
-- `pubspec.yaml`: Flutter-required mirror of the source version
-- `.github/workflows/build-and-release.yml`: production-tag validation and version-derived build/package metadata
-- `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_settings_actions.dart`: identify canary builds in the version dialog
-- `docs/VERSIONING.md`: maintainer workflow and versioning contract
+- `VERSION`, `scripts/version.py`, `test/scripts/version_test.py`: cross-platform version source management, canonical SemVer derivation, bumping, mirror validation, and regression coverage
+- `pubspec.yaml`, `package.nix`: Flutter-required mirror and Nix package version derived from the source release SemVer
+- `.github/workflows/build-and-release.yml`: production-tag validation, commit injection, canonical SemVer artifact names, and platform-compatible package metadata
+- `lib/core/platform/app_info.dart`, `lib/features/settings/widgets/update_about_settings_content.dart`, `lib/features/home/widgets/about_home.dart`: expose friendly, About-row, and canonical SemVer identities with the exact build commit
+- `lib/shared/utils/version_util.dart`, `lib/core/services/update_service.dart`, `lib/core/diagnostics/support_bundle.dart`: SemVer-compliant update precedence and canonical version reporting in support data
+- `docs/VERSIONING.md`: maintainer workflow, artifact-name migration, and versioning contract
 
 ---
 
@@ -487,7 +569,7 @@ code-signed. Android debug builds use one short-lived test upload, while
 production keystore setup and signed release APKs remain restricted to `v*` tag
 pushes. Packaged files are uploaded directly without an extra ZIP wrapper, use
 the same naming scheme for every event, and end with `ASSET_VERSION`, identifying
-the exact canary or production build.
+the exact canary or production SemVer build.
 
 ### Files affected
 
@@ -642,19 +724,26 @@ executable and Linux package, Android application ID
 `pw.rabit.astralng.canary`, an independent Windows installer and single-instance
 mutex, and grayscale-and-gold launcher and tray icons. This allows canary and
 production builds to be installed and launched side by side while production
-tags preserve the existing names and identifiers.
+tags preserve the existing names and identifiers. On Linux and Windows, the
+CMake target keeps Flutter's discoverable `astral`/`astral.exe` name for local
+`flutter run`; CI renames those executables to `astral-canary`/
+`astral-canary.exe` before packaging canary artifacts. Nix development shells
+default plain Flutter compilation commands to canary, inject the current
+seven-character commit, and preserve an explicit `BUILD_CHANNEL=production`
+override.
 
 ### Files affected
 
-- `scripts/version.py`, `docs/VERSIONING.md`: resolve and document channel-specific display, executable, package, and installer identities
-- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, generate Linux wrapper and desktop entries from the resolved identity, and package canary artifacts separately
+- `scripts/version.py`, `scripts/flutter_dev.sh`, `scripts/flutter_android.sh`, `docs/VERSIONING.md`, `docs/TOOLCHAINS.md`: resolve channel-specific SemVer and commit identities and default Nix-shell Flutter compilation to canary with an explicit production override
+- `.github/workflows/build-and-release.yml`: pass the build channel into Flutter, rename stable Linux and Windows build targets to the resolved package executable, generate wrappers and desktop entries from that identity, and package canary artifacts separately
 - `lib/core/platform/build_brand.dart`, `lib/core/states/app_settings_state.dart`, `lib/core/platform/window_manager.dart`, `lib/shared/widgets/common/windows_controls.dart`: select canary runtime names and icons at compile time
 - `lib/core/services/vpn_manager.dart`: exclude the active channel's Android package from its own VPN
 - `lib/core/constants/home_widget_keys.dart`, `lib/core/services/widget_service.dart`: resolve Android widget providers from their Kotlin namespace so canary startup does not depend on the application ID
 - `scripts/generate_icons.py`, `assets/`, `android/app/src/main/res/mipmap-*`, `windows/runner/resources/`: generate and ship the grayscale-and-gold icon set
 - `android/app/build.gradle.kts`, `android/app/src/main/AndroidManifest.xml`: select the canary application ID, launcher name, and icon
-- `linux/CMakeLists.txt`, `linux/runner/`: select the canary executable, GTK application ID, and window name
-- `windows/CMakeLists.txt`, `windows/runner/`: select the canary executable, metadata, icon, window title, and single-instance boundary
+- `linux/CMakeLists.txt`, `linux/runner/`: keep Flutter's executable target stable while selecting the canary GTK application ID and window name
+- `windows/CMakeLists.txt`, `windows/runner/`: keep Flutter's executable target stable while selecting canary metadata, icon, window title, and single-instance boundary
+- `flake.nix`: expose canary as the default development channel and wrap plain Flutter compilation commands so native and Dart identities stay synchronized
 
 ---
 

@@ -34,8 +34,8 @@ class WindowManagerUtils {
 
       // 等待窗口准备就绪并显示
       await windowManager.waitUntilReadyToShow(windowOptions, () async {
-        // 如果 startupMinimize 为 true，则最小化窗口
-        if (ServiceManager().startupState.startupMinimize.value) {
+        // 启动后按设置隐藏到系统托盘
+        if (ServiceManager().startupState.launchToTray.value) {
           ServiceManager().uiState.setBackground(true);
           await windowManager.hide();
         } else {
@@ -47,7 +47,9 @@ class WindowManagerUtils {
 
       await windowManager.setPreventClose(true);
 
-      await handleStartupSetting(ServiceManager().startupState.startup.value);
+      await handleStartupSetting(
+        ServiceManager().startupState.launchAtLogin.value,
+      );
     }
   }
 }

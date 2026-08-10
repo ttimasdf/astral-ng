@@ -44,7 +44,10 @@ class NotificationService {
   }) async {
     final plugin = _plugin;
     if (plugin == null) return;
-    if (!ServiceManager().appSettingsState.enableConnectionNotification.value) {
+    if (!ServiceManager()
+        .appSettingsState
+        .connectionNotificationEnabled
+        .value) {
       await cancelConnectionNotification();
       return;
     }

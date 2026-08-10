@@ -83,6 +83,9 @@ class NetConfig {
   /// SOCKS5 监听端口
   int socks5_port = 1080;
 
+  /// SOCKS5 是否监听所有网络接口；默认仅监听回环地址
+  bool socks5_listen_all_interfaces = false;
+
   /// 是否使用smoltcp网络栈
   bool use_smoltcp = false; //x
 

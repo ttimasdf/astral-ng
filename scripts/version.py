@@ -18,6 +18,7 @@ VERSION_PATTERN = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 PUBSPEC_PATTERN = re.compile(r"^version: .*$", re.MULTILINE)
 CANARY_BUILD_OFFSET = 1_000_000_000
 ANDROID_VERSION_CODE_LIMIT = 2_147_483_647
+SHORT_COMMIT_LENGTH = 7
 
 
 @dataclass(frozen=True)
@@ -31,13 +32,26 @@ class BuildVersion:
     source: SourceVersion
     channel: str
     build_number: int
-    asset_version: str
+    run_number: int
     git_ref: str
     commit: str
 
     @property
+    def semantic_version(self) -> str:
+        if self.channel == "production":
+            return self.source.version
+        return f"{self.source.version}-alpha.{self.run_number}+{self.commit}"
+
+    @property
     def package_version(self) -> str:
-        return f"{self.source.version}.{self.build_number}"
+        if self.channel == "production":
+            return self.source.version
+        # Debian and RPM use ~ to order a prerelease before the final version.
+        return f"{self.source.version}~alpha.{self.run_number}+{self.commit}"
+
+    @property
+    def asset_version(self) -> str:
+        return self.semantic_version
 
 
 def fail(message: str) -> None:
@@ -82,16 +96,25 @@ def resolve(channel: str) -> BuildVersion:
     if channel == "auto":
         channel = "production" if github_ref.startswith("refs/tags/") else "canary"
 
-    commit = os.getenv("GITHUB_SHA", "")[:12] or git_value(
-        "rev-parse", "--short=12", "HEAD", fallback="local"
+    commit = os.getenv("GITHUB_SHA", "")[:SHORT_COMMIT_LENGTH] or git_value(
+        "rev-parse", f"--short={SHORT_COMMIT_LENGTH}", "HEAD", fallback="local"
     )
-    git_ref = github_ref_name or git_value("branch", "--show-current", fallback="detached")
+    git_ref = github_ref_name or git_value(
+        "branch", "--show-current", fallback="detached"
+    )
 
     if channel == "production":
         tag = github_ref_name or github_ref.removeprefix("refs/tags/")
         if os.getenv("GITHUB_ACTIONS") and tag != f"v{source.version}":
             fail(f"Production tag must be v{source.version}; got {tag or '<none>'}")
-        return BuildVersion(source, channel, source.build_number, f"v{source.version}", git_ref, commit)
+        return BuildVersion(
+            source,
+            channel,
+            source.build_number,
+            0,
+            git_ref,
+            commit,
+        )
 
     if channel == "canary":
         try:
@@ -107,7 +130,7 @@ def resolve(channel: str) -> BuildVersion:
             source,
             channel,
             build_number,
-            f"v{source.version}-canary.{run_number}-{commit}",
+            run_number,
             git_ref,
             commit,
         )
@@ -120,12 +143,17 @@ def emit(build: BuildVersion, output_format: str) -> None:
     values = {
         "VERSION_BASE": build.source.version,
         "BUILD_CHANNEL": build.channel,
+        "BUILD_COMMIT": build.commit,
+        "BUILD_RUN_NUMBER": str(build.run_number),
+        "SEMANTIC_VERSION": build.semantic_version,
         "FLUTTER_BUILD_NAME": build.source.version,
         "FLUTTER_BUILD_NUMBER": str(build.build_number),
         "PACKAGE_VERSION": build.package_version,
         "ASSET_VERSION": build.asset_version,
         "APP_DISPLAY_NAME": "AstralNG Canary" if is_canary else "AstralNG",
-        "APP_PACKAGE_ID": "pw.rabit.astralng.canary" if is_canary else "pw.rabit.astralng",
+        "APP_PACKAGE_ID": "pw.rabit.astralng.canary"
+        if is_canary
+        else "pw.rabit.astralng",
         "APP_EXECUTABLE": "astral-canary" if is_canary else "astral",
         "LINUX_PACKAGE_NAME": "astral-canary" if is_canary else "astral",
         "WINDOWS_APP_ID": (
@@ -140,13 +168,18 @@ def emit(build: BuildVersion, output_format: str) -> None:
     if output_format == "json":
         import json
 
-        print(json.dumps({**values, "GIT_REF": build.git_ref, "COMMIT": build.commit}, indent=2))
+        print(
+            json.dumps(
+                {**values, "GIT_REF": build.git_ref, "COMMIT": build.commit}, indent=2
+            )
+        )
         return
 
     print("Build version")
     print(f"  Source:          {VERSION_FILE.relative_to(ROOT)}")
     print(f"  Channel:         {build.channel}")
     print(f"  Version:         {build.source.version}")
+    print(f"  Semantic version: {build.semantic_version}")
     print(f"  Build number:    {build.build_number}")
     print(f"  Package version: {build.package_version}")
     print(f"  Artifact label:  {build.asset_version}")
@@ -183,7 +216,9 @@ def bump(part: str, dry_run: bool) -> None:
     else:
         patch += 1
     next_source = SourceVersion(f"{major}.{minor}.{patch}", source.build_number + 1)
-    print(f"Bump {part}: {source.version}+{source.build_number} -> {next_source.version}+{next_source.build_number}")
+    print(
+        f"Bump {part}: {source.version}+{source.build_number} -> {next_source.version}+{next_source.build_number}"
+    )
     if dry_run:
         return
     VERSION_FILE.write_text(
@@ -198,13 +233,21 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     resolve_parser = subparsers.add_parser("resolve", help="resolve a build version")
-    resolve_parser.add_argument("--channel", choices=("auto", "production", "canary"), default="auto")
-    resolve_parser.add_argument("--format", choices=("summary", "env", "json"), default="summary")
+    resolve_parser.add_argument(
+        "--channel", choices=("auto", "production", "canary"), default="auto"
+    )
+    resolve_parser.add_argument(
+        "--format", choices=("summary", "env", "json"), default="summary"
+    )
 
     sync_parser = subparsers.add_parser("sync", help="synchronize pubspec.yaml")
-    sync_parser.add_argument("--check", action="store_true", help="fail instead of updating")
+    sync_parser.add_argument(
+        "--check", action="store_true", help="fail instead of updating"
+    )
 
-    bump_parser = subparsers.add_parser("bump", help="bump the release version and build number")
+    bump_parser = subparsers.add_parser(
+        "bump", help="bump the release version and build number"
+    )
     bump_parser.add_argument("part", choices=("major", "minor", "patch"))
     bump_parser.add_argument("--dry-run", action="store_true")
 

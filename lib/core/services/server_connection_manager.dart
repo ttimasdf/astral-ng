@@ -162,9 +162,9 @@ class ServerConnectionManager {
     // 创建 Completer 用于取消
     _connectionCompleter = Completer<bool>();
 
-    // 获取重试设置
-    final autoRetry = services.appSettingsState.autoRetryOnFailure.value;
-    final maxRetries = services.appSettingsState.maxRetryCount.value;
+    // 0 表示只尝试一次；其他值表示首次失败后的重试次数
+    final retryLimit = services.appSettingsState.connectionRetryLimit.value;
+    final maxAttempts = retryLimit + 1;
 
     bool success = false;
 
@@ -231,8 +231,8 @@ class ServerConnectionManager {
           return true;
         }
 
-        // 如果连接失败且不需要重试，则退出
-        if (!autoRetry || _currentRetryCount >= maxRetries) {
+        // 已用完首次尝试和配置的重试次数
+        if (_currentRetryCount >= maxAttempts) {
           services.connectionState.connectionState.value = CoState.idle;
           if (_connectionCompleter != null &&
               !_connectionCompleter!.isCompleted) {
@@ -265,8 +265,8 @@ class ServerConnectionManager {
           return null; // 用户取消
         }
 
-        // 如果连接失败且不需要重试，则退出
-        if (!autoRetry || _currentRetryCount >= maxRetries) {
+        // 已用完首次尝试和配置的重试次数
+        if (_currentRetryCount >= maxAttempts) {
           services.connectionState.connectionState.value = CoState.idle;
           if (_connectionCompleter != null &&
               !_connectionCompleter!.isCompleted) {
@@ -285,7 +285,7 @@ class ServerConnectionManager {
           return null; // 用户取消
         }
       }
-    } while (autoRetry && _currentRetryCount < maxRetries);
+    } while (_currentRetryCount < maxAttempts);
 
     // 完成 Completer（如果存在且未完成）
     if (_connectionCompleter != null && !_connectionCompleter!.isCompleted) {
@@ -358,7 +358,7 @@ class ServerConnectionManager {
             .withRoomConfig(roomConfig)
             .withServers(room, services.serverState.servers.value)
             .withListeners(services.playerState.listenList.value)
-            .withCidrs(services.vpnState.customVpn.value)
+            .withCidrs(services.vpnState.androidVpnRoutes.value)
             .withFlags()
             .build();
 
@@ -384,7 +384,7 @@ class ServerConnectionManager {
 
     // 显示通知（Android）
     if (Platform.isAndroid &&
-        ServiceManager().appSettingsState.enableConnectionNotification.value) {
+        ServiceManager().appSettingsState.connectionNotificationEnabled.value) {
       await ServiceManager().notifications.showConnectionNotification(
         status: '连接中',
         ip: '正在获取...',
@@ -438,7 +438,7 @@ class ServerConnectionManager {
           connectionAttemptId: _connectionAttemptId,
         );
 
-        if (services.appSettingsState.enableConnectionNotification.value) {
+        if (services.appSettingsState.connectionNotificationEnabled.value) {
           await services.notifications.showConnectionNotification(
             status: '已连接',
             ip: ConnectionNetworkMonitor.notificationDisplayIp(),

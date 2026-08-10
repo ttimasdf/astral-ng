@@ -11,7 +11,10 @@ class NetworkConfigService {
 
   Future<void> init() async {
     final config = await _repo.get();
-    state.applyFrom(config, autoSetMtu: await _repo.getAutoSetMTU());
+    state.applyFrom(
+      config,
+      preferAstralAdapterValue: await _repo.getPreferAstralAdapter(),
+    );
   }
 
   Future<void> updateIpv4(String value) async {
@@ -24,9 +27,9 @@ class NetworkConfigService {
     await _repo.update((c) => c.dhcp = value);
   }
 
-  Future<void> setAutoSetMTU(bool value) async {
-    state.autoSetMTU.value = value;
-    await _repo.setAutoSetMTU(value);
+  Future<void> setPreferAstralAdapter(bool value) async {
+    state.preferAstralAdapter.value = value;
+    await _repo.setPreferAstralAdapter(value);
   }
 
   Future<void> updateDefaultProtocol(String value) async {
@@ -69,6 +72,11 @@ class NetworkConfigService {
     final port = normalizeSocks5Port(value);
     state.socks5Port.value = port;
     await _repo.update((c) => c.socks5_port = port);
+  }
+
+  Future<void> updateSocks5ListenAllInterfaces(bool value) async {
+    state.socks5ListenAllInterfaces.value = value;
+    await _repo.update((c) => c.socks5_listen_all_interfaces = value);
   }
 
   Future<void> updateDataCompressAlgo(int value) async {

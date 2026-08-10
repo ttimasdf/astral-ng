@@ -1,6 +1,8 @@
 package pw.rabit.astralng
 
+import android.content.Intent
 import android.content.pm.ApplicationInfo
+import com.plugin.vpn_service_plugin.TauriVpnService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -56,6 +58,13 @@ class MainActivity : FlutterActivity() {
         quickSettingsChannel = null
         isQuickSettingsReady = false
         super.cleanUpFlutterEngine(flutterEngine)
+    }
+
+    override fun onDestroy() {
+        if (isFinishing && !isChangingConfigurations) {
+            stopService(Intent(this, TauriVpnService::class.java))
+        }
+        super.onDestroy()
     }
 
     companion object {

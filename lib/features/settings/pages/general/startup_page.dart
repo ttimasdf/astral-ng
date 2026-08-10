@@ -8,7 +8,7 @@ class StartupPage extends BaseSettingsPage {
   const StartupPage({super.key});
 
   @override
-  String get title => LocaleKeys.startup_related.tr();
+  String get title => LocaleKeys.settings_startup.tr();
 
   @override
   Widget buildContent(BuildContext context) {
@@ -19,27 +19,27 @@ class StartupPage extends BaseSettingsPage {
           context: context,
           children: [
             SwitchListTile(
-              title: Text(LocaleKeys.startup_on_boot.tr()),
-              subtitle: Text(LocaleKeys.startup_on_boot_desc.tr()),
-              value: ServiceManager().startupState.startup.value,
+              title: Text(LocaleKeys.launch_at_login.tr()),
+              subtitle: Text(LocaleKeys.launch_at_login_desc.tr()),
+              value: ServiceManager().startupState.launchAtLogin.value,
               onChanged: (value) async {
-                await ServiceManager().appSettings.setStartup(value);
+                await ServiceManager().appSettings.setLaunchAtLogin(value);
               },
             ),
             SwitchListTile(
-              title: Text(LocaleKeys.startup_minimize.tr()),
-              subtitle: Text(LocaleKeys.startup_minimize_desc.tr()),
-              value: ServiceManager().startupState.startupMinimize.value,
+              title: Text(LocaleKeys.launch_to_tray.tr()),
+              subtitle: Text(LocaleKeys.launch_to_tray_desc.tr()),
+              value: ServiceManager().startupState.launchToTray.value,
               onChanged: (value) {
-                ServiceManager().appSettings.setStartupMinimize(value);
+                ServiceManager().appSettings.setLaunchToTray(value);
               },
             ),
             SwitchListTile(
-              title: Text(LocaleKeys.startup_auto_connect.tr()),
-              subtitle: Text(LocaleKeys.startup_auto_connect_desc.tr()),
-              value: ServiceManager().startupState.startupAutoConnect.value,
+              title: Text(LocaleKeys.connect_after_launch.tr()),
+              subtitle: Text(LocaleKeys.connect_after_launch_desc.tr()),
+              value: ServiceManager().startupState.connectAfterLaunch.value,
               onChanged: (value) {
-                ServiceManager().appSettings.setStartupAutoConnect(value);
+                ServiceManager().appSettings.setConnectAfterLaunch(value);
               },
             ),
           ],
@@ -47,23 +47,23 @@ class StartupPage extends BaseSettingsPage {
         const SizedBox(height: 16),
         buildSettingsCard(
           context: context,
-          header: LocaleKeys.startup_description.tr(),
+          header: LocaleKeys.settings_startup_desc.tr(),
           children: [
             ListTile(
-              title: Text(LocaleKeys.startup_on_boot_title.tr()),
-              subtitle: Text(LocaleKeys.startup_on_boot_info.tr()),
+              title: Text(LocaleKeys.launch_at_login.tr()),
+              subtitle: Text(LocaleKeys.launch_at_login_desc.tr()),
               leading: const Icon(Icons.power_settings_new),
             ),
             buildDivider(),
             ListTile(
-              title: Text(LocaleKeys.startup_minimize_title.tr()),
-              subtitle: Text(LocaleKeys.startup_minimize_info.tr()),
+              title: Text(LocaleKeys.launch_to_tray.tr()),
+              subtitle: Text(LocaleKeys.launch_to_tray_desc.tr()),
               leading: const Icon(Icons.minimize),
             ),
             buildDivider(),
             ListTile(
-              title: Text(LocaleKeys.startup_auto_connect_title.tr()),
-              subtitle: Text(LocaleKeys.startup_auto_connect_info.tr()),
+              title: Text(LocaleKeys.connect_after_launch.tr()),
+              subtitle: Text(LocaleKeys.connect_after_launch_desc.tr()),
               leading: const Icon(Icons.play_arrow),
             ),
           ],

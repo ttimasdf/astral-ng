@@ -2,14 +2,13 @@
 cmake_minimum_required(VERSION 3.14)
 project(astral LANGUAGES CXX)
 
-# CI exports BUILD_CHANNEL before invoking Flutter. Keep local and production
-# builds on the stable identity unless canary is requested explicitly.
+# Flutter discovers the executable from the first BINARY_NAME declaration.
+# Keep the target filename stable for local development; CI renames canary
+# artifacts after building. Channel-specific resources use ASTRAL_CANARY.
+set(BINARY_NAME "astral")
+set(ASTRAL_CANARY OFF)
 if("$ENV{BUILD_CHANNEL}" STREQUAL "canary")
-  set(BINARY_NAME "astral-canary")
   set(ASTRAL_CANARY ON)
-else()
-  set(BINARY_NAME "astral")
-  set(ASTRAL_CANARY OFF)
 endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

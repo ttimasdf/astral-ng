@@ -98,6 +98,9 @@ class FlagsC {
   /// SOCKS5 监听端口，0 表示禁用
   final int socks5Port;
 
+  /// true 时监听所有接口，否则仅监听回环地址
+  final bool socks5ListenAllInterfaces;
+
   const FlagsC({
     required this.defaultProtocol,
     required this.devName,
@@ -129,6 +132,7 @@ class FlagsC {
     required this.tcpWhitelist,
     required this.udpWhitelist,
     required this.socks5Port,
+    required this.socks5ListenAllInterfaces,
   });
 
   @override
@@ -162,7 +166,8 @@ class FlagsC {
       disableSymHolePunching.hashCode ^
       tcpWhitelist.hashCode ^
       udpWhitelist.hashCode ^
-      socks5Port.hashCode;
+      socks5Port.hashCode ^
+      socks5ListenAllInterfaces.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -198,7 +203,8 @@ class FlagsC {
           disableSymHolePunching == other.disableSymHolePunching &&
           tcpWhitelist == other.tcpWhitelist &&
           udpWhitelist == other.udpWhitelist &&
-          socks5Port == other.socks5Port;
+          socks5Port == other.socks5Port &&
+          socks5ListenAllInterfaces == other.socks5ListenAllInterfaces;
 }
 
 class Forward {

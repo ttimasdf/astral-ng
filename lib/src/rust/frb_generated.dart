@@ -2736,8 +2736,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   FlagsC dco_decode_flags_c(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 30)
-      throw Exception('unexpected arr length: expect 30 but see ${arr.length}');
+    if (arr.length != 31)
+      throw Exception('unexpected arr length: expect 31 but see ${arr.length}');
     return FlagsC(
       defaultProtocol: dco_decode_String(arr[0]),
       devName: dco_decode_String(arr[1]),
@@ -2769,6 +2769,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tcpWhitelist: dco_decode_String(arr[27]),
       udpWhitelist: dco_decode_String(arr[28]),
       socks5Port: dco_decode_u_16(arr[29]),
+      socks5ListenAllInterfaces: dco_decode_bool(arr[30]),
     );
   }
 
@@ -3439,6 +3440,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_tcpWhitelist = sse_decode_String(deserializer);
     var var_udpWhitelist = sse_decode_String(deserializer);
     var var_socks5Port = sse_decode_u_16(deserializer);
+    var var_socks5ListenAllInterfaces = sse_decode_bool(deserializer);
     return FlagsC(
       defaultProtocol: var_defaultProtocol,
       devName: var_devName,
@@ -3470,6 +3472,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       tcpWhitelist: var_tcpWhitelist,
       udpWhitelist: var_udpWhitelist,
       socks5Port: var_socks5Port,
+      socks5ListenAllInterfaces: var_socks5ListenAllInterfaces,
     );
   }
 
@@ -4293,6 +4296,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.tcpWhitelist, serializer);
     sse_encode_String(self.udpWhitelist, serializer);
     sse_encode_u_16(self.socks5Port, serializer);
+    sse_encode_bool(self.socks5ListenAllInterfaces, serializer);
   }
 
   @protected

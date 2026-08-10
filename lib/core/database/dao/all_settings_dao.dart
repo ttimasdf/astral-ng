@@ -45,49 +45,46 @@ class AllSettingsDao {
 
     if (settings == null) {
       settings = AllSettings();
-      settings.playerName = await _getDeviceName();
-      settings.sortOption = 0;
-      settings.sortOrder = 0;
-      settings.displayMode = 0;
+      settings.peerName = await _getDeviceName();
       await save(settings);
       return;
     }
 
-    if (settings.playerName == null || settings.playerName!.isEmpty) {
-      settings.playerName = await _getDeviceName();
+    if (settings.peerName == null || settings.peerName!.isEmpty) {
+      settings.peerName = await _getDeviceName();
       await save(settings);
     }
   }
 
   Future<List<String>> getListenList() async {
     final config = await getOrNull();
-    if (config?.listenList == null || config!.listenList!.isEmpty) {
+    if (config?.peerListeners == null || config!.peerListeners!.isEmpty) {
       if (config != null) {
-        config.listenList = List<String>.from(defaultListenList);
+        config.peerListeners = List<String>.from(defaultListenList);
         await save(config);
       }
       return List<String>.from(defaultListenList);
     }
-    return config.listenList!;
+    return config.peerListeners!;
   }
 
   Future<void> setSelectedRoom(Room room) =>
-      update((config) => config.room = room.id);
+      update((config) => config.selectedRoomId = room.id);
 
   Future<Room?> getRoom() async {
     final config = await getOrNull();
-    if (config?.room == null) return null;
-    return _isar.rooms.get(config!.room!);
+    if (config?.selectedRoomId == null) return null;
+    return _isar.rooms.get(config!.selectedRoomId!);
   }
 
   Future<String> getPlayerName() async {
     final config = await getOrNull();
-    if (config?.playerName == null || config!.playerName!.isEmpty) {
+    if (config?.peerName == null || config!.peerName!.isEmpty) {
       final deviceName = await _getDeviceName();
-      await update((s) => s.playerName = deviceName);
+      await update((s) => s.peerName = deviceName);
       return deviceName;
     }
-    return config.playerName!;
+    return config.peerName!;
   }
 
   Future<String> _getDeviceName() async {

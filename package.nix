@@ -13,7 +13,10 @@
 
 let
   pname = "astral-ng";
-  version = "2-unstable-2026-03-17";
+  versionLine = builtins.head (
+    builtins.filter (lib.hasPrefix "VERSION=") (lib.splitString "\n" (builtins.readFile ./VERSION))
+  );
+  version = lib.removePrefix "VERSION=" versionLine;
 
   src = lib.cleanSource ./.;
 

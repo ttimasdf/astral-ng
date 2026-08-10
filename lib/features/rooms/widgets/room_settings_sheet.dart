@@ -94,9 +94,8 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
 
     return Watch((context) {
       // 监听所有显示状态
-      final userListSimple = ServiceManager().displayState.userListSimple.watch(
-        context,
-      );
+      final compactPeerCards = ServiceManager().displayState.compactPeerCards
+          .watch(context);
       final displayMode = ServiceManager().displayState.displayMode.watch(
         context,
       );
@@ -151,11 +150,11 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
               children: [
                 // 显示模式
                 _buildSettingSection('显示模式', [
-                  _buildOptionButton('简约', userListSimple, () {
-                    ServiceManager().appSettings.setUserListSimple(true);
+                  _buildOptionButton('简约', compactPeerCards, () {
+                    ServiceManager().appSettings.setCompactPeerCards(true);
                   }),
-                  _buildOptionButton('详细', !userListSimple, () {
-                    ServiceManager().appSettings.setUserListSimple(false);
+                  _buildOptionButton('详细', !compactPeerCards, () {
+                    ServiceManager().appSettings.setCompactPeerCards(false);
                   }),
                 ], colorScheme),
 
@@ -249,7 +248,9 @@ class _RoomSettingsSheetState extends State<RoomSettingsSheet> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             backgroundColor:
-                isSelected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                isSelected
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest,
             foregroundColor:
                 isSelected
                     ? colorScheme.onPrimary

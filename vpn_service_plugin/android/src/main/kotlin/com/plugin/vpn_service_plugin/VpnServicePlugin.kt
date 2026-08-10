@@ -157,6 +157,10 @@ class VpnServicePlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Activit
 
     // 插件从Flutter引擎分离时调用
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        // The TUN fd belongs to the Rust runtime hosted by this Flutter engine.
+        // Once the engine exits, leaving the native VPN alive only creates a
+        // stale Android VPN indicator with no usable tunnel behind it.
+        applicationContext.stopService(Intent(applicationContext, TauriVpnService::class.java))
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         eventSink = null

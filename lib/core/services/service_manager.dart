@@ -174,7 +174,7 @@ class ServiceManager {
     }
 
     if (runStartupActions) {
-      await ConnectionConnectGuard.tryStartupAutoConnect();
+      await ConnectionConnectGuard.tryConnectAfterLaunch();
     }
 
     _initialized = true;

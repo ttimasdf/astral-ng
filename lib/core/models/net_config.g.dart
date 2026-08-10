@@ -185,23 +185,28 @@ const NetConfigSchema = CollectionSchema(
       name: r'relay_network_whitelist',
       type: IsarType.string,
     ),
-    r'socks5_port': PropertySchema(
+    r'socks5_listen_all_interfaces': PropertySchema(
       id: 38,
+      name: r'socks5_listen_all_interfaces',
+      type: IsarType.bool,
+    ),
+    r'socks5_port': PropertySchema(
+      id: 39,
       name: r'socks5_port',
       type: IsarType.long,
     ),
     r'tcp_whitelist': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'tcp_whitelist',
       type: IsarType.string,
     ),
     r'udp_whitelist': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'udp_whitelist',
       type: IsarType.string,
     ),
     r'use_smoltcp': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'use_smoltcp',
       type: IsarType.bool,
     ),
@@ -327,10 +332,11 @@ void _netConfigSerialize(
   writer.writeBool(offsets[35], object.proxy_forward_by_system);
   writer.writeBool(offsets[36], object.relay_all_peer_rpc);
   writer.writeString(offsets[37], object.relay_network_whitelist);
-  writer.writeLong(offsets[38], object.socks5_port);
-  writer.writeString(offsets[39], object.tcp_whitelist);
-  writer.writeString(offsets[40], object.udp_whitelist);
-  writer.writeBool(offsets[41], object.use_smoltcp);
+  writer.writeBool(offsets[38], object.socks5_listen_all_interfaces);
+  writer.writeLong(offsets[39], object.socks5_port);
+  writer.writeString(offsets[40], object.tcp_whitelist);
+  writer.writeString(offsets[41], object.udp_whitelist);
+  writer.writeBool(offsets[42], object.use_smoltcp);
 }
 
 NetConfig _netConfigDeserialize(
@@ -386,10 +392,11 @@ NetConfig _netConfigDeserialize(
   object.proxy_forward_by_system = reader.readBool(offsets[35]);
   object.relay_all_peer_rpc = reader.readBool(offsets[36]);
   object.relay_network_whitelist = reader.readString(offsets[37]);
-  object.socks5_port = reader.readLong(offsets[38]);
-  object.tcp_whitelist = reader.readString(offsets[39]);
-  object.udp_whitelist = reader.readString(offsets[40]);
-  object.use_smoltcp = reader.readBool(offsets[41]);
+  object.socks5_listen_all_interfaces = reader.readBool(offsets[38]);
+  object.socks5_port = reader.readLong(offsets[39]);
+  object.tcp_whitelist = reader.readString(offsets[40]);
+  object.udp_whitelist = reader.readString(offsets[41]);
+  object.use_smoltcp = reader.readBool(offsets[42]);
   return object;
 }
 
@@ -484,12 +491,14 @@ P _netConfigDeserializeProp<P>(
     case 37:
       return (reader.readString(offset)) as P;
     case 38:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 39:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 40:
       return (reader.readString(offset)) as P;
     case 41:
+      return (reader.readString(offset)) as P;
+    case 42:
       return (reader.readBool(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2944,6 +2953,18 @@ extension NetConfigQueryFilter
     });
   }
 
+  QueryBuilder<NetConfig, NetConfig, QAfterFilterCondition>
+  socks5_listen_all_interfacesEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'socks5_listen_all_interfaces',
+          value: value,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<NetConfig, NetConfig, QAfterFilterCondition> socks5_portEqualTo(
     int value,
   ) {
@@ -3738,6 +3759,20 @@ extension NetConfigQuerySortBy on QueryBuilder<NetConfig, NetConfig, QSortBy> {
     });
   }
 
+  QueryBuilder<NetConfig, NetConfig, QAfterSortBy>
+  sortBySocks5_listen_all_interfaces() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'socks5_listen_all_interfaces', Sort.asc);
+    });
+  }
+
+  QueryBuilder<NetConfig, NetConfig, QAfterSortBy>
+  sortBySocks5_listen_all_interfacesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'socks5_listen_all_interfaces', Sort.desc);
+    });
+  }
+
   QueryBuilder<NetConfig, NetConfig, QAfterSortBy> sortBySocks5_port() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'socks5_port', Sort.asc);
@@ -4231,6 +4266,20 @@ extension NetConfigQuerySortThenBy
     });
   }
 
+  QueryBuilder<NetConfig, NetConfig, QAfterSortBy>
+  thenBySocks5_listen_all_interfaces() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'socks5_listen_all_interfaces', Sort.asc);
+    });
+  }
+
+  QueryBuilder<NetConfig, NetConfig, QAfterSortBy>
+  thenBySocks5_listen_all_interfacesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'socks5_listen_all_interfaces', Sort.desc);
+    });
+  }
+
   QueryBuilder<NetConfig, NetConfig, QAfterSortBy> thenBySocks5_port() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'socks5_port', Sort.asc);
@@ -4538,6 +4587,13 @@ extension NetConfigQueryWhereDistinct
     });
   }
 
+  QueryBuilder<NetConfig, NetConfig, QDistinct>
+  distinctBySocks5_listen_all_interfaces() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'socks5_listen_all_interfaces');
+    });
+  }
+
   QueryBuilder<NetConfig, NetConfig, QDistinct> distinctBySocks5_port() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'socks5_port');
@@ -4813,6 +4869,13 @@ extension NetConfigQueryProperty
   relay_network_whitelistProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'relay_network_whitelist');
+    });
+  }
+
+  QueryBuilder<NetConfig, bool, QQueryOperations>
+  socks5_listen_all_interfacesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'socks5_listen_all_interfaces');
     });
   }
 

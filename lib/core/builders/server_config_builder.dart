@@ -107,9 +107,7 @@ class ServerConfigBuilder {
 
   /// 构建服务器URL列表
   ServerConfigBuilder withServers(dynamic room, List<ServerMod> globalServers) {
-    final enabledUrls = _expandServerUrls(
-      globalServers.where((s) => s.enable),
-    );
+    final enabledUrls = _expandServerUrls(globalServers.where((s) => s.enable));
     // 房间服务器优先 - 直接检查列表，不依赖 hasServers 标志
     if (room.servers != null && room.servers.isNotEmpty) {
       final roomUrls = List<String>.from(room.servers);
@@ -199,6 +197,7 @@ class ServerConfigBuilder {
       tcpWhitelist: nc.tcpWhitelist.value,
       udpWhitelist: nc.udpWhitelist.value,
       socks5Port: nc.enableSocks5.value ? nc.socks5Port.value : 0,
+      socks5ListenAllInterfaces: nc.socks5ListenAllInterfaces.value,
     );
 
     _log('⚙️  运行标志配置完成 (加密: $enableEncryption, SOCKS5: ${_flags!.socks5Port})');
@@ -239,5 +238,4 @@ class ServerConfigBuilder {
       logs: List.unmodifiable(_logs),
     );
   }
-
 }

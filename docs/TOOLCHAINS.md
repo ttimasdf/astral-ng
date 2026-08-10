@@ -55,10 +55,23 @@ The shell includes Flutter, Flutter Rust Bridge code generation, Rust and
 `rustfmt`, Java, cargo-ndk, protobuf, Python, `jq`, `lnav`, and the Android SDK
 composition selected from the current lock, including the compatible platform,
 build tools, CMake, and NDK versions. It exports `JAVA_HOME`, `ANDROID_HOME`,
-`ANDROID_SDK_ROOT`, and `ANDROID_NDK_ROOT`, supplies Nix's `aapt2` to Gradle,
-and writes ignored `android/local.properties` paths for Flutter and Android.
-The flake accepts the Android SDK license and enables the unfree Android command
-line tools required by this environment.
+`ANDROID_SDK_ROOT`, `ANDROID_NDK_ROOT`, and `BUILD_CHANNEL=canary`, supplies
+Nix's `aapt2` to Gradle, and writes ignored `android/local.properties` paths for
+Flutter and Android. The flake accepts the Android SDK license and enables the
+unfree Android command line tools required by this environment.
+
+The development shell's plain `flutter` command adds the matching compile-time
+channel, current seven-character Git commit, and local canary run number to
+`build`, `drive`, `run`, and `test`, keeping Dart branding, SemVer, and native
+desktop identity synchronized. Production validation remains explicit:
+
+```bash
+flutter run -d linux
+BUILD_CHANNEL=production flutter build linux --release
+```
+
+An explicit `--dart-define=BUILD_CHANNEL=production` is also honored and updates
+the native build environment for that command.
 
 ### Android Flutter commands on NixOS
 
@@ -76,10 +89,12 @@ removes Linux desktop compiler paths that would contaminate NDK builds, and
 configures bindgen separately for every Android ABI used by Cargokit. Commands
 that can build Android also stop compatible Gradle daemons first because a
 Gradle daemon retains the environment from its initial invocation. Continue to
-use plain `flutter` for Linux desktop development.
+use the development shell's plain, canary-defaulting `flutter` command for Linux
+desktop development.
 
-The helper defaults to the canary application identity and passes that channel
-to both Gradle and Dart while leaving all Flutter arguments unchanged. Place an
+The helper defaults to the canary application identity and passes that channel,
+the current seven-character commit, and the local run number to both Gradle and
+Dart while leaving all Flutter arguments unchanged. Place an
 explicit production override before the Flutter subcommand when needed:
 
 ```bash

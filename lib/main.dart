@@ -249,7 +249,7 @@ Future<void> _initializeOptionalServices(
   await _optional(
     diagnostics.logger(DiagnosticModules.connection),
     'startup-auto-connect',
-    ConnectionConnectGuard.tryStartupAutoConnect,
+    ConnectionConnectGuard.tryConnectAfterLaunch,
   );
 }
 

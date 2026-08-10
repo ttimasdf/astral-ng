@@ -35,15 +35,43 @@ baseline.
 
 ### Changed
 
+- **Breaking:** Replaced artifact and package version suffixes with canonical
+  SemVer. Canary files now use `3.0.0-alpha.CI_RUN+SHORTREF`, production files
+  use `3.0.0`, and Linux package managers receive an equivalent `~alpha`
+  prerelease. Download automation must stop matching
+  `v3.0.0-canary.CI_RUN-SHORTREF` or `v3.0.0` suffixes and use the new SemVer
+  names.
 - **Breaking:** Moved the database to the platform Application Support directory
   and diagnostic JSONL to Application Cache on every platform. Existing
   installations may start with reset state; desktop users can stop Astral-ng
   and move the complete Isar database file set into the new `db` subdirectory,
   while other users must reconfigure the app. Existing logs are not migrated,
   and cache diagnostics may be removed early by the OS or user.
+- Redesigned Settings with responsive desktop and mobile category navigation,
+  clearer status and dependency descriptions, and a consolidated
+  Network & Connection workspace. Setting storage and localization identifiers
+  now match their current concepts instead of retaining historical names. This
+  schema reset requires Android users to back up server and room credentials,
+  uninstall the previous APK, and install the new build. Connection retries now
+  use a 0–10 slider where 0 disables retries; the TUN control is expressed as a
+  recommended enable switch; SOCKS5 can optionally listen on all interfaces;
+  and desktop toolbar tooltips describe the action each button performs. Theme
+  mode, peer protocol, traffic compression, and update channel now use direct
+  segmented choices. Language now lives under General, while updates, versions,
+  logs, and diagnostics share one Update & About category. Settings, Tools, and
+  other destination subpages stay inside the application shell instead of
+  covering its title and navigation bars. Android back now unwinds those nested
+  views reliably, and exiting the Android engine closes its VPN service instead
+  of leaving a stale system VPN indicator. ([#12])
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
-  grayscale-and-gold icon on Linux, Windows, and Android.
+  grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
+  development builds retain Flutter's discoverable executable name so canary
+  sessions work with `flutter run`, while packaged artifacts still expose
+  `astral-canary`. Nix development shells default Flutter build, run, drive,
+  and test commands to the canary identity. About now identifies canary builds
+  by their seven-character commit, showing a compact friendly version in the
+  hero and SemVer in installed-version rows.
 - Renamed the visible application, widget, notification, installer, and Quick
   Settings tile branding to AstralNG across supported platforms.
 - Improved Android and iOS server management with short, spring-back gestures:
@@ -52,8 +80,9 @@ baseline.
   red indicator. ([#11])
 - Replaced the desktop server switch and overflow menu with direct toggle and
   delete icon buttons; clicking the row opens editing. ([#11])
-- Added version suffixes to downloadable CI snapshots and release assets, and
-  made workflow artifacts downloadable without an additional ZIP wrapper.
+- Added canonical SemVer suffixes to downloadable CI snapshots and release
+  assets, and made workflow artifacts downloadable without an additional ZIP
+  wrapper.
 - Renamed room credential choices to **Simple** and **Advanced**. Simple mode
   generates credentials; Advanced mode accepts shared credentials. This choice
   is separate from network-traffic encryption. ([#3])
@@ -201,6 +230,7 @@ changes. ([upstream-v2.7.3])
 [#9]: https://github.com/ttimasdf/astral-ng/pull/9
 [#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [#11]: https://github.com/ttimasdf/astral-ng/pull/11
+[#12]: https://github.com/ttimasdf/astral-ng/pull/12
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

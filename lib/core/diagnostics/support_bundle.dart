@@ -34,7 +34,7 @@ abstract final class SupportBundle {
           'identifiers. Review before sharing.',
       'session': {
         'session_id': diagnostics.sessionId,
-        'app_version': appVersion ?? AppInfoUtil.getVersion(),
+        'app_version': appVersion ?? AppInfoUtil.getSemanticVersion(),
         'build_number': buildNumber ?? AppInfoUtil.getBuildNumber(),
         'platform': platform ?? Platform.operatingSystem,
         'build_mode': buildMode ?? (kDebugMode ? 'debug' : 'release'),

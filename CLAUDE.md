@@ -144,6 +144,11 @@ Translation files are in `assets/translations/` with support for:
 - French (fr), Japanese (ja), Korean (ko), Russian (ru)
 
 Uses `easy_localization` package. Generated keys are in `lib/generated/locale_keys.g.dart`.
+Regenerate them after editing locale JSON files:
+
+```bash
+flutter pub run easy_localization:generate -S assets/translations -O lib/generated -o locale_keys.g.dart -f keys -u
+```
 
 ## Platform-Specific Notes
 

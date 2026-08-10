@@ -2,31 +2,29 @@ import 'package:signals_flutter/signals_flutter.dart';
 
 /// 启动相关状态
 class StartupState {
-  final startup = signal(false);
-  final startupMinimize = signal(false);
-  final startupAutoConnect = signal(false);
+  final launchAtLogin = signal(false);
+  final launchToTray = signal(false);
+  final connectAfterLaunch = signal(false);
 
-  void setStartup(bool value) {
-    startup.value = value;
+  void setLaunchAtLogin(bool value) {
+    launchAtLogin.value = value;
   }
 
-  void setStartupMinimize(bool value) {
-    startupMinimize.value = value;
+  void setLaunchToTray(bool value) {
+    launchToTray.value = value;
   }
 
-  void setStartupAutoConnect(bool value) {
-    startupAutoConnect.value = value;
+  void setConnectAfterLaunch(bool value) {
+    connectAfterLaunch.value = value;
   }
 
   void updateAll({
-    bool? startup,
-    bool? startupMinimize,
-    bool? startupAutoConnect,
+    required bool launchAtLogin,
+    required bool launchToTray,
+    required bool connectAfterLaunch,
   }) {
-    if (startup != null) this.startup.value = startup;
-    if (startupMinimize != null) this.startupMinimize.value = startupMinimize;
-    if (startupAutoConnect != null) {
-      this.startupAutoConnect.value = startupAutoConnect;
-    }
+    this.launchAtLogin.value = launchAtLogin;
+    this.launchToTray.value = launchToTray;
+    this.connectAfterLaunch.value = connectAfterLaunch;
   }
 }

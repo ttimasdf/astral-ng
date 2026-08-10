@@ -1,10 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/window_state.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/features/settings/models/settings_availability.dart';
+import 'package:astral/features/settings/widgets/settings_components.dart';
 import 'package:astral/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -27,7 +29,7 @@ class _SoftwareSettingsPageState
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) {
+    if (SettingsAvailability.androidOnly.isSupported) {
       _checkInstallPermission();
       _checkNotificationPermission();
     }
@@ -201,10 +203,10 @@ class _SoftwareSettingsPageState
               leading: const Icon(Icons.settings),
             ),
             buildDivider(),
-            if (Platform.isAndroid)
+            if (SettingsAvailability.androidOnly.isVisible)
               ListTile(
                 leading: const Icon(Icons.install_mobile),
-                title: Text(LocaleKeys.get_install_permission.tr()),
+                title: Text(LocaleKeys.install_update_permission.tr()),
                 subtitle: Text(
                   _hasInstallPermission
                       ? LocaleKeys.install_permission_granted.tr()
@@ -216,34 +218,49 @@ class _SoftwareSettingsPageState
                         : const Icon(Icons.warning, color: Colors.orange),
                 onTap: _hasInstallPermission ? null : _requestInstallPermission,
               ),
-            if (!Platform.isAndroid)
-              SwitchListTile(
-                title: Text(LocaleKeys.minimize.tr()),
-                subtitle: Text(LocaleKeys.minimize_desc.tr()),
-                value: ServiceManager().windowState.closeMinimize.watch(
+            if (SettingsAvailability.desktopOnly.isVisible)
+              SettingsSegmentedChoice<WindowCloseBehavior>(
+                title: LocaleKeys.settings_close_behavior.tr(),
+                description:
+                    ServiceManager().windowState.closeBehavior.watch(context) ==
+                            WindowCloseBehavior.closeToTray
+                        ? LocaleKeys.settings_close_to_tray_desc.tr()
+                        : LocaleKeys.settings_exit_program_desc.tr(),
+                value: ServiceManager().windowState.closeBehavior.watch(
                   context,
                 ),
-                onChanged: (value) {
-                  ServiceManager().appSettings.updateCloseMinimize(value);
-                },
+                segments: [
+                  ButtonSegment(
+                    value: WindowCloseBehavior.closeToTray,
+                    icon: const Icon(Icons.move_to_inbox_outlined),
+                    label: Text(LocaleKeys.settings_close_to_tray.tr()),
+                  ),
+                  ButtonSegment(
+                    value: WindowCloseBehavior.exitProgram,
+                    icon: const Icon(Icons.logout),
+                    label: Text(LocaleKeys.settings_exit_program.tr()),
+                  ),
+                ],
+                onChanged:
+                    ServiceManager().appSettings.updateWindowCloseBehavior,
               ),
             SwitchListTile(
-              title: Text(LocaleKeys.player_list_card.tr()),
-              subtitle: Text(LocaleKeys.player_list_card_desc.tr()),
-              value: ServiceManager().displayState.userListSimple.watch(
+              title: Text(LocaleKeys.compact_peer_cards.tr()),
+              subtitle: Text(LocaleKeys.compact_peer_cards_desc.tr()),
+              value: ServiceManager().displayState.compactPeerCards.watch(
                 context,
               ),
               onChanged: (value) {
-                ServiceManager().appSettings.setUserListSimple(value);
+                ServiceManager().appSettings.setCompactPeerCards(value);
               },
             ),
             SwitchListTile(
-              title: const Text('减少动画更新'),
-              subtitle: const Text('降低拓扑图与连线动画刷新频率，减少 GPU 占用'),
-              value: ServiceManager().appSettingsState.reduceAnimationUpdates
+              title: Text(LocaleKeys.reduce_animation_updates.tr()),
+              subtitle: Text(LocaleKeys.reduce_animation_updates_desc.tr()),
+              value: ServiceManager().appSettingsState.reduceTopologyAnimations
                   .watch(context),
               onChanged: (value) async {
-                await ServiceManager().appSettings.updateReduceAnimationUpdates(
+                await ServiceManager().appSettings.setReduceTopologyAnimations(
                   value,
                 );
               },
@@ -255,53 +272,48 @@ class _SoftwareSettingsPageState
           context: context,
           children: [
             ListTile(
-              title: const Text('连接设置'),
-              subtitle: const Text('配置连接重试行为'),
+              title: Text(LocaleKeys.connection_behavior.tr()),
+              subtitle: Text(LocaleKeys.connection_behavior_desc.tr()),
               leading: const Icon(Icons.sync),
             ),
             buildDivider(),
-            SwitchListTile(
-              title: const Text('连接失败自动重试'),
-              subtitle: const Text('连接失败时自动重新尝试连接'),
-              value: ServiceManager().appSettingsState.autoRetryOnFailure.value,
-              onChanged: (value) async {
-                await ServiceManager().appSettings.updateAutoRetryOnFailure(
-                  value,
-                );
-              },
-            ),
-            if (ServiceManager().appSettingsState.autoRetryOnFailure.value)
-              ListTile(
-                title: const Text('最大重试次数'),
-                subtitle: Text(
-                  '当前设置为 ${ServiceManager().appSettingsState.maxRetryCount.value} 次',
-                ),
-                trailing: SizedBox(
-                  width: 100,
-                  child: DropdownButton<int>(
-                    value:
-                        ServiceManager().appSettingsState.maxRetryCount.value,
-                    isExpanded: true,
-                    items:
-                        [1, 2, 3, 5, 10].map((int count) {
-                          return DropdownMenuItem<int>(
-                            value: count,
-                            child: Text('$count 次'),
-                          );
-                        }).toList(),
-                    onChanged: (int? newValue) async {
-                      if (newValue != null) {
-                        await ServiceManager().appSettings.updateMaxRetryCount(
-                          newValue,
-                        );
-                      }
-                    },
-                  ),
-                ),
+            ListTile(
+              title: Text(LocaleKeys.connection_retry_limit.tr()),
+              subtitle: Text(
+                ServiceManager().appSettingsState.connectionRetryLimit.value ==
+                        0
+                    ? LocaleKeys.connection_retry_limit_disabled.tr()
+                    : LocaleKeys.connection_retry_limit_value.tr(
+                      namedArgs: {
+                        'count':
+                            ServiceManager()
+                                .appSettingsState
+                                .connectionRetryLimit
+                                .value
+                                .toString(),
+                      },
+                    ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Slider(
+                value:
+                    ServiceManager().appSettingsState.connectionRetryLimit.value
+                        .toDouble(),
+                min: 0,
+                max: 10,
+                divisions: 10,
+                onChanged: (value) {
+                  ServiceManager().appSettings.setConnectionRetryLimit(
+                    value.round(),
+                  );
+                },
+              ),
+            ),
           ],
         ),
-        if (Platform.isAndroid)
+        if (SettingsAvailability.androidOnly.isVisible)
           buildSettingsCard(
             context: context,
             children: [
@@ -313,7 +325,7 @@ class _SoftwareSettingsPageState
               buildDivider(),
               ListTile(
                 leading: const Icon(Icons.notifications),
-                title: Text(LocaleKeys.get_notification_permission.tr()),
+                title: Text(LocaleKeys.notification_permission.tr()),
                 subtitle: Text(
                   _hasNotificationPermission
                       ? LocaleKeys.notification_permission_granted.tr()
@@ -329,13 +341,11 @@ class _SoftwareSettingsPageState
                         : _requestNotificationPermission,
               ),
               SwitchListTile(
-                title: Text(LocaleKeys.enable_connection_notification.tr()),
-                subtitle: Text(
-                  LocaleKeys.enable_connection_notification_desc.tr(),
-                ),
+                title: Text(LocaleKeys.connection_notification.tr()),
+                subtitle: Text(LocaleKeys.connection_notification_desc.tr()),
                 value: ServiceManager()
                     .appSettingsState
-                    .enableConnectionNotification
+                    .connectionNotificationEnabled
                     .watch(context),
                 onChanged: (value) async {
                   if (value && !_hasNotificationPermission) {
@@ -344,7 +354,7 @@ class _SoftwareSettingsPageState
                     if (!_hasNotificationPermission) return;
                   }
                   await ServiceManager().appSettings
-                      .updateEnableConnectionNotification(value);
+                      .setConnectionNotificationEnabled(value);
                 },
               ),
               buildDivider(),

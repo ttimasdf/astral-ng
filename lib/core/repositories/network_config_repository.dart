@@ -12,8 +12,9 @@ class NetworkConfigRepository {
   Future<void> update(void Function(NetConfig config) mutate) =>
       _db.netConfig.update(mutate);
 
-  Future<bool> getAutoSetMTU() async => (await _db.allSettings.get()).autoSetMTU;
+  Future<bool> getPreferAstralAdapter() async =>
+      (await _db.allSettings.get()).preferAstralAdapter;
 
-  Future<void> setAutoSetMTU(bool value) =>
-      _db.allSettings.update((s) => s.autoSetMTU = value);
+  Future<void> setPreferAstralAdapter(bool value) =>
+      _db.allSettings.update((s) => s.preferAstralAdapter = value);
 }
