@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
             .networkConfigState
             .enableEncryption
             .watch(context);
-        final reduceMotion = services.appSettingsState.reduceAnimationUpdates
+        final reduceMotion = services.appSettingsState.reduceTopologyAnimations
             .watch(context);
 
         // Establish reactive dependencies used by preference resolution.
