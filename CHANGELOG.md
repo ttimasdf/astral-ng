@@ -67,7 +67,9 @@ baseline.
   path, peer-connectivity, and Windows LAN-discovery controls. Connected state
   now reads “Mesh network connected” / “网络已连接,” and setup editing shares
   a responsive action row with Connect. Changes made during a connection are
-  staged until the user explicitly reconnects.
+  staged until the user explicitly reconnects. The pending-change notice now
+  stacks its explanation above a full-width Reconnect and apply action for
+  narrow layouts.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths, with distinct local-device, host, and relay
   icons; the detailed member list remains available, and node-detail values

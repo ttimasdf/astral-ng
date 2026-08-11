@@ -210,24 +210,31 @@ class MissionQuickControls extends StatelessWidget {
                   color: colorScheme.tertiaryContainer.withValues(alpha: .55),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.pending_actions_rounded,
-                      color: colorScheme.onTertiaryContainer,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        LocaleKeys.mission_reconnect_notice.tr(),
-                        style: TextStyle(
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.sync_problem_rounded,
                           color: colorScheme.onTertiaryContainer,
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            LocaleKeys.mission_reconnect_notice.tr(),
+                            style: TextStyle(
+                              color: colorScheme.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 12),
                     FilledButton.tonalIcon(
                       onPressed: () => unawaited(_reconnect()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: const Icon(Icons.sync_rounded),
                       label: Text(LocaleKeys.mission_reconnect_apply.tr()),
                     ),
                   ],

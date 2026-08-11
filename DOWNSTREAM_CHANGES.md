@@ -832,7 +832,9 @@ Replaces the card-based Home page with a responsive Mission Control view that
 integrates connection setup and actions, displays live peer/path/session
 summaries, and uses “Mesh network connected” / “网络已连接” for the connected
 hero title. Setup editing shares the Connect action row, using full, short, or
-icon-only labels as width requires. It exposes only three outcome-oriented controls: path priority,
+icon-only labels as width requires. Pending quick-control changes use a
+vertical notice with a sync-problem icon and a full-width apply action. It
+exposes only three outcome-oriented controls: path priority,
 adaptive mesh versus relay-only connectivity, and Windows LAN discovery.
 Per-room device overrides take precedence over room recommendations and global
 defaults. Changes made during a live connection are persisted for the next
