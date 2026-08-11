@@ -42,8 +42,12 @@ void main() {
       isFalse,
     );
     expect(
-      model.nodes.singleWhere((node) => node.id == 'peer_2').isRelay,
+      model.nodes.singleWhere((node) => node.id == 'peer_2').isTransit,
       isTrue,
+    );
+    expect(
+      model.nodes.singleWhere((node) => node.id == 'peer_2').isRelay,
+      isFalse,
     );
     expect(
       model.nodes.singleWhere((node) => node.id == 'peer_3').isRelay,
@@ -55,6 +59,37 @@ void main() {
       'peer_1::peer_2',
       'peer_2::peer_3',
     });
+  });
+
+  test('distinguishes relay identity from an endpoint forwarding a path', () {
+    final model = MeshConstellationModel.fromNetwork([
+      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
+      _node(peerId: 2, name: 'Endpoint', ip: '10.1.0.2', cost: 1),
+      _node(peerId: 3, name: 'PublicServer_Relay', ip: '10.1.0.3', cost: 1),
+      _node(
+        peerId: 4,
+        name: 'Forwarded target',
+        ip: '10.1.0.4',
+        cost: 2,
+        hops: const [
+          NodeHopStats(
+            peerId: 2,
+            targetIp: '10.1.0.2',
+            latencyMs: 12,
+            packetLoss: 0,
+            nodeName: 'Endpoint',
+          ),
+        ],
+      ),
+    ], localIp: '10.1.0.1');
+
+    final endpoint = model.nodes.singleWhere((node) => node.id == 'peer_2');
+    final relay = model.nodes.singleWhere((node) => node.id == 'peer_3');
+
+    expect(endpoint.isTransit, isTrue);
+    expect(endpoint.isRelay, isFalse);
+    expect(relay.isTransit, isFalse);
+    expect(relay.isRelay, isTrue);
   });
 
   test('layout gives all peers equal non-central placement', () {

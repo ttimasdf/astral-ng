@@ -838,8 +838,9 @@ session and shown as pending until the user explicitly reconnects.
 
 Replaces the hierarchical room topology editor with a default constellation
 that gives peers equal visual weight and draws only routes observed from the
-local device. Local devices, ordinary hosts, and relay/forwarding nodes use
-distinct icons and labels. The member list remains available as a secondary
+local device. Local devices, ordinary endpoints, and public relay servers use
+distinct icons and labels; an endpoint does not become a relay merely because
+it appears as an intermediate observed hop. The member list remains available as a secondary
 view. Room view settings and member-list details use synchronized English and
 Chinese strings; compact NAT badges show the reported technical NAT category
 instead of opaque quality grades. The old `vyuh_node_flow` implementation and

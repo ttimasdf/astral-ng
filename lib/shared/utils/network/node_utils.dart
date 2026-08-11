@@ -1,6 +1,10 @@
 import 'package:astral/src/rust/api/simple.dart';
 
-/// 判断节点是否为公共服务器节点。
-bool isServerNode(KVNodeInfo node) {
-  return node.hostname.startsWith('PublicServer_') || node.ipv4 == '0.0.0.0';
+/// Returns whether an identity represents an EasyTier public relay server.
+bool isServerIdentity(String hostname, String ipv4) {
+  return hostname.startsWith('PublicServer_') || ipv4 == '0.0.0.0';
 }
+
+/// Returns whether [node] represents an EasyTier public relay server.
+bool isServerNode(KVNodeInfo node) =>
+    isServerIdentity(node.hostname, node.ipv4);

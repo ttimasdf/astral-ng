@@ -11,6 +11,21 @@ void main() {
         _node(1, 'Local', '10.1.0.1', 0),
         _node(2, 'Peer', '10.1.0.2', 1),
         _node(3, 'PublicServer_Relay', '0.0.0.0', 1),
+        _node(
+          4,
+          'Forwarded target',
+          '10.1.0.4',
+          2,
+          hops: const [
+            NodeHopStats(
+              peerId: 2,
+              targetIp: '10.1.0.2',
+              latencyMs: 12,
+              packetLoss: 0,
+              nodeName: 'Peer',
+            ),
+          ],
+        ),
       ];
 
       await tester.pumpWidget(
@@ -18,22 +33,28 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(InkWell), findsNWidgets(3));
+      expect(find.byType(InkWell), findsNWidgets(4));
       expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.computer_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.computer_rounded), findsNWidgets(2));
       expect(find.byIcon(Icons.dns_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
 }
 
-KVNodeInfo _node(int peerId, String name, String ip, int cost) => KVNodeInfo(
+KVNodeInfo _node(
+  int peerId,
+  String name,
+  String ip,
+  int cost, {
+  List<NodeHopStats> hops = const [],
+}) => KVNodeInfo(
   peerId: peerId,
   hostname: name,
   ipv4: ip,
   latencyMs: 12,
   nat: '',
-  hops: const [],
+  hops: hops,
   lossRate: 0,
   connections: const [],
   tunnelProto: 'udp',
