@@ -64,8 +64,10 @@ baseline.
   views reliably, and exiting the Android engine closes its VPN service instead
   of leaving a stale system VPN indicator. ([#12])
 - Redesigned Home as Mission Control with live session summaries and per-room
-  path, peer-connectivity, and Windows LAN-discovery controls. Changes made
-  during a connection are staged until the user explicitly reconnects.
+  path, peer-connectivity, and Windows LAN-discovery controls. Connected state
+  now reads “Mesh network connected” / “网络已连接,” and setup editing shares
+  a responsive action row with Connect. Changes made during a connection are
+  staged until the user explicitly reconnects.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths, with distinct local-device, host, and relay
   icons; the detailed member list remains available. Constellation identities

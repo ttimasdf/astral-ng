@@ -258,26 +258,60 @@ class _MissionHero extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 22),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              const ConnectButton(),
-              OutlinedButton.icon(
-                onPressed:
-                    connectionState == CoState.idle
-                        ? () => MissionConnectionDialog.show(context)
-                        : null,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(LocaleKeys.mission_edit_setup.tr()),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(150, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final showFullEditLabel = wide;
+              final showShortEditLabel = wide || constraints.maxWidth >= 274;
+              final editButton =
+                  showShortEditLabel
+                      ? OutlinedButton.icon(
+                        onPressed:
+                            connectionState == CoState.idle
+                                ? () => MissionConnectionDialog.show(context)
+                                : null,
+                        icon: const Icon(Icons.edit_outlined),
+                        label: Text(
+                          showFullEditLabel
+                              ? LocaleKeys.mission_edit_setup.tr()
+                              : LocaleKeys.mission_edit_short.tr(),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size(showFullEditLabel ? 150 : 88, 52),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      )
+                      : Tooltip(
+                        message: LocaleKeys.mission_edit_setup.tr(),
+                        child: IconButton(
+                          onPressed:
+                              connectionState == CoState.idle
+                                  ? () => MissionConnectionDialog.show(context)
+                                  : null,
+                          icon: const Icon(Icons.edit_outlined),
+                          constraints: const BoxConstraints.tightFor(
+                            width: 52,
+                            height: 52,
+                          ),
+                          style: IconButton.styleFrom(
+                            side: BorderSide(color: colorScheme.outline),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      );
+
+              return Row(
+                children: [
+                  editButton,
+                  const SizedBox(width: 10),
+                  const Expanded(child: ConnectButton(expanded: true)),
+                ],
+              );
+            },
           ),
         ],
       ),
