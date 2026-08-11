@@ -104,9 +104,10 @@ class MeshConstellation extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder:
           (context) => SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -141,42 +142,90 @@ class MeshConstellation extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  if (node.ip.isNotEmpty)
-                    _Detail(
-                      icon: Icons.lan_outlined,
-                      label: LocaleKeys.virtual_network_ip.tr(),
-                      value: node.ip,
-                    ),
-                  if (!node.isLocal && node.latencyMs > 0)
-                    _Detail(
-                      icon: Icons.speed_rounded,
-                      label: LocaleKeys.mission_latency.tr(),
-                      value: '${node.latencyMs.round()} ms',
-                    ),
-                  if (!node.isLocal)
-                    _Detail(
-                      icon: Icons.network_check_rounded,
-                      label: LocaleKeys.rooms_packet_loss.tr(),
-                      value: '${node.lossRate.toStringAsFixed(1)}%',
-                    ),
-                  if (node.tunnelProtocol.isNotEmpty)
-                    _Detail(
-                      icon: Icons.route_outlined,
-                      label: LocaleKeys.rooms_transport.tr(),
-                      value: PeerConnectionStyle.formatTunnelProto(
-                        node.tunnelProtocol,
-                      ),
-                    ),
-                  if (node.nat.isNotEmpty)
-                    _Detail(
-                      icon: Icons.router_outlined,
-                      label: LocaleKeys.rooms_nat.tr(),
-                      value: node.nat,
-                    ),
+                  Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.top,
+                    columnWidths: const {
+                      0: FixedColumnWidth(28),
+                      1: IntrinsicColumnWidth(),
+                      2: FlexColumnWidth(),
+                    },
+                    children: [
+                      if (node.ip.isNotEmpty && !node.isRelay)
+                        _detailRow(
+                          colorScheme: colorScheme,
+                          icon: Icons.lan_outlined,
+                          label: LocaleKeys.virtual_network_ip.tr(),
+                          value: node.ip,
+                        ),
+                      if (!node.isLocal && node.latencyMs > 0)
+                        _detailRow(
+                          colorScheme: colorScheme,
+                          icon: Icons.speed_rounded,
+                          label: LocaleKeys.mission_latency.tr(),
+                          value: '${node.latencyMs.round()} ms',
+                        ),
+                      if (!node.isLocal)
+                        _detailRow(
+                          colorScheme: colorScheme,
+                          icon: Icons.network_check_rounded,
+                          label: LocaleKeys.rooms_packet_loss.tr(),
+                          value: '${node.lossRate.toStringAsFixed(1)}%',
+                        ),
+                      if (node.tunnelProtocol.isNotEmpty)
+                        _detailRow(
+                          colorScheme: colorScheme,
+                          icon: Icons.route_outlined,
+                          label: LocaleKeys.rooms_transport.tr(),
+                          value: PeerConnectionStyle.formatTunnelProto(
+                            node.tunnelProtocol,
+                          ),
+                        ),
+                      if (node.nat.isNotEmpty)
+                        _detailRow(
+                          colorScheme: colorScheme,
+                          icon: Icons.router_outlined,
+                          label: LocaleKeys.rooms_nat.tr(),
+                          value: node.nat,
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
+    );
+  }
+
+  TableRow _detailRow({
+    required ColorScheme colorScheme,
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    const verticalPadding = EdgeInsets.symmetric(vertical: 7);
+    return TableRow(
+      children: [
+        Padding(
+          padding: verticalPadding,
+          child: Icon(icon, size: 18, color: colorScheme.primary),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 7, 24, 7),
+          child: Text(
+            label,
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
+          ),
+        ),
+        Padding(
+          padding: verticalPadding,
+          child: Text(
+            value,
+            textAlign: TextAlign.start,
+            softWrap: true,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -205,7 +254,10 @@ class _ConstellationNode extends StatelessWidget {
               ? LocaleKeys.rooms_forwarding_peer.tr()
               : LocaleKeys.rooms_mesh_peer.tr()}',
       child: Tooltip(
-        message: node.ip.isEmpty ? node.name : '${node.name}\n${node.ip}',
+        message:
+            node.ip.isEmpty || node.isRelay
+                ? node.name
+                : '${node.name}\n${node.ip}',
         child: InkWell(
           onTap: onTap,
           customBorder: const CircleBorder(),
@@ -388,36 +440,4 @@ class _ConstellationPainter extends CustomPainter {
       oldDelegate.positions != positions ||
       oldDelegate.edges != edges ||
       oldDelegate.colorScheme != colorScheme;
-}
-
-class _Detail extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _Detail({required this.icon, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: colorScheme.primary),
-          const SizedBox(width: 10),
-          Text(label, style: TextStyle(color: colorScheme.onSurfaceVariant)),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

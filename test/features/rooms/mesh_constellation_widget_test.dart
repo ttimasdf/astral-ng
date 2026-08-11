@@ -40,6 +40,43 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('detail values align and scroll in a short viewport', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 240);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MeshConstellation(
+          nodes: [
+            _node(1, 'Local', '10.1.0.1', 0),
+            _node(2, 'PublicServer_Relay', '0.0.0.0', 1),
+            _node(3, 'Peer', '10.1.0.3', 1, nat: 'Restricted'),
+          ],
+          localIp: '10.1.0.1',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.computer_rounded));
+    await tester.pumpAndSettle();
+
+    final values = ['10.1.0.3', '12 ms', '0.0%', 'udp4'];
+    final leftEdges = [
+      for (final value in values) tester.getTopLeft(find.text(value)).dx,
+    ];
+
+    for (final leftEdge in leftEdges.skip(1)) {
+      expect(leftEdge, moreOrLessEquals(leftEdges.first, epsilon: .1));
+    }
+    expect(find.text('0.0.0.0'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 KVNodeInfo _node(
@@ -48,12 +85,13 @@ KVNodeInfo _node(
   String ip,
   int cost, {
   List<NodeHopStats> hops = const [],
+  String nat = '',
 }) => KVNodeInfo(
   peerId: peerId,
   hostname: name,
   ipv4: ip,
   latencyMs: 12,
-  nat: '',
+  nat: nat,
   hops: hops,
   lossRate: 0,
   connections: const [],

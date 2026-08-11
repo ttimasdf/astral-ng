@@ -70,8 +70,9 @@ baseline.
   staged until the user explicitly reconnects.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths, with distinct local-device, host, and relay
-  icons; the detailed member list remains available. Constellation identities
-  and paths now preserve the same direct and forwarded peers reported by the
+  icons; the detailed member list remains available, and node-detail values
+  use a consistent left-aligned content column. Constellation identities and
+  paths now preserve the same direct and forwarded peers reported by the
   member list. Room view settings, member-list details, connection and NAT
   labels, and the Tools destination are
   now localized in English and Chinese. ([#13])

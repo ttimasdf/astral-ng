@@ -845,6 +845,7 @@ distinct icons and labels; an endpoint does not become a relay merely because
 it appears as an intermediate observed hop. Virtual IPv4 identities prevent
 the synthetic local status row from colliding with a remote peer ID, while the
 reported route cost remains authoritative for direct versus forwarded status.
+Node-detail sheets use a stable label column and left-aligned value column.
 The member list remains available as a secondary view. Room view settings and member-list details use synchronized English and
 Chinese strings; compact NAT badges show the reported technical NAT category
 instead of opaque quality grades. The old `vyuh_node_flow` implementation and
