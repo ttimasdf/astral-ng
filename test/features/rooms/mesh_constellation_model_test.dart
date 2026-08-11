@@ -38,26 +38,22 @@ void main() {
 
     expect(model.nodes, hasLength(3));
     expect(
-      model.nodes.singleWhere((node) => node.id == 'peer_1').isRelay,
+      model.nodes.singleWhere((node) => node.ip == '10.1.0.1').isRelay,
       isFalse,
     );
     expect(
-      model.nodes.singleWhere((node) => node.id == 'peer_2').isTransit,
-      isTrue,
-    );
-    expect(
-      model.nodes.singleWhere((node) => node.id == 'peer_2').isRelay,
+      model.nodes.singleWhere((node) => node.ip == '10.1.0.2').isRelay,
       isFalse,
     );
     expect(
-      model.nodes.singleWhere((node) => node.id == 'peer_3').isRelay,
+      model.nodes.singleWhere((node) => node.ip == '10.1.0.3').isRelay,
       isFalse,
     );
     expect(model.directPeerCount, 1);
     expect(model.forwardedPeerCount, 1);
     expect(model.edges.map((edge) => edge.key).toSet(), {
-      'peer_1::peer_2',
-      'peer_2::peer_3',
+      'ip_10.1.0.1::ip_10.1.0.2',
+      'ip_10.1.0.2::ip_10.1.0.3',
     });
   });
 
@@ -83,14 +79,81 @@ void main() {
       ),
     ], localIp: '10.1.0.1');
 
-    final endpoint = model.nodes.singleWhere((node) => node.id == 'peer_2');
-    final relay = model.nodes.singleWhere((node) => node.id == 'peer_3');
+    final endpoint = model.nodes.singleWhere((node) => node.ip == '10.1.0.2');
+    final relay = model.nodes.singleWhere((node) => node.ip == '10.1.0.3');
 
-    expect(endpoint.isTransit, isTrue);
     expect(endpoint.isRelay, isFalse);
-    expect(relay.isTransit, isFalse);
     expect(relay.isRelay, isTrue);
   });
+
+  test(
+    'preserves direct peer and forwarded route when local peer ID collides',
+    () {
+      final local = _node(peerId: 2, name: 'Local', ip: '10.1.0.1', cost: 0);
+      final direct = _node(
+        peerId: 2,
+        name: 'Direct',
+        ip: '10.1.0.2',
+        cost: 1,
+        latency: 12,
+      );
+      final relayed = _node(
+        peerId: 3,
+        name: 'Relayed',
+        ip: '10.1.0.3',
+        cost: 2,
+        latency: 28,
+        hops: const [
+          NodeHopStats(
+            peerId: 2,
+            targetIp: '10.1.0.1',
+            latencyMs: 0,
+            packetLoss: 0,
+            nodeName: 'Local',
+          ),
+          NodeHopStats(
+            peerId: 2,
+            targetIp: '10.1.0.2',
+            latencyMs: 12,
+            packetLoss: 0,
+            nodeName: 'Direct',
+          ),
+          NodeHopStats(
+            peerId: 3,
+            targetIp: '10.1.0.3',
+            latencyMs: 28,
+            packetLoss: 0,
+            nodeName: 'Relayed',
+          ),
+        ],
+      );
+
+      final model = MeshConstellationModel.fromNetwork([
+        direct,
+        relayed,
+        local,
+      ], localIp: local.ipv4);
+
+      expect(model.nodes, hasLength(3));
+      expect(model.nodes.map((node) => node.ip), contains(direct.ipv4));
+      expect(model.edges.map((edge) => edge.key).toSet(), {
+        'ip_10.1.0.1::ip_10.1.0.2',
+        'ip_10.1.0.2::ip_10.1.0.3',
+      });
+      expect(
+        model.edges
+            .singleWhere((edge) => edge.key == 'ip_10.1.0.1::ip_10.1.0.2')
+            .forwarded,
+        isFalse,
+      );
+      expect(
+        model.edges
+            .singleWhere((edge) => edge.key == 'ip_10.1.0.2::ip_10.1.0.3')
+            .forwarded,
+        isTrue,
+      );
+    },
+  );
 
   test('layout gives all peers equal non-central placement', () {
     final model = MeshConstellationModel.fromNetwork([

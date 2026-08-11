@@ -820,7 +820,7 @@ loss and recovery, and teardown.
 
 ## [mission-control-home]: Replace Home and room topology with mesh-native views
 
-- **Scope**: `lib/features/home/`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation*`, `lib/features/servers/widgets/server_list_tile.dart`, `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/core/models/mission_control_preferences.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/states/`, `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `assets/translations/`, `pubspec.yaml`
+- **Scope**: `lib/features/home/`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation*`, `lib/features/servers/widgets/server_list_tile.dart`, `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/core/models/mission_control_preferences.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/states/`, `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`, `assets/translations/`, `pubspec.yaml`
 - **Type**: override
 - **Status**: active
 - **Introduced**: mission-control-home
@@ -840,8 +840,10 @@ Replaces the hierarchical room topology editor with a default constellation
 that gives peers equal visual weight and draws only routes observed from the
 local device. Local devices, ordinary endpoints, and public relay servers use
 distinct icons and labels; an endpoint does not become a relay merely because
-it appears as an intermediate observed hop. The member list remains available as a secondary
-view. Room view settings and member-list details use synchronized English and
+it appears as an intermediate observed hop. Virtual IPv4 identities prevent
+the synthetic local status row from colliding with a remote peer ID, while the
+reported route cost remains authoritative for direct versus forwarded status.
+The member list remains available as a secondary view. Room view settings and member-list details use synchronized English and
 Chinese strings; compact NAT badges show the reported technical NAT category
 instead of opaque quality grades. The old `vyuh_node_flow` implementation and
 dependency are removed.
@@ -856,7 +858,8 @@ remain unchanged.
 - `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, mesh summary, integrated connection action, staged quick controls, and session details
 - `lib/core/models/mission_control_preferences.dart`, `lib/core/states/mission_control_state.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/models/all_settings.dart`: preference precedence and persisted device-local room overrides
 - `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
-- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`: default non-hierarchical constellation, localized secondary list view and room-view controls, and technical NAT labels
+- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`: default non-hierarchical constellation, collision-safe route projection, localized secondary list view and room-view controls, and technical NAT labels
+- `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: derive the synthetic local status row from each connection's local peer ID rather than borrowing a remote peer ID
 - `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
 - `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/features/servers/widgets/server_list_tile.dart`: reorder the Relay destination and update desktop relay interactions
 - `assets/translations/en.json`, `assets/translations/zh.json`, `lib/generated/locale_keys.g.dart`: English and Chinese Mission Control, Relay, Tools, constellation, room-view settings, and member-list strings

@@ -68,8 +68,10 @@ baseline.
   during a connection are staged until the user explicitly reconnects.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths, with distinct local-device, host, and relay
-  icons; the detailed member list remains available. Room view settings,
-  member-list details, connection and NAT labels, and the Tools destination are
+  icons; the detailed member list remains available. Constellation identities
+  and paths now preserve the same direct and forwarded peers reported by the
+  member list. Room view settings, member-list details, connection and NAT
+  labels, and the Tools destination are
   now localized in English and Chinese. ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.

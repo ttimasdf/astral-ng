@@ -9,7 +9,6 @@ class MeshConstellationNode {
   final String name;
   final String ip;
   final bool isLocal;
-  final bool isTransit;
   final bool isRelay;
   final double latencyMs;
   final double lossRate;
@@ -22,7 +21,6 @@ class MeshConstellationNode {
     required this.name,
     required this.ip,
     required this.isLocal,
-    required this.isTransit,
     required this.isRelay,
     required this.latencyMs,
     required this.lossRate,
@@ -66,22 +64,21 @@ class MeshConstellationModel {
     final nodes = <String, MeshConstellationNode>{};
     final idsByPeer = <int, String>{};
     final idsByIp = <String, String>{};
-    final transitIds = <String>{
-      for (final node in networkNodes)
-        for (final hop in node.hops)
-          _nodeId(hop.peerId, hop.targetIp, hop.nodeName),
-    };
 
     for (final node in networkNodes) {
       final id = _nodeId(node.peerId, node.ipv4, node.hostname);
-      idsByPeer[node.peerId] = id;
-      if (node.ipv4.isNotEmpty) idsByIp[node.ipv4] = id;
+      final isLocal = localIp.isNotEmpty && node.ipv4 == localIp;
+      // The Rust status adapter currently synthesizes the local row from a
+      // remote connection and can therefore reuse that remote peer ID. Keep
+      // virtual IP as the primary identity and never let the synthetic local
+      // peer ID overwrite a remote route lookup.
+      if (!isLocal && node.peerId > 0) idsByPeer[node.peerId] = id;
+      if (_hasUniqueVirtualIp(node.ipv4)) idsByIp[node.ipv4] = id;
       nodes[id] = MeshConstellationNode(
         id: id,
         name: _displayName(node.hostname),
         ip: node.ipv4,
-        isLocal: localIp.isNotEmpty && node.ipv4 == localIp,
-        isTransit: transitIds.contains(id),
+        isLocal: isLocal,
         isRelay: isServerNode(node),
         latencyMs: node.latencyMs,
         lossRate: node.lossRate,
@@ -122,8 +119,8 @@ class MeshConstellationModel {
         final forwarded = networkNode.hops.isNotEmpty || networkNode.cost >= 2;
         for (final hop in networkNode.hops) {
           final hopId =
-              idsByPeer[hop.peerId] ??
               idsByIp[hop.targetIp] ??
+              idsByPeer[hop.peerId] ??
               _nodeId(hop.peerId, hop.targetIp, hop.nodeName);
           nodes.putIfAbsent(
             hopId,
@@ -134,7 +131,6 @@ class MeshConstellationModel {
               ),
               ip: hop.targetIp,
               isLocal: false,
-              isTransit: true,
               isRelay: isServerIdentity(hop.nodeName, hop.targetIp),
               latencyMs: hop.latencyMs,
               lossRate: hop.packetLoss,
@@ -208,10 +204,12 @@ Map<String, Offset> layoutMeshConstellation(
 }
 
 String _nodeId(int peerId, String ip, String name) {
+  if (_hasUniqueVirtualIp(ip)) return 'ip_$ip';
   if (peerId > 0) return 'peer_$peerId';
-  if (ip.isNotEmpty) return 'ip_$ip';
   return 'name_$name';
 }
+
+bool _hasUniqueVirtualIp(String ip) => ip.isNotEmpty && ip != '0.0.0.0';
 
 String _displayName(String raw) =>
     raw.startsWith('PublicServer_')
