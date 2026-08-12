@@ -1,6 +1,7 @@
 import 'package:astral/core/models/mission_control_preferences.dart';
 import 'package:astral/core/models/room.dart';
 import 'package:astral/core/states/connection_state.dart';
+import 'package:astral/features/home/widgets/connect_button.dart';
 import 'package:astral/features/home/widgets/mission_control_dashboard.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,10 @@ void main() {
           ),
           home: Scaffold(
             body: MissionControlDashboard(
-              connectionState: CoState.idle,
+              connectionState:
+                  size == const Size(900, 900)
+                      ? CoState.connecting
+                      : CoState.idle,
               networkStatus: null,
               room: room,
               username: 'Alex',
@@ -61,6 +65,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       expect(tester.takeException(), isNull);
+      if (size == const Size(900, 900)) {
+        final progress = tester.getSize(find.byType(LinearProgressIndicator));
+        final connect = tester.getSize(find.byType(ConnectButton));
+        expect(progress.width, greaterThan(connect.width));
+      }
       if (size == const Size(390, 844)) {
         expect(find.text(LocaleKeys.mission_edit_short), findsOneWidget);
       }

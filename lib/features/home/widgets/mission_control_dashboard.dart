@@ -304,11 +304,32 @@ class _MissionHero extends StatelessWidget {
                         ),
                       );
 
-              return Row(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  editButton,
-                  const SizedBox(width: 10),
-                  const Expanded(child: ConnectButton(expanded: true)),
+                  if (connectionState == CoState.connecting) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        minHeight: 3,
+                        color: colorScheme.tertiary,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  Row(
+                    children: [
+                      editButton,
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: ConnectButton(
+                          expanded: true,
+                          showProgress: false,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               );
             },

@@ -14,8 +14,13 @@ import 'package:signals_flutter/signals_flutter.dart';
 /// Primary connection action embedded in the Mission Control hero.
 class ConnectButton extends StatelessWidget {
   final bool expanded;
+  final bool showProgress;
 
-  const ConnectButton({super.key, this.expanded = false});
+  const ConnectButton({
+    super.key,
+    this.expanded = false,
+    this.showProgress = true,
+  });
 
   Future<void> _showRoomSelectionPrompt(BuildContext context) async {
     await showDialog<void>(
@@ -162,7 +167,7 @@ class ConnectButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (state == CoState.connecting) ...[
+          if (showProgress && state == CoState.connecting) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(2),
               child: LinearProgressIndicator(

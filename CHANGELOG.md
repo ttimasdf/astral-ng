@@ -69,7 +69,8 @@ baseline.
   a responsive action row with Connect. Changes made during a connection are
   staged until the user explicitly reconnects. The pending-change notice now
   stacks its explanation above a full-width Reconnect and apply action for
-  narrow layouts.
+  narrow layouts. During connection, the progress bar spans the complete Edit
+  and Connect action row.
 - Replaced the room topology graph with a default, non-hierarchical mesh
   constellation of observed paths, with distinct local-device, host, and relay
   icons; the detailed member list remains available, and node-detail values
