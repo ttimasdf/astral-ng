@@ -71,14 +71,15 @@ baseline.
   stacks its explanation above a full-width Reconnect and apply action for
   narrow layouts. During connection, the progress bar spans the complete Edit
   and Connect action row.
-- Replaced the room topology graph with a default, non-hierarchical mesh
-  constellation of observed paths, with distinct local-device, host, and relay
-  icons; the detailed member list remains available, and node-detail values
-  use a consistent left-aligned content column. Constellation identities and
-  paths now preserve the same direct and forwarded peers reported by the
-  member list. Room view settings, member-list details, connection and NAT
-  labels, and the Tools destination are
-  now localized in English and Chinese. ([#13])
+- Replaced the room topology graph with a stable, animated constellation of
+  observed paths. Room peers receive deterministic emoji identities derived
+  from username and virtual IP, relay servers retain a server glyph, direct
+  links are solid, and forwarded links are dashed. Home uses a simplified
+  endpoint-only version, while Rooms keeps complete relay paths. Node-detail
+  values use a consistent left-aligned content column, and the member list
+  remains available. Room view settings, member-list details, connection and
+  NAT labels, and the Tools destination are localized in English and Chinese.
+  ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary

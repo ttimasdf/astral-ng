@@ -5,17 +5,20 @@ import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// A stable, non-hierarchical view of routes observed by this device.
 class MeshConstellation extends StatelessWidget {
   final List<KVNodeInfo> nodes;
   final String localIp;
+  final bool reduceMotion;
 
   const MeshConstellation({
     super.key,
     required this.nodes,
     required this.localIp,
+    this.reduceMotion = false,
   });
 
   @override
@@ -45,25 +48,15 @@ class MeshConstellation extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: CustomPaint(
-                    painter: _ConstellationPainter(
-                      positions: positions,
-                      edges: model.edges,
-                      colorScheme: colorScheme,
-                    ),
+                  child: _AnimatedConstellationScene(
+                    model: model,
+                    positions: positions,
+                    dense: dense,
+                    reduceMotion: reduceMotion,
+                    colorScheme: colorScheme,
+                    onNodeTap: (node) => _showNodeDetails(context, node),
                   ),
                 ),
-                for (final node in model.nodes)
-                  if (positions[node.id] case final position?)
-                    Positioned(
-                      left: position.dx - (dense ? 24 : 31),
-                      top: position.dy - (dense ? 24 : 31),
-                      child: _ConstellationNode(
-                        node: node,
-                        dense: dense,
-                        onTap: () => _showNodeDetails(context, node),
-                      ),
-                    ),
                 Positioned(
                   left: compact ? 10 : 16,
                   top: compact ? 10 : 16,
@@ -230,6 +223,141 @@ class MeshConstellation extends StatelessWidget {
   }
 }
 
+class _AnimatedConstellationScene extends StatefulWidget {
+  final MeshConstellationModel model;
+  final Map<String, Offset> positions;
+  final bool dense;
+  final bool reduceMotion;
+  final ColorScheme colorScheme;
+  final ValueChanged<MeshConstellationNode> onNodeTap;
+
+  const _AnimatedConstellationScene({
+    required this.model,
+    required this.positions,
+    required this.dense,
+    required this.reduceMotion,
+    required this.colorScheme,
+    required this.onNodeTap,
+  });
+
+  @override
+  State<_AnimatedConstellationScene> createState() =>
+      _AnimatedConstellationSceneState();
+}
+
+class _AnimatedConstellationSceneState
+    extends State<_AnimatedConstellationScene>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  Map<String, Offset> _from = const {};
+  Map<String, Offset> _to = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _to = widget.positions;
+    _from = {
+      for (final entry in _to.entries) entry.key: _spawnPosition(entry.key),
+    };
+    if (widget.reduceMotion) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedConstellationScene oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (mapEquals(oldWidget.positions, widget.positions)) return;
+    final current = _interpolatedPositions();
+    _from = {
+      for (final entry in widget.positions.entries)
+        entry.key: current[entry.key] ?? _spawnPosition(entry.key),
+    };
+    _to = widget.positions;
+    if (widget.reduceMotion) {
+      _controller.value = 1;
+    } else {
+      _controller.forward(from: 0);
+    }
+  }
+
+  Offset _spawnPosition(String id) {
+    for (final edge in widget.model.edges) {
+      final next = _to[edge.b];
+      if (edge.a == id && next != null) return next;
+      final previous = _to[edge.a];
+      if (edge.b == id && previous != null) return previous;
+    }
+    final local = widget.model.nodes.where((node) => node.isLocal).firstOrNull;
+    return local == null ? Offset.zero : _to[local.id] ?? Offset.zero;
+  }
+
+  Map<String, Offset> _interpolatedPositions() {
+    final progress = Curves.easeOutCubic.transform(_controller.value);
+    return {
+      for (final entry in _to.entries)
+        entry.key:
+            Offset.lerp(
+              _from[entry.key] ?? entry.value,
+              entry.value,
+              progress,
+            )!,
+    };
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final positions = _interpolatedPositions();
+        final nodeSize = widget.dense ? 48.0 : 62.0;
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _ConstellationPainter(
+                  positions: positions,
+                  edges: widget.model.edges,
+                  colorScheme: widget.colorScheme,
+                ),
+              ),
+            ),
+            for (final node in widget.model.nodes)
+              if (positions[node.id] case final position?)
+                Positioned(
+                  key: ValueKey('position-${node.id}'),
+                  left: position.dx - nodeSize / 2,
+                  top: position.dy - nodeSize / 2,
+                  child: GestureDetector(
+                    key: ValueKey(node.id),
+                    onTap: () => widget.onNodeTap(node),
+                    child: _ConstellationNode(
+                      node: node,
+                      dense: widget.dense,
+                      onTap: () => widget.onNodeTap(node),
+                    ),
+                  ),
+                ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _ConstellationNode extends StatelessWidget {
   final MeshConstellationNode node;
   final bool dense;
@@ -334,15 +462,10 @@ class _NodeGlyph extends StatelessWidget {
                 ]
                 : null,
       ),
-      child: Icon(
-        node.isLocal
-            ? Icons.my_location_rounded
-            : node.isRelay
-            ? Icons.dns_rounded
-            : Icons.computer_rounded,
-        size: node.isRelay ? size * .36 : size * .32,
-        color: color,
-      ),
+      child:
+          node.isRelay
+              ? Icon(Icons.dns_rounded, size: size * .36, color: color)
+              : Text(node.emoji, style: TextStyle(fontSize: size * .34)),
     );
   }
 }
@@ -418,19 +541,34 @@ class _ConstellationPainter extends CustomPainter {
       final start = positions[edge.a];
       final end = positions[edge.b];
       if (start == null || end == null) continue;
-      final color = edge.forwarded ? colorScheme.tertiary : colorScheme.primary;
       final paint =
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = edge.forwarded ? 1.25 : 1.7
-            ..color = color.withValues(alpha: .52);
-      canvas.drawLine(start, end, paint);
+            ..strokeWidth = 1.6
+            ..color = colorScheme.onSurfaceVariant.withValues(alpha: .52);
+      if (edge.forwarded) {
+        _drawDashedLine(canvas, start, end, paint);
+      } else {
+        canvas.drawLine(start, end, paint);
+      }
+    }
+  }
 
-      final midpoint = Offset.lerp(start, end, .5)!;
-      canvas.drawCircle(
-        midpoint,
-        2,
-        Paint()..color = color.withValues(alpha: .85),
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final distance = (end - start).distance;
+    final direction = (end - start) / distance;
+    const dashLength = 7.0;
+    const gapLength = 5.0;
+    for (
+      var offset = 0.0;
+      offset < distance;
+      offset += dashLength + gapLength
+    ) {
+      final dashEnd = math.min(offset + dashLength, distance);
+      canvas.drawLine(
+        start + direction * offset,
+        start + direction * dashEnd,
+        paint,
       );
     }
   }

@@ -155,7 +155,60 @@ void main() {
     },
   );
 
-  test('layout gives all peers equal non-central placement', () {
+  test('stable peers keep positions when another peer joins', () {
+    final baseModel = MeshConstellationModel.fromNetwork([
+      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
+      _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
+      _node(peerId: 3, name: 'B', ip: '10.1.0.3', cost: 2),
+    ], localIp: '10.1.0.1');
+    final expandedModel = MeshConstellationModel.fromNetwork([
+      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
+      _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
+      _node(peerId: 3, name: 'B', ip: '10.1.0.3', cost: 2),
+      _node(peerId: 4, name: 'C', ip: '10.1.0.4', cost: 1),
+    ], localIp: '10.1.0.1');
+    const size = Size(800, 500);
+    final before = layoutMeshConstellation(baseModel.nodes, size, margin: 60);
+    final after = layoutMeshConstellation(
+      expandedModel.nodes,
+      size,
+      margin: 60,
+    );
+
+    for (final id in before.keys) {
+      expect(after[id], before[id]);
+    }
+  });
+
+  test('layout resolves collisions between hashed ring slots', () {
+    final model = MeshConstellationModel.fromNetwork([
+      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
+      for (var id = 2; id <= 17; id++)
+        _node(
+          peerId: id,
+          name: 'Peer $id',
+          ip: '10.1.0.$id',
+          cost: id.isEven ? 1 : 2,
+        ),
+    ], localIp: '10.1.0.1');
+    final positions =
+        layoutMeshConstellation(
+          model.nodes,
+          const Size(800, 500),
+          margin: 60,
+        ).values.toList();
+
+    for (var first = 0; first < positions.length; first++) {
+      for (var second = first + 1; second < positions.length; second++) {
+        expect(
+          (positions[first] - positions[second]).distance,
+          greaterThanOrEqualTo(54),
+        );
+      }
+    }
+  });
+
+  test('layout centers local and organizes peers into role rings', () {
     final model = MeshConstellationModel.fromNetwork([
       _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
       _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
@@ -167,7 +220,7 @@ void main() {
     final local = model.nodes.singleWhere((node) => node.isLocal);
 
     expect(positions, hasLength(model.nodes.length));
-    expect(positions[local.id], isNot(size.center(Offset.zero)));
+    expect(positions[local.id], size.center(Offset.zero));
     for (final position in positions.values) {
       expect(position.dx, inInclusiveRange(60, 740));
       expect(position.dy, inInclusiveRange(60, 440));

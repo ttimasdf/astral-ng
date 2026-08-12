@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
 import 'package:astral/shared/utils/network/node_utils.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ class MeshConstellationNode {
   final String ip;
   final bool isLocal;
   final bool isRelay;
+  final String emoji;
   final double latencyMs;
   final double lossRate;
   final int cost;
@@ -22,6 +24,7 @@ class MeshConstellationNode {
     required this.ip,
     required this.isLocal,
     required this.isRelay,
+    required this.emoji,
     required this.latencyMs,
     required this.lossRate,
     required this.cost,
@@ -80,6 +83,7 @@ class MeshConstellationModel {
         ip: node.ipv4,
         isLocal: isLocal,
         isRelay: isServerNode(node),
+        emoji: MeshPeerIdentity.emojiForNode(node),
         latencyMs: node.latencyMs,
         lossRate: node.lossRate,
         cost: node.cost,
@@ -115,8 +119,12 @@ class MeshConstellationModel {
           forwardedPeers++;
         }
 
-        var previous = localId;
-        final forwarded = networkNode.hops.isNotEmpty || networkNode.cost >= 2;
+        if (networkNode.cost == 1) {
+          _addEdge(edges, localId, targetId, forwarded: false);
+          continue;
+        }
+
+        final route = <String>[];
         for (final hop in networkNode.hops) {
           final hopId =
               idsByIp[hop.targetIp] ??
@@ -132,6 +140,10 @@ class MeshConstellationModel {
               ip: hop.targetIp,
               isLocal: false,
               isRelay: isServerIdentity(hop.nodeName, hop.targetIp),
+              emoji: MeshPeerIdentity.emojiFor(
+                username: hop.nodeName,
+                ip: hop.targetIp,
+              ),
               latencyMs: hop.latencyMs,
               lossRate: hop.packetLoss,
               cost: 0,
@@ -139,10 +151,22 @@ class MeshConstellationModel {
               nat: '',
             ),
           );
-          _addEdge(edges, previous, hopId, forwarded: true);
-          previous = hopId;
+          if (hopId != localId && hopId != targetId && !route.contains(hopId)) {
+            route.add(hopId);
+          }
         }
-        _addEdge(edges, previous, targetId, forwarded: forwarded);
+        route.add(targetId);
+
+        var previous = localId;
+        for (var index = 0; index < route.length; index++) {
+          _addEdge(
+            edges,
+            previous,
+            route[index],
+            forwarded: index > 0 || route.length == 1,
+          );
+          previous = route[index];
+        }
       }
     }
 
@@ -184,23 +208,98 @@ Map<String, Offset> layoutMeshConstellation(
   final usableWidth = math.max(0, size.width - margin * 2);
   final usableHeight = math.max(0, size.height - margin * 2);
   final center = Offset(size.width / 2, size.height / 2);
-  if (nodes.length == 1) return {nodes.first.id: center};
-
-  final goldenAngle = math.pi * (3 - math.sqrt(5));
-  final maxX = usableWidth / 2;
-  final maxY = usableHeight / 2;
   final result = <String, Offset>{};
 
-  for (var i = 0; i < nodes.length; i++) {
-    final normalizedRadius = math.sqrt((i + .65) / nodes.length);
-    final seed = (_stableHash(nodes[i].id) % 360) * math.pi / 180;
-    final angle = i * goldenAngle + seed * .18;
-    result[nodes[i].id] = Offset(
-      center.dx + math.cos(angle) * maxX * normalizedRadius,
-      center.dy + math.sin(angle) * maxY * normalizedRadius,
-    );
-  }
+  final local = nodes.where((node) => node.isLocal).firstOrNull;
+  if (local != null) result[local.id] = center;
+
+  final relays = nodes.where((node) => node.isRelay && !node.isLocal).toList();
+  final direct =
+      nodes
+          .where((node) => !node.isLocal && !node.isRelay && node.cost == 1)
+          .toList();
+  final forwarded =
+      nodes
+          .where((node) => !node.isLocal && !node.isRelay && node.cost >= 2)
+          .toList();
+  final unknown =
+      nodes
+          .where((node) => !node.isLocal && !node.isRelay && node.cost <= 0)
+          .toList();
+
+  _placeRing(
+    relays,
+    result,
+    center: center,
+    radiusX: usableWidth * .24,
+    radiusY: usableHeight * .22,
+  );
+  _placeRing(
+    direct,
+    result,
+    center: center,
+    radiusX: usableWidth * .40,
+    radiusY: usableHeight * .38,
+  );
+  _placeRing(
+    forwarded,
+    result,
+    center: center,
+    radiusX: usableWidth * .48,
+    radiusY: usableHeight * .47,
+  );
+  _placeRing(
+    unknown,
+    result,
+    center: center,
+    radiusX: usableWidth * .44,
+    radiusY: usableHeight * .43,
+  );
   return result;
+}
+
+void _placeRing(
+  List<MeshConstellationNode> nodes,
+  Map<String, Offset> result, {
+  required Offset center,
+  required double radiusX,
+  required double radiusY,
+}) {
+  if (nodes.isEmpty) return;
+  const slotCount = 48;
+  const trackCount = 3;
+  const minimumDistance = 54.0;
+  final ordered = [...nodes]..sort((a, b) {
+    final hashOrder = _stableHash(a.id).compareTo(_stableHash(b.id));
+    return hashOrder != 0 ? hashOrder : a.id.compareTo(b.id);
+  });
+
+  for (final node in ordered) {
+    final hash = _stableHash(node.id);
+    final initialSlot = hash % slotCount;
+    final initialTrack = (hash ~/ slotCount) % trackCount;
+    Offset? fallback;
+
+    for (var attempt = 0; attempt < slotCount * trackCount; attempt++) {
+      final slot = (initialSlot + attempt) % slotCount;
+      final track = (initialTrack + attempt ~/ slotCount) % trackCount;
+      final radiusFactor = .86 + track * .07;
+      final angle = -math.pi / 2 + slot * math.pi * 2 / slotCount;
+      final candidate = Offset(
+        center.dx + math.cos(angle) * radiusX * radiusFactor,
+        center.dy + math.sin(angle) * radiusY * radiusFactor,
+      );
+      fallback ??= candidate;
+      if (result.values.every(
+        (position) => (position - candidate).distance >= minimumDistance,
+      )) {
+        result[node.id] = candidate;
+        break;
+      }
+    }
+
+    result.putIfAbsent(node.id, () => fallback!);
+  }
 }
 
 String _nodeId(int peerId, String ip, String name) {

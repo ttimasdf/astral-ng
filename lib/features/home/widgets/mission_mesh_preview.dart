@@ -1,79 +1,69 @@
 import 'dart:math' as math;
 
+import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
+import 'package:astral/shared/utils/network/node_utils.dart';
+import 'package:astral/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
 
-/// A deliberately non-hierarchical mesh glimpse for the Home hero.
-class MissionMeshPreview extends StatefulWidget {
-  final int peerCount;
-  final int directCount;
+List<KVNodeInfo> projectMissionMeshEndpoints(
+  List<KVNodeInfo> nodes, {
+  required String localIp,
+}) => nodes
+    .where(
+      (node) => node.ipv4 != localIp && !isServerNode(node) && node.cost > 0,
+    )
+    .toList(growable: false);
+
+/// A simplified endpoint overview for Home.
+///
+/// Relay servers are intentionally omitted. Each room peer is projected from
+/// the local node using a solid direct line or a dashed forwarded line.
+class MissionMeshPreview extends StatelessWidget {
+  final List<KVNodeInfo> nodes;
+  final String username;
+  final String localIp;
   final bool connected;
   final bool connecting;
   final bool reduceMotion;
 
   const MissionMeshPreview({
     super.key,
-    required this.peerCount,
-    required this.directCount,
+    required this.nodes,
+    required this.username,
+    required this.localIp,
     required this.connected,
     required this.connecting,
     required this.reduceMotion,
   });
 
   @override
-  State<MissionMeshPreview> createState() => _MissionMeshPreviewState();
-}
-
-class _MissionMeshPreviewState extends State<MissionMeshPreview>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    );
-    _syncAnimation();
-  }
-
-  @override
-  void didUpdateWidget(MissionMeshPreview oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _syncAnimation();
-  }
-
-  void _syncAnimation() {
-    final shouldAnimate =
-        !widget.reduceMotion && (widget.connected || widget.connecting);
-    if (shouldAnimate && !_controller.isAnimating) {
-      _controller.repeat();
-    } else if (!shouldAnimate && _controller.isAnimating) {
-      _controller.stop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final peers =
+        connected
+            ? projectMissionMeshEndpoints(nodes, localIp: localIp)
+            : const <KVNodeInfo>[];
+    final local = nodes.where((node) => node.ipv4 == localIp).firstOrNull;
+    final localEmoji =
+        local == null
+            ? MeshPeerIdentity.emojiFor(username: username, ip: localIp)
+            : MeshPeerIdentity.emojiForNode(local);
+
     return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _controller,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
         builder:
-            (context, _) => CustomPaint(
+            (context, progress, _) => CustomPaint(
               painter: _MissionMeshPainter(
                 colorScheme: colorScheme,
-                peerCount: widget.peerCount,
-                directCount: widget.directCount,
-                connected: widget.connected,
-                connecting: widget.connecting,
-                phase: _controller.value,
+                peers: peers,
+                localEmoji: localEmoji,
+                connected: connected,
+                connecting: connecting,
+                progress: progress,
               ),
               child: const SizedBox.expand(),
             ),
@@ -84,127 +74,157 @@ class _MissionMeshPreviewState extends State<MissionMeshPreview>
 
 class _MissionMeshPainter extends CustomPainter {
   final ColorScheme colorScheme;
-  final int peerCount;
-  final int directCount;
+  final List<KVNodeInfo> peers;
+  final String localEmoji;
   final bool connected;
   final bool connecting;
-  final double phase;
+  final double progress;
 
   const _MissionMeshPainter({
     required this.colorScheme,
-    required this.peerCount,
-    required this.directCount,
+    required this.peers,
+    required this.localEmoji,
     required this.connected,
     required this.connecting,
-    required this.phase,
+    required this.progress,
   });
-
-  static const _positions = <Offset>[
-    Offset(.16, .30),
-    Offset(.42, .16),
-    Offset(.75, .24),
-    Offset(.86, .58),
-    Offset(.61, .78),
-    Offset(.29, .72),
-    Offset(.48, .49),
-    Offset(.12, .58),
-  ];
 
   @override
   void paint(Canvas canvas, Size size) {
-    final visibleCount =
-        connected ? math.min(math.max(peerCount + 1, 2), _positions.length) : 5;
-    final points = [
-      for (var i = 0; i < visibleCount; i++)
-        Offset(_positions[i].dx * size.width, _positions[i].dy * size.height),
-    ];
-
+    final center = Offset(size.width / 2, size.height * .43);
+    final radiusX = math.max(0, size.width / 2 - 34);
+    final radiusY = math.max(0, size.height * .34 - 28);
     final linePaint =
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.25;
-    final inactive = colorScheme.outlineVariant.withValues(alpha: .42);
-    final direct = colorScheme.primary.withValues(alpha: connected ? .65 : .25);
-    final forwarded = colorScheme.tertiary.withValues(alpha: .62);
+          ..strokeWidth = 1.6
+          ..color = colorScheme.onSurfaceVariant.withValues(
+            alpha: connected ? .52 : .24,
+          );
 
-    const edgePairs = <(int, int)>[
-      (0, 1),
-      (1, 2),
-      (2, 3),
-      (3, 4),
-      (4, 5),
-      (5, 0),
-      (0, 6),
-      (2, 6),
-      (4, 6),
-      (5, 7),
-    ];
-
-    var edgeIndex = 0;
-    for (final edge in edgePairs) {
-      if (edge.$1 >= points.length || edge.$2 >= points.length) continue;
-      if (!connected) {
-        linePaint.color = inactive;
-      } else if (edgeIndex < directCount) {
-        linePaint.color = direct;
-      } else {
-        linePaint.color = forwarded;
-      }
-      canvas.drawLine(points[edge.$1], points[edge.$2], linePaint);
-
-      if ((connected || connecting) && edgeIndex % 2 == 0) {
-        final pulse =
-            Offset.lerp(
-              points[edge.$1],
-              points[edge.$2],
-              (phase + edgeIndex * .17) % 1,
-            )!;
-        canvas.drawCircle(
-          pulse,
-          2.2,
-          Paint()..color = linePaint.color.withValues(alpha: .95),
-        );
-      }
-      edgeIndex++;
+    if (peers.isEmpty) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: center,
+          width: radiusX * 1.45,
+          height: radiusY * 1.25,
+        ),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..color = colorScheme.outlineVariant.withValues(alpha: .38),
+      );
     }
 
-    for (var i = 0; i < points.length; i++) {
-      final isLocal = i == 0;
-      final nodeColor =
-          !connected
-              ? colorScheme.outline
-              : i <= directCount
-              ? colorScheme.primary
-              : colorScheme.tertiary;
-      if (isLocal) {
-        canvas.drawCircle(
-          points[i],
-          11,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1
-            ..color = nodeColor.withValues(alpha: .35),
-        );
+    final occupied = <int>{};
+    const slotCount = 48;
+    for (final peer in [...peers]
+      ..sort((a, b) => _identity(a).compareTo(_identity(b)))) {
+      var slot = _stableHash(_identity(peer)) % slotCount;
+      while (occupied.contains(slot)) {
+        slot = (slot + 1) % slotCount;
       }
-      canvas.drawCircle(
-        points[i],
-        isLocal ? 5.5 : 4.2,
-        Paint()..color = nodeColor,
+      occupied.add(slot);
+      final angle = -math.pi / 2 + slot * math.pi * 2 / slotCount;
+      final target = Offset(
+        center.dx + math.cos(angle) * radiusX,
+        center.dy + math.sin(angle) * radiusY,
       );
-      canvas.drawCircle(
-        points[i],
-        isLocal ? 2.5 : 1.8,
-        Paint()..color = colorScheme.surface,
+      final endpoint = Offset.lerp(center, target, progress)!;
+      if (peer.cost >= 2) {
+        _drawDashedLine(canvas, center, endpoint, linePaint);
+      } else {
+        canvas.drawLine(center, endpoint, linePaint);
+      }
+      _drawEmojiNode(
+        canvas,
+        endpoint,
+        MeshPeerIdentity.emojiForNode(peer),
+        local: false,
+        opacity: progress,
+      );
+    }
+
+    _drawEmojiNode(
+      canvas,
+      center,
+      localEmoji,
+      local: true,
+      opacity: connected || connecting ? 1 : .68,
+    );
+  }
+
+  void _drawEmojiNode(
+    Canvas canvas,
+    Offset center,
+    String emoji, {
+    required bool local,
+    required double opacity,
+  }) {
+    final radius = local ? 22.0 : 18.0;
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Color.alphaBlend(
+          colorScheme.surfaceContainerHighest.withValues(alpha: opacity),
+          colorScheme.surface,
+        ),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = local ? 2.4 : 1.2
+        ..color = (local ? colorScheme.primary : colorScheme.outline)
+            .withValues(alpha: opacity),
+    );
+    final text = TextPainter(
+      text: TextSpan(text: emoji, style: TextStyle(fontSize: local ? 20 : 17)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    text.paint(canvas, center - Offset(text.width / 2, text.height / 2));
+  }
+
+  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
+    final distance = (end - start).distance;
+    if (distance == 0) return;
+    final direction = (end - start) / distance;
+    const dashLength = 7.0;
+    const gapLength = 5.0;
+    for (
+      var offset = 0.0;
+      offset < distance;
+      offset += dashLength + gapLength
+    ) {
+      final dashEnd = math.min(offset + dashLength, distance);
+      canvas.drawLine(
+        start + direction * offset,
+        start + direction * dashEnd,
+        paint,
       );
     }
   }
 
+  String _identity(KVNodeInfo node) =>
+      '${node.hostname.trim().toLowerCase()}|${node.ipv4.trim()}';
+
+  int _stableHash(String source) {
+    var hash = 2166136261;
+    for (final unit in source.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 16777619) & 0x7fffffff;
+    }
+    return hash;
+  }
+
   @override
   bool shouldRepaint(_MissionMeshPainter oldDelegate) =>
-      oldDelegate.peerCount != peerCount ||
-      oldDelegate.directCount != directCount ||
+      oldDelegate.peers != peers ||
+      oldDelegate.localEmoji != localEmoji ||
       oldDelegate.connected != connected ||
       oldDelegate.connecting != connecting ||
-      oldDelegate.phase != phase ||
+      oldDelegate.progress != progress ||
       oldDelegate.colorScheme != colorScheme;
 }

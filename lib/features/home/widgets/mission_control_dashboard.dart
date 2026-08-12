@@ -79,6 +79,9 @@ class MissionControlDashboard extends StatelessWidget {
                               _MissionMeshCard(
                                 summary: summary,
                                 connectionState: connectionState,
+                                networkStatus: networkStatus,
+                                username: username,
+                                virtualIp: virtualIp,
                                 reduceMotion: reduceMotion,
                               ),
                             ],
@@ -131,6 +134,9 @@ class MissionControlDashboard extends StatelessWidget {
                     _MissionMeshCard(
                       summary: summary,
                       connectionState: connectionState,
+                      networkStatus: networkStatus,
+                      username: username,
+                      virtualIp: virtualIp,
                       reduceMotion: reduceMotion,
                     ),
                     const SizedBox(height: 18),
@@ -379,11 +385,17 @@ class _MissionHero extends StatelessWidget {
 class _MissionMeshCard extends StatelessWidget {
   final _MissionSummary summary;
   final CoState connectionState;
+  final KVNetworkStatus? networkStatus;
+  final String username;
+  final String virtualIp;
   final bool reduceMotion;
 
   const _MissionMeshCard({
     required this.summary,
     required this.connectionState,
+    required this.networkStatus,
+    required this.username,
+    required this.virtualIp,
     required this.reduceMotion,
   });
 
@@ -406,8 +418,9 @@ class _MissionMeshCard extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: MissionMeshPreview(
-                  peerCount: summary.peerCount,
-                  directCount: summary.directCount,
+                  nodes: networkStatus?.nodes ?? const [],
+                  username: username,
+                  localIp: virtualIp,
                   connected: connectionState == CoState.connected,
                   connecting: connectionState == CoState.connecting,
                   reduceMotion: reduceMotion,

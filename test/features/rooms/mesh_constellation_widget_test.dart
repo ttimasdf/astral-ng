@@ -1,4 +1,5 @@
 import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
+import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,8 +35,15 @@ void main() {
       await tester.pump();
 
       expect(find.byType(InkWell), findsNWidgets(4));
-      expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
-      expect(find.byIcon(Icons.computer_rounded), findsNWidgets(2));
+      expect(find.byIcon(Icons.my_location_rounded), findsNothing);
+      expect(
+        find.text(MeshPeerIdentity.emojiFor(username: 'Local', ip: '10.1.0.1')),
+        findsOneWidget,
+      );
+      expect(
+        find.text(MeshPeerIdentity.emojiFor(username: 'Peer', ip: '10.1.0.2')),
+        findsOneWidget,
+      );
       expect(find.byIcon(Icons.dns_rounded), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -44,7 +52,7 @@ void main() {
   testWidgets('detail values align and scroll in a short viewport', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(390, 240);
+    tester.view.physicalSize = const Size(390, 640);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -61,9 +69,9 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
-    await tester.tap(find.byIcon(Icons.computer_rounded));
+    await tester.tap(find.byKey(const ValueKey('ip_10.1.0.3')));
     await tester.pumpAndSettle();
 
     final values = ['10.1.0.3', '12 ms', '0.0%', 'udp4'];

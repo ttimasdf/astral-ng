@@ -115,6 +115,10 @@ class _UserPageState extends State<UserPage> {
             return MeshConstellation(
               nodes: netStatus.nodes,
               localIp: ServiceManager().networkConfigState.ipv4.value,
+              reduceMotion: ServiceManager()
+                  .appSettingsState
+                  .reduceTopologyAnimations
+                  .watch(context),
             );
           }
 
