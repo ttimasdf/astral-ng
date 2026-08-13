@@ -1,4 +1,4 @@
-import 'package:astral/features/rooms/widgets/mini_user_card_nat.dart';
+import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/generated/locale_keys.g.dart';
@@ -48,9 +48,7 @@ class _MiniUserCardState extends State<MiniUserCard> {
     );
     final latencyColor = PeerConnectionStyle.getLatencyColor(player.latencyMs);
     final lossColor = PeerConnectionStyle.getPacketLossColor(player.lossRate);
-    final natDifficulty = MiniUserCardNat.mapNatType(player.nat);
-    final natDifficultyColor = MiniUserCardNat.getNatTypeColor(natDifficulty);
-    final natDifficultyIcon = MiniUserCardNat.getNatTypeIcon(natDifficulty);
+    final natStyle = NatVisualStyle.resolve(player.nat, colorScheme);
 
     return MouseRegion(
       onEnter: (_) => setState(() => isHovered = true),
@@ -183,20 +181,37 @@ class _MiniUserCardState extends State<MiniUserCard> {
                         fontSize: 13,
                       ),
                     ),
-                    if (connectionType != LocaleKeys.rooms_connection_local &&
-                        player.nat.isNotEmpty) ...[
+                    if (connectionType !=
+                        LocaleKeys.rooms_connection_local) ...[
                       const SizedBox(width: 10),
-                      Icon(
-                        natDifficultyIcon,
-                        size: 16,
-                        color: natDifficultyColor,
-                      ),
-                      Text(
-                        natDifficulty.tr(),
-                        style: TextStyle(
-                          color: natDifficultyColor,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: natStyle.background,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(color: natStyle.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              natStyle.icon,
+                              size: 14,
+                              color: natStyle.foreground,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              natStyle.labelKey.tr(),
+                              style: TextStyle(
+                                color: natStyle.foreground,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

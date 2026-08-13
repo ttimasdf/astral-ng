@@ -68,7 +68,6 @@ abstract class LocaleKeys {
   static const mission_not_encrypted = 'mission_not_encrypted';
   static const mission_session_traffic = 'mission_session_traffic';
   static const rooms_network_topology = 'rooms_network_topology';
-  static const rooms_observed_here = 'rooms_observed_here';
   static const rooms_stats_peers = 'rooms_stats_peers';
   static const rooms_stats_latency = 'rooms_stats_latency';
   static const rooms_stats_recent_loss = 'rooms_stats_recent_loss';
@@ -121,6 +120,11 @@ abstract class LocaleKeys {
       'rooms_nat_symmetric_udp_firewall';
   static const rooms_nat_symmetric_easy_inc = 'rooms_nat_symmetric_easy_inc';
   static const rooms_nat_symmetric_easy_dec = 'rooms_nat_symmetric_easy_dec';
+  static const rooms_nat_family_public = 'rooms_nat_family_public';
+  static const rooms_nat_family_restricted = 'rooms_nat_family_restricted';
+  static const rooms_nat_family_port_restricted =
+      'rooms_nat_family_port_restricted';
+  static const rooms_nat_family_symmetric = 'rooms_nat_family_symmetric';
   static const rooms_copied = 'rooms_copied';
   static const rooms_ip_address = 'rooms_ip_address';
   static const rooms_ip_copied = 'rooms_ip_copied';

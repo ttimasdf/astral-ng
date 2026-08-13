@@ -8,6 +8,7 @@ class MeshPeerBadge extends StatelessWidget {
   final double size;
   final bool isLocal;
   final bool framed;
+  final Color? borderColor;
 
   const MeshPeerBadge({
     super.key,
@@ -16,6 +17,7 @@ class MeshPeerBadge extends StatelessWidget {
     this.size = 28,
     this.isLocal = false,
     this.framed = true,
+    this.borderColor,
   });
 
   @override
@@ -43,29 +45,39 @@ class MeshPeerBadge extends StatelessWidget {
 
     if (!framed) return SizedBox.square(dimension: size, child: glyph);
 
-    final color = isLocal ? colorScheme.primary : colorScheme.secondary;
-    return Container(
+    final identityColor = isLocal ? colorScheme.primary : colorScheme.secondary;
+    final innerColor = borderColor ?? identityColor;
+    final badge = Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Color.alphaBlend(
-          color.withValues(alpha: isLocal ? .16 : .1),
+          innerColor.withValues(alpha: isLocal ? .14 : .1),
           colorScheme.surface,
         ),
-        border: Border.all(color: color, width: isLocal ? 2.2 : 1.1),
-        boxShadow:
-            isLocal
-                ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: .2),
-                    blurRadius: size * .22,
-                  ),
-                ]
-                : null,
+        border: Border.all(color: innerColor, width: isLocal ? 1.5 : 1.3),
       ),
       child: glyph,
+    );
+    if (!isLocal || borderColor == null) return badge;
+
+    return Container(
+      width: size + 6,
+      height: size + 6,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: colorScheme.primary, width: 2.2),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: .2),
+            blurRadius: size * .22,
+          ),
+        ],
+      ),
+      child: badge,
     );
   }
 }

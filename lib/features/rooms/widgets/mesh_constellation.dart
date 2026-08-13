@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:astral/features/rooms/widgets/mesh_constellation_model.dart';
+import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
@@ -53,26 +54,7 @@ class MeshConstellation extends StatelessWidget {
                 Positioned(
                   right: compact ? 10 : 16,
                   top: compact ? 10 : 16,
-                  child: SafeArea(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface.withValues(alpha: .9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colorScheme.outlineVariant),
-                      ),
-                      child: Text(
-                        LocaleKeys.rooms_observed_here.tr(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: SafeArea(child: _NatColorLegend(compact: compact)),
                 ),
               ],
             ),
@@ -166,9 +148,22 @@ class MeshConstellation extends StatelessWidget {
                       if (node.nat.isNotEmpty)
                         _detailRow(
                           colorScheme: colorScheme,
-                          icon: Icons.router_outlined,
+                          icon:
+                              NatVisualStyle.resolve(
+                                node.nat,
+                                colorScheme,
+                              ).icon,
                           label: LocaleKeys.rooms_nat.tr(),
-                          value: node.nat,
+                          value:
+                              NatVisualStyle.resolve(
+                                node.nat,
+                                colorScheme,
+                              ).labelKey.tr(),
+                          valueColor:
+                              NatVisualStyle.resolve(
+                                node.nat,
+                                colorScheme,
+                              ).foreground,
                         ),
                     ],
                   ),
@@ -184,6 +179,7 @@ class MeshConstellation extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
+    Color? valueColor,
   }) {
     const verticalPadding = EdgeInsets.symmetric(vertical: 7);
     return TableRow(
@@ -205,7 +201,7 @@ class MeshConstellation extends StatelessWidget {
             value,
             textAlign: TextAlign.start,
             softWrap: true,
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            style: TextStyle(fontWeight: FontWeight.w700, color: valueColor),
           ),
         ),
       ],
@@ -750,12 +746,14 @@ class _NodeGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final natStyle = NatVisualStyle.resolve(node.nat, colorScheme);
     if (!node.isRelay) {
       return MeshPeerBadge(
         username: node.name,
         ip: node.ip,
         size: size,
         isLocal: node.isLocal,
+        borderColor: natStyle.border,
       );
     }
 
@@ -768,13 +766,103 @@ class _NodeGlyph extends StatelessWidget {
           colorScheme.tertiary.withValues(alpha: .16),
           colorScheme.surface,
         ),
-        border: Border.all(color: colorScheme.tertiary, width: 1.4),
+        border: Border.all(color: natStyle.border, width: 1.4),
         borderRadius: BorderRadius.circular(size * .2),
       ),
       child: Icon(
         Icons.dns_rounded,
         size: size * .48,
         color: colorScheme.tertiary,
+      ),
+    );
+  }
+}
+
+class _NatColorLegend extends StatelessWidget {
+  final bool compact;
+
+  const _NatColorLegend({required this.compact});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final families = NatVisualStyle.legendFamilies;
+    return IgnorePointer(
+      child: Container(
+        constraints: BoxConstraints(maxWidth: compact ? 220 : 470),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 9 : 11,
+          vertical: 7,
+        ),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: .92),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Wrap(
+          spacing: compact ? 8 : 11,
+          runSpacing: 5,
+          alignment: WrapAlignment.end,
+          children: [
+            for (final family in families)
+              _NatLegendItem(family: family, compact: compact),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NatLegendItem extends StatelessWidget {
+  final NatFamily family;
+  final bool compact;
+
+  const _NatLegendItem({required this.family, required this.compact});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = NatVisualStyle.forFamily(
+      family,
+      Theme.of(context).colorScheme,
+    );
+    return SizedBox(
+      width: compact ? 94 : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: style.background,
+              border: Border.all(color: style.border, width: 1.4),
+            ),
+          ),
+          const SizedBox(width: 4),
+          if (compact)
+            Expanded(
+              child: Text(
+                NatVisualStyle.familyLabelKey(family).tr(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: style.foreground,
+                ),
+              ),
+            )
+          else
+            Text(
+              NatVisualStyle.familyLabelKey(family).tr(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: style.foreground,
+              ),
+            ),
+        ],
       ),
     );
   }

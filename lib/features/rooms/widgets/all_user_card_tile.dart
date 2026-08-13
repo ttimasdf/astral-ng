@@ -1,6 +1,6 @@
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/features/rooms/widgets/all_user_card_body.dart';
-import 'package:astral/features/rooms/widgets/all_user_card_nat.dart';
+import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -39,9 +39,7 @@ class AllUserCardTile extends StatelessWidget {
       connectionType,
       colorScheme,
     );
-    final natTypeString = AllUserCardNat.mapNatType(player.nat);
-    final natTypeColor = AllUserCardNat.getNatTypeColor(natTypeString);
-    final natTypeIcon = AllUserCardNat.getNatTypeIcon(natTypeString);
+    final natStyle = NatVisualStyle.resolve(player.nat, colorScheme);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,9 +186,9 @@ class AllUserCardTile extends StatelessWidget {
           context: context,
           player: player,
           colorScheme: colorScheme,
-          natTypeString: natTypeString.tr(),
-          natTypeColor: natTypeColor,
-          natTypeIcon: natTypeIcon,
+          natTypeString: natStyle.labelKey.tr(),
+          natTypeColor: natStyle.foreground,
+          natTypeIcon: natStyle.icon,
         ),
       ],
     );

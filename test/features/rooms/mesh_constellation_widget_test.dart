@@ -1,4 +1,6 @@
 import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
+import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
+import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
 import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'dart:ui';
@@ -90,7 +92,7 @@ void main() {
     (tester) async {
       final nodes = [
         _node(1, 'Local', '10.1.0.1', 0),
-        _node(2, 'Peer', '10.1.0.2', 1),
+        _node(2, 'Peer', '10.1.0.2', 1, nat: 'Restricted'),
         _node(3, 'PublicServer_Relay', '0.0.0.0', 1),
         _node(
           4,
@@ -125,6 +127,18 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.dns_rounded), findsOneWidget);
+      final peerBadge = tester.widget<MeshPeerBadge>(
+        find.byType(MeshPeerBadge).at(1),
+      );
+      expect(
+        peerBadge.borderColor,
+        NatVisualStyle.resolve(
+          'Restricted',
+          Theme.of(
+            tester.element(find.byType(MeshPeerBadge).at(1)),
+          ).colorScheme,
+        ).border,
+      );
       expect(tester.takeException(), isNull);
     },
   );

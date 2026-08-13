@@ -86,8 +86,10 @@ baseline.
   destination are localized in English and Chinese. A compact, responsive stats
   row above both room views reports peer/direct/forwarded counts plus peer-median
   latency and recent packet loss from EasyTier's rolling observations. The
-  topology attribution label no longer overlaps the settings control. The
-  connected room page replaces the old share prompt row with a dedicated
+  topology view replaces the attribution chip with a shared NAT-family color
+  legend. NAT colors now use one contrast-safe semantic palette across topology
+  borders, local double borders, relay shapes, compact badges, and list details.
+  The connected room page replaces the old share prompt row with a dedicated
   copy-link action above Settings, with the topology/list toggle at the bottom.
   Deterministic graph updates no longer freeze nodes at the center when Astral
   moves to the background. Before connecting, room actions now use a matching

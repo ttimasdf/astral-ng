@@ -874,7 +874,10 @@ the topology/list toggle sits at the bottom. A single room-page scaffold and
 shared vertical action-stack component own controls across connection-state
 transitions. Before connection, the stack contains Sort, Import, and Add, with a
 dedicated import glyph; room cards rely on their localized mode label instead of
-a duplicate sparkles/sliders glyph. Both connected room views share a compact metric-cell header with endpoint
+a duplicate sparkles/sliders glyph. A shared six-family NAT visual resolver now
+colors topology borders and local double borders, relay shapes, compact badges,
+and detailed list values; topology replaces the attribution chip with a
+responsive NAT legend. Both connected room views share a compact metric-cell header with endpoint
 counts plus median latency and recent loss across observed non-relay peers. The
 old `vyuh_node_flow` implementation and dependency are removed.
 
