@@ -864,7 +864,9 @@ Node-detail sheets use a stable label column and left-aligned value column. The
 member list remains available as a secondary view. Room view settings and member
 list details use synchronized English and Chinese strings; compact NAT badges
 show the reported technical NAT category instead of opaque quality grades. The
-old `vyuh_node_flow` implementation and dependency are removed.
+network-topology attribution label is placed away from the room settings control,
+and the connected room page no longer shows the room-share prompt row. The old
+`vyuh_node_flow` implementation and dependency are removed.
 
 Renames the server destination to Relay, places it before Tools in the main
 navigation, makes desktop relay rows toggle on click, and exposes editing from

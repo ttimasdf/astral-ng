@@ -24,7 +24,6 @@ class RoomPage extends StatefulWidget {
 // 在_RoomPageState类中添加排序相关方法
 class _RoomPageState extends State<RoomPage> {
   final _services = ServiceManager();
-  bool isHovered = false;
   // 根据宽度计算列数
   int _getColumnCount(double width) {
     if (width >= 1200) {
@@ -147,74 +146,9 @@ class _RoomPageState extends State<RoomPage> {
       final isConnected = _services.connectionState.connectionState.watch(
         context,
       );
-      // 获取当前选中房间
-      final selectedRoom = _services.roomState.selectedRoom.watch(context);
-
       return Scaffold(
         body: Column(
           children: [
-            // 顶部显示当前选中房间信息
-            if (selectedRoom != null && isConnected == CoState.connected)
-              MouseRegion(
-                onEnter: (_) => setState(() => isHovered = true),
-                onExit: (_) => setState(() => isHovered = false),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 0),
-                  child: Card(
-                    margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color:
-                            isHovered
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.transparent,
-                        width: 1,
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        constraints: const BoxConstraints(
-                          minWidth: double.infinity,
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap:
-                              isConnected == CoState.connected
-                                  ? () {
-                                    RoomShareExportDialogs.copyShareLink(
-                                      context,
-                                      selectedRoom,
-                                      linkOnly: true,
-                                    );
-                                  }
-                                  : () {},
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            title: Text('当前房间: ${selectedRoom.name}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '连接状态: ${isConnected == CoState.connected
-                                      ? '已连接'
-                                      : isConnected == CoState.connecting
-                                      ? '连接中'
-                                      : '未连接'}${isConnected == CoState.connected ? ' (点击分享房间)' : ''}',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             Expanded(
               child:
                   isConnected != CoState.idle
