@@ -81,7 +81,11 @@ baseline.
   Rooms keeps complete relay paths. Node-detail values use a consistent
   left-aligned content column, and the member list remains available. Room view
   settings, member-list details, connection and NAT labels, and the Tools
-  destination are localized in English and Chinese. The topology attribution label no longer overlaps the settings control, and the connected room page no longer shows the share prompt row. ([#13])
+  destination are localized in English and Chinese. A compact, responsive stats
+  row above both room views reports peer/direct/forwarded counts plus peer-median
+  latency and recent packet loss from EasyTier's rolling observations. The
+  topology attribution label no longer overlaps the settings control, and the
+  connected room page no longer shows the share prompt row. ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary

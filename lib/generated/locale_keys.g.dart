@@ -69,7 +69,11 @@ abstract class LocaleKeys {
   static const mission_session_traffic = 'mission_session_traffic';
   static const rooms_network_topology = 'rooms_network_topology';
   static const rooms_observed_here = 'rooms_observed_here';
-  static const rooms_visible_summary = 'rooms_visible_summary';
+  static const rooms_stats_peers = 'rooms_stats_peers';
+  static const rooms_stats_latency = 'rooms_stats_latency';
+  static const rooms_stats_recent_loss = 'rooms_stats_recent_loss';
+  static const rooms_stats_direct_forwarded = 'rooms_stats_direct_forwarded';
+  static const rooms_stats_peer_median = 'rooms_stats_peer_median';
   static const rooms_this_device = 'rooms_this_device';
   static const rooms_forwarding_peer = 'rooms_forwarding_peer';
   static const rooms_mesh_peer = 'rooms_mesh_peer';

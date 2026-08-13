@@ -48,7 +48,7 @@ class MeshConstellation extends StatelessWidget {
                 Positioned(
                   left: compact ? 10 : 16,
                   top: compact ? 10 : 16,
-                  child: _ConstellationLegend(model: model),
+                  child: const _ConstellationLegend(),
                 ),
                 Positioned(
                   right: compact ? 10 : 16,
@@ -782,9 +782,7 @@ class _NodeGlyph extends StatelessWidget {
 }
 
 class _ConstellationLegend extends StatelessWidget {
-  final MeshConstellationModel model;
-
-  const _ConstellationLegend({required this.model});
+  const _ConstellationLegend();
 
   @override
   Widget build(BuildContext context) {
@@ -806,20 +804,6 @@ class _ConstellationLegend extends StatelessWidget {
               style: TextStyle(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              LocaleKeys.rooms_visible_summary.tr(
-                namedArgs: {
-                  'nodes': '${model.nodes.length}',
-                  'direct': '${model.directPeerCount}',
-                  'forwarded': '${model.forwardedPeerCount}',
-                },
-              ),
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 11,
               ),
             ),
           ],

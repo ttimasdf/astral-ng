@@ -6,6 +6,7 @@ import 'package:astral/shared/utils/network/node_utils.dart';
 import 'package:astral/features/rooms/widgets/all_user_card.dart';
 import 'package:astral/features/rooms/widgets/mini_user_card.dart';
 import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
+import 'package:astral/features/rooms/widgets/room_network_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:astral/features/rooms/widgets/room_settings_sheet.dart';
@@ -111,14 +112,30 @@ class _UserPageState extends State<UserPage> {
             ),
           );
         } else {
+          final localIPv4 = ServiceManager().networkConfigState.ipv4.watch(
+            context,
+          );
+          final statsPanel = RoomNetworkStatsPanel(
+            stats: RoomNetworkStats.fromNetwork(
+              netStatus.nodes,
+              localIp: localIPv4,
+            ),
+          );
           if (_showConstellation) {
-            return MeshConstellation(
-              nodes: netStatus.nodes,
-              localIp: ServiceManager().networkConfigState.ipv4.value,
-              reduceMotion: ServiceManager()
-                  .appSettingsState
-                  .reduceTopologyAnimations
-                  .watch(context),
+            return Column(
+              children: [
+                statsPanel,
+                Expanded(
+                  child: MeshConstellation(
+                    nodes: netStatus.nodes,
+                    localIp: localIPv4,
+                    reduceMotion: ServiceManager()
+                        .appSettingsState
+                        .reduceTopologyAnimations
+                        .watch(context),
+                  ),
+                ),
+              ],
             );
           }
 
@@ -138,9 +155,6 @@ class _UserPageState extends State<UserPage> {
               .displayState
               .compactPeerCards
               .watch(context);
-          final localIPv4 = ServiceManager().networkConfigState.ipv4.watch(
-            context,
-          );
           // 获取原始节点列表
           final nodes = List<KVNodeInfo>.from(netStatus.nodes);
 
@@ -174,48 +188,56 @@ class _UserPageState extends State<UserPage> {
           }
 
           // 返回一个可滚动的视图
-          return CustomScrollView(
-            // 始终允许滚动,即使内容不足一屏
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // 为网格添加内边距
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-                // 使用瀑布流网格布局
-                sliver: SliverMasonryGrid(
-                  // 配置网格布局参数
-                  gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
-                    // 根据屏幕宽度动态计算列数
-                    crossAxisCount: _getColumnCount(
-                      MediaQuery.of(context).size.width,
+          return Column(
+            children: [
+              statsPanel,
+              Expanded(
+                child: CustomScrollView(
+                  // 始终允许滚动,即使内容不足一屏
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // 为网格添加内边距
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                      // 使用瀑布流网格布局
+                      sliver: SliverMasonryGrid(
+                        // 配置网格布局参数
+                        gridDelegate:
+                            SliverSimpleGridDelegateWithFixedCrossAxisCount(
+                              // 根据屏幕宽度动态计算列数
+                              crossAxisCount: _getColumnCount(
+                                MediaQuery.of(context).size.width,
+                              ),
+                            ),
+                        // 设置网格项之间的间距
+                        mainAxisSpacing: 8.0,
+                        crossAxisSpacing: 8.0,
+                        // 配置子项构建器
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            // 获取当前索引对应的玩家数据
+                            final player = filteredNodes[index];
+                            // 根据简单列表模式选项返回不同的卡片组件
+                            return compactPeerCards
+                                ? MiniUserCard(
+                                  key: ValueKey(player.peerId),
+                                  player: player,
+                                  colorScheme: colorScheme,
+                                  localIPv4: localIPv4,
+                                )
+                                : AllUserCard(
+                                  key: ValueKey(player.peerId),
+                                  player: player,
+                                  colorScheme: colorScheme,
+                                  localIPv4: localIPv4,
+                                );
+                          },
+                          // 设置子项数量为过滤后的节点数量
+                          childCount: filteredNodes.length,
+                        ),
+                      ),
                     ),
-                  ),
-                  // 设置网格项之间的间距
-                  mainAxisSpacing: 8.0,
-                  crossAxisSpacing: 8.0,
-                  // 配置子项构建器
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      // 获取当前索引对应的玩家数据
-                      final player = filteredNodes[index];
-                      // 根据简单列表模式选项返回不同的卡片组件
-                      return compactPeerCards
-                          ? MiniUserCard(
-                            key: ValueKey(player.peerId),
-                            player: player,
-                            colorScheme: colorScheme,
-                            localIPv4: localIPv4,
-                          )
-                          : AllUserCard(
-                            key: ValueKey(player.peerId),
-                            player: player,
-                            colorScheme: colorScheme,
-                            localIPv4: localIPv4,
-                          );
-                    },
-                    // 设置子项数量为过滤后的节点数量
-                    childCount: filteredNodes.length,
-                  ),
+                  ],
                 ),
               ),
             ],
