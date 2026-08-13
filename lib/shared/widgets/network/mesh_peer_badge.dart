@@ -8,6 +8,7 @@ class MeshPeerBadge extends StatelessWidget {
   final double size;
   final bool isLocal;
   final bool framed;
+  final bool showLocalHalo;
   final Color? borderColor;
 
   const MeshPeerBadge({
@@ -17,6 +18,7 @@ class MeshPeerBadge extends StatelessWidget {
     this.size = 28,
     this.isLocal = false,
     this.framed = true,
+    this.showLocalHalo = true,
     this.borderColor,
   });
 
@@ -61,7 +63,7 @@ class MeshPeerBadge extends StatelessWidget {
       ),
       child: glyph,
     );
-    if (!isLocal || borderColor == null) return badge;
+    if (!isLocal || borderColor == null || !showLocalHalo) return badge;
 
     return Container(
       width: size + 6,

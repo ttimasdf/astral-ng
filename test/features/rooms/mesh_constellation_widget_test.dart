@@ -117,7 +117,7 @@ void main() {
       await tester.pump();
 
       expect(find.byType(GestureDetector), findsWidgets);
-      expect(find.byIcon(Icons.my_location_rounded), findsNothing);
+      expect(find.byIcon(Icons.my_location_rounded), findsOneWidget);
       expect(
         find.text(MeshPeerIdentity.emojiFor(username: 'Local', ip: '10.1.0.1')),
         findsOneWidget,
@@ -127,6 +127,11 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.dns_rounded), findsOneWidget);
+      final localBadge = tester.widget<MeshPeerBadge>(
+        find.byType(MeshPeerBadge).first,
+      );
+      expect(localBadge.isLocal, isTrue);
+      expect(localBadge.showLocalHalo, isFalse);
       final peerBadge = tester.widget<MeshPeerBadge>(
         find.byType(MeshPeerBadge).at(1),
       );

@@ -716,17 +716,37 @@ class _ConstellationNode extends StatelessWidget {
               const SizedBox(height: 4),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  node.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: dense ? 9 : 10,
-                    fontWeight:
-                        node.isLocal ? FontWeight.w800 : FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (node.isLocal) ...[
+                      Align(
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.my_location_rounded,
+                          size: dense ? 11 : 12,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 1),
+                    ],
+                    Flexible(
+                      child: Text(
+                        node.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign:
+                            node.isLocal ? TextAlign.start : TextAlign.center,
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontSize: dense ? 9 : 10,
+                          fontWeight:
+                              node.isLocal ? FontWeight.w800 : FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -753,6 +773,7 @@ class _NodeGlyph extends StatelessWidget {
         ip: node.ip,
         size: size,
         isLocal: node.isLocal,
+        showLocalHalo: false,
         borderColor: natStyle.border,
       );
     }
