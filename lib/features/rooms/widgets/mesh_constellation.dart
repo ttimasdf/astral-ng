@@ -9,9 +9,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:graphview/GraphView.dart' as gv;
 
-Offset meshConstellationAxisScale(Size canvasSize) =>
-    canvasSize.width < 600 ? const Offset(.92, 1.18) : const Offset(1.18, .88);
-
 /// A force-directed view of routes observed by this device.
 class MeshConstellation extends StatelessWidget {
   final List<KVNodeInfo> nodes;
@@ -238,28 +235,19 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
   final _graphNodes = <String, gv.Node>{};
   final _latestNodes = <String, MeshConstellationNode>{};
   late gv.Graph _graph;
-  late _StableFruchtermanReingoldAlgorithm _algorithm;
+  late _RouteConstellationAlgorithm _algorithm;
   late Widget _graphView;
   late String _topology;
   bool _appVisible = true;
   bool _needsFrame = true;
+  Size? _renderCanvasSize;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _transformationController = TransformationController();
-    _algorithm = _StableFruchtermanReingoldAlgorithm(
-      gv.FruchtermanReingoldConfiguration(
-        iterations: 180,
-        repulsionRate: .46,
-        attractionRate: .08,
-        repulsionPercentage: .7,
-        lerpFactor: .08,
-        movementThreshold: .35,
-        shuffleNodes: false,
-      ),
-    );
+    _algorithm = _RouteConstellationAlgorithm();
     _topology = _topologyFingerprint(widget.model);
     _graph = _buildGraph(widget.model);
     _graphView = _buildGraphView();
@@ -382,7 +370,9 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
   }
 
   Widget _buildGraphView() => gv.GraphView(
-    key: ValueKey(_topology),
+    key: ValueKey(
+      '$_topology:${_renderCanvasSize?.width.round()}x${_renderCanvasSize?.height.round()}',
+    ),
     graph: _graph,
     algorithm: _algorithm,
     animated: !widget.reduceMotion,
@@ -434,7 +424,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
           final vertical = canvasSize.width < 600;
           final preferredLength = glyphSize * (vertical ? 3.25 : 4.1);
           final primaryExtent = vertical ? canvasSize.height : canvasSize.width;
-          final availableLength = primaryExtent * (vertical ? .22 : .18);
+          final availableLength = primaryExtent * (vertical ? .24 : .2);
           _algorithm
             ..targetEdgeLength = math.min(preferredLength, availableLength)
             ..canvasSize = canvasSize
@@ -444,6 +434,11 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
                     .where((node) => node.isLocal)
                     .firstOrNull
                     ?.id;
+          if (_renderCanvasSize != canvasSize) {
+            _renderCanvasSize = canvasSize;
+            _graphView = _buildGraphView();
+            _needsFrame = true;
+          }
           if (_needsFrame) {
             _needsFrame = false;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -470,71 +465,194 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
   }
 }
 
-class _StableFruchtermanReingoldAlgorithm
-    extends gv.FruchtermanReingoldAlgorithm {
+class _RouteConstellationAlgorithm implements gv.Algorithm {
   double targetEdgeLength = 150;
   Size canvasSize = const Size(800, 600);
   bool vertical = false;
   String? anchorNodeId;
 
-  _StableFruchtermanReingoldAlgorithm(super.configuration);
+  @override
+  gv.EdgeRenderer? renderer;
+
+  @override
+  void init(gv.Graph? graph) {}
+
+  @override
+  void setDimensions(double width, double height) {
+    canvasSize = Size(width, height);
+  }
 
   @override
   Size run(gv.Graph? graph, double shiftX, double shiftY) {
     if (graph == null || graph.nodes.isEmpty) return Size.zero;
-    init(graph);
-    super.run(graph, 0, 0);
-    _normalizeSpacing(graph);
-    return canvasSize;
-  }
-
-  void _normalizeSpacing(gv.Graph graph) {
-    final lengths =
-        graph.edges
-            .map(
-              (edge) =>
-                  (_nodeCenter(edge.source) - _nodeCenter(edge.destination))
-                      .distance,
-            )
-            .where((length) => length > 0)
-            .toList()
-          ..sort();
-    final median =
-        lengths.isEmpty ? targetEdgeLength : lengths[lengths.length ~/ 2];
-    final scale = (targetEdgeLength / median).clamp(.45, 1.8);
-    final axisScale = meshConstellationAxisScale(canvasSize);
-    final anchor = _graphCenter(graph);
-    for (final node in graph.nodes) {
-      final delta = _nodeCenter(node) - anchor;
-      final normalizedCenter =
-          anchor +
-          Offset(
-            delta.dx * scale * axisScale.dx,
-            delta.dy * scale * axisScale.dy,
-          );
-      node.position =
-          normalizedCenter - Offset(node.width / 2, node.height / 2);
-    }
-
-    final bounds = graph.calculateGraphBounds();
-    final translation = canvasSize.center(Offset.zero) - bounds.center;
-    for (final node in graph.nodes) {
-      node.position += translation;
-    }
-  }
-
-  Offset _nodeCenter(gv.Node node) =>
-      node.position + Offset(node.width / 2, node.height / 2);
-
-  Offset _graphCenter(gv.Graph graph) {
     final anchor =
         graph.nodes
             .where((node) => node.key?.value == anchorNodeId)
             .firstOrNull;
-    return anchor == null
-        ? graph.calculateGraphBounds().center
-        : _nodeCenter(anchor);
+    if (anchor == null) return canvasSize;
+
+    final branches =
+        graph.getOutEdges(anchor).map((edge) => edge.destination).toList()
+          ..sort(_compareNodes);
+    final branchWeights = {
+      for (final branch in branches)
+        branch: _leafCount(graph, branch, {anchor}),
+    };
+    final negative = <gv.Node>[];
+    final positive = <gv.Node>[];
+    var negativeWeight = 0;
+    var positiveWeight = 0;
+    for (final branch
+        in branches..sort((a, b) {
+          final weightOrder = branchWeights[b]!.compareTo(branchWeights[a]!);
+          return weightOrder != 0 ? weightOrder : _compareNodes(a, b);
+        })) {
+      if (negativeWeight <= positiveWeight) {
+        negative.add(branch);
+        negativeWeight += branchWeights[branch]!;
+      } else {
+        positive.add(branch);
+        positiveWeight += branchWeights[branch]!;
+      }
+    }
+
+    final anchorCenter = canvasSize.center(Offset.zero);
+    _setCenter(anchor, anchorCenter);
+    final visited = <gv.Node>{anchor};
+    _layoutSide(graph, negative, -1, anchorCenter, visited);
+    _layoutSide(graph, positive, 1, anchorCenter, visited);
+
+    final unvisited =
+        graph.nodes.where((node) => !visited.contains(node)).toList()
+          ..sort(_compareNodes);
+    for (var index = 0; index < unvisited.length; index++) {
+      final cross = (index - (unvisited.length - 1) / 2) * _crossGap;
+      _setCenter(
+        unvisited[index],
+        _point(primary: targetEdgeLength, cross: cross, anchor: anchorCenter),
+      );
+    }
+    return canvasSize;
   }
+
+  void _layoutSide(
+    gv.Graph graph,
+    List<gv.Node> roots,
+    int side,
+    Offset anchor,
+    Set<gv.Node> visited,
+  ) {
+    if (roots.isEmpty) return;
+    final leaves = roots.fold<int>(
+      0,
+      (sum, root) =>
+          sum +
+          _leafCount(graph, root, {
+            graph.nodes.firstWhere((node) => node.key?.value == anchorNodeId),
+          }),
+    );
+    var nextLeaf = -(leaves - 1) * _crossGap / 2;
+    for (final root in roots..sort(_compareNodes)) {
+      final branchLeaves = _leafCount(graph, root, visited);
+      final firstLeaf = nextLeaf;
+      nextLeaf += branchLeaves * _crossGap;
+      final cross = firstLeaf + (branchLeaves - 1) * _crossGap / 2;
+      _layoutBranch(
+        graph,
+        root,
+        side: side,
+        depth: 1,
+        cross: cross,
+        anchor: anchor,
+        visited: visited,
+      );
+    }
+  }
+
+  void _layoutBranch(
+    gv.Graph graph,
+    gv.Node node, {
+    required int side,
+    required int depth,
+    required double cross,
+    required Offset anchor,
+    required Set<gv.Node> visited,
+  }) {
+    if (!visited.add(node)) return;
+    _setCenter(
+      node,
+      _point(
+        primary: side * targetEdgeLength * depth,
+        cross: cross,
+        anchor: anchor,
+      ),
+    );
+    final children =
+        graph
+            .getOutEdges(node)
+            .map((edge) => edge.destination)
+            .where((child) => !visited.contains(child))
+            .toList()
+          ..sort(_compareNodes);
+    if (children.isEmpty) return;
+
+    final totalLeaves = children.fold<int>(
+      0,
+      (sum, child) => sum + _leafCount(graph, child, visited),
+    );
+    var nextLeaf = cross - (totalLeaves - 1) * _crossGap / 2;
+    for (final child in children) {
+      final childLeaves = _leafCount(graph, child, visited);
+      final childCross = nextLeaf + (childLeaves - 1) * _crossGap / 2;
+      nextLeaf += childLeaves * _crossGap;
+      _layoutBranch(
+        graph,
+        child,
+        side: side,
+        depth: depth + 1,
+        cross: childCross,
+        anchor: anchor,
+        visited: visited,
+      );
+    }
+  }
+
+  int _leafCount(gv.Graph graph, gv.Node node, Set<gv.Node> ancestors) {
+    if (ancestors.contains(node)) return 0;
+    final nextAncestors = {...ancestors, node};
+    final children =
+        graph
+            .getOutEdges(node)
+            .map((edge) => edge.destination)
+            .where((child) => !nextAncestors.contains(child))
+            .toList();
+    if (children.isEmpty) return 1;
+    return math.max(
+      1,
+      children.fold<int>(
+        0,
+        (sum, child) => sum + _leafCount(graph, child, nextAncestors),
+      ),
+    );
+  }
+
+  double get _crossGap => vertical ? 128 : 88;
+
+  Offset _point({
+    required double primary,
+    required double cross,
+    required Offset anchor,
+  }) =>
+      vertical
+          ? anchor + Offset(cross, primary)
+          : anchor + Offset(primary, cross);
+
+  void _setCenter(gv.Node node, Offset center) {
+    node.position = center - Offset(node.width / 2, node.height / 2);
+  }
+
+  int _compareNodes(gv.Node a, gv.Node b) =>
+      a.key!.value.toString().compareTo(b.key!.value.toString());
 }
 
 class _ObservedRouteRenderer extends gv.EdgeRenderer {

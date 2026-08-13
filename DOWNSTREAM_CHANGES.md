@@ -841,19 +841,21 @@ Per-room device overrides take precedence over room recommendations and global
 defaults. Changes made during a live connection are persisted for the next
 session and shown as pending until the user explicitly reconnects.
 
-Replaces the hierarchical room topology editor with a bounded force-directed
-constellation that draws only routes observed from the local device. A curated
+Replaces the hierarchical room topology editor with a deterministic,
+route-aware constellation that draws only routes observed from the local device. A curated
 201-entry Animals & Nature / Activities palette assigns each endpoint a stable
 emoji from normalized username plus virtual IP, so every observer sees the same
 identity. The same optically centered identity badge appears in the Home hero,
 session details, and connection setup, where it follows draft username and IP
-changes. Rooms uses `graphview` only for finite, rectangle-aware placement on
-topology changes; ordinary metric refreshes do not restart layout, and hidden
-application states suspend graph animation. Node spacing targets roughly 3–5
-peer glyphs while adapting to canvas size, with horizontal composition on
-desktop and vertical composition on mobile. Pan and zoom remain bounded within
-the visible canvas. Hover-inert graph children avoid the package's child-cache
-invalidation bug on desktop pointer movement. Direct edges are solid; every segment through
+changes. Rooms uses `graphview` for keyed node/edge rendering and bounded
+interaction, with Astral's own route-depth layout positioning nodes only on
+identity or topology changes. Ordinary metric refreshes do not restart layout,
+and hidden application states suspend graph animation. The local peer anchors
+the center; first-hop branches balance across the horizontal desktop canvas or
+vertical mobile canvas, and forwarded continuations extend outward from their
+observed first hop. Node spacing targets roughly 3–5 peer glyphs. Pan and zoom
+remain bounded within the visible canvas. Hover-inert graph children avoid the
+package's child-cache invalidation bug on desktop pointer movement. Direct edges are solid; every segment through
 a relay is dashed. Home uses a separate simplified endpoint-only projection and
 omits relay servers. Virtual IPv4 identities prevent the synthetic local status
 row from colliding with a remote peer ID, while reported route cost remains
@@ -874,7 +876,7 @@ remain unchanged.
 - `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, simplified endpoint-only emoji preview, integrated connection action, staged quick controls, and session details
 - `lib/core/models/mission_control_preferences.dart`, `lib/core/states/mission_control_state.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/models/all_settings.dart`: preference precedence and persisted device-local room overrides
 - `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
-- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`, `lib/shared/utils/network/mesh_peer_identity.dart`, `lib/shared/widgets/network/mesh_peer_badge.dart`, `pubspec.yaml`, `pubspec.lock`: bounded finite force-directed constellation, deterministic shared emoji identity, solid/dashed routes, collision-safe route projection, localized secondary list view and room-view controls, and technical NAT labels
+- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`, `lib/shared/utils/network/mesh_peer_identity.dart`, `lib/shared/widgets/network/mesh_peer_badge.dart`, `pubspec.yaml`, `pubspec.lock`: deterministic route-aware constellation, deterministic shared emoji identity, solid/dashed routes, collision-safe route projection, localized secondary list view and room-view controls, and technical NAT labels
 - `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: derive the synthetic local status row from each connection's local peer ID rather than borrowing a remote peer ID
 - `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
 - `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/features/servers/widgets/server_list_tile.dart`: reorder the Relay destination and update desktop relay interactions

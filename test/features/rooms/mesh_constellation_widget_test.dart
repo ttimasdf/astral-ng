@@ -8,12 +8,77 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:graphview/GraphView.dart' as gv;
 
 void main() {
-  test('axis profile is horizontal on desktop and vertical on mobile', () {
-    final desktop = meshConstellationAxisScale(const Size(1200, 700));
-    final mobile = meshConstellationAxisScale(const Size(390, 700));
+  testWidgets('route layout follows canvas orientation and route depth', (
+    tester,
+  ) async {
+    final nodes = [
+      _node(1, 'Local', '10.1.0.1', 0),
+      _node(2, 'Relay', '10.1.0.2', 1),
+      _node(
+        3,
+        'Forwarded',
+        '10.1.0.3',
+        2,
+        hops: const [
+          NodeHopStats(
+            peerId: 2,
+            targetIp: '10.1.0.2',
+            latencyMs: 12,
+            packetLoss: 0,
+            nodeName: 'Relay',
+          ),
+        ],
+      ),
+    ];
 
-    expect(desktop.dx, greaterThan(desktop.dy));
-    expect(mobile.dy, greaterThan(mobile.dx));
+    tester.view.physicalSize = const Size(1200, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(home: MeshConstellation(nodes: nodes, localIp: '10.1.0.1')),
+    );
+    await tester.pumpAndSettle();
+    final desktopLocal = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.1')),
+    );
+    final desktopRelay = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.2')),
+    );
+    final desktopForwarded = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.3')),
+    );
+    expect(
+      (desktopRelay.dx - desktopLocal.dx).abs(),
+      greaterThan((desktopRelay.dy - desktopLocal.dy).abs()),
+    );
+    expect(
+      (desktopForwarded.dx - desktopLocal.dx).abs(),
+      greaterThan((desktopRelay.dx - desktopLocal.dx).abs()),
+    );
+
+    tester.view.physicalSize = const Size(390, 700);
+    await tester.pumpWidget(
+      MaterialApp(home: MeshConstellation(nodes: nodes, localIp: '10.1.0.1')),
+    );
+    await tester.pumpAndSettle();
+    final mobileLocal = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.1')),
+    );
+    final mobileRelay = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.2')),
+    );
+    final mobileForwarded = tester.getCenter(
+      find.byKey(const ValueKey('ip_10.1.0.3')),
+    );
+    expect(
+      (mobileRelay.dy - mobileLocal.dy).abs(),
+      greaterThan((mobileRelay.dx - mobileLocal.dx).abs()),
+    );
+    expect(
+      (mobileForwarded.dy - mobileLocal.dy).abs(),
+      greaterThan((mobileRelay.dy - mobileLocal.dy).abs()),
+    );
   });
 
   testWidgets(
