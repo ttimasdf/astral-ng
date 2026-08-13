@@ -84,8 +84,9 @@ baseline.
   destination are localized in English and Chinese. A compact, responsive stats
   row above both room views reports peer/direct/forwarded counts plus peer-median
   latency and recent packet loss from EasyTier's rolling observations. The
-  topology attribution label no longer overlaps the settings control, and the
-  connected room page no longer shows the share prompt row. ([#13])
+  topology attribution label no longer overlaps the settings control. The
+  connected room page replaces the old share prompt row with a dedicated
+  bottom-right action that copies the selected room link. ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary

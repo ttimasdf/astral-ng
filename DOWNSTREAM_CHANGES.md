@@ -865,8 +865,9 @@ member list remains available as a secondary view. Room view settings and member
 list details use synchronized English and Chinese strings; compact NAT badges
 show the reported technical NAT category instead of opaque quality grades. The
 network-topology attribution label is placed away from the room settings control,
-and the connected room page no longer shows the room-share prompt row. Both the
-topology and member-list views share a compact metric-cell header with endpoint
+and the connected room page replaces the room-share prompt row with a dedicated
+bottom-right copy-link action. Both the topology and member-list views share a
+compact metric-cell header with endpoint
 counts plus median latency and recent loss across observed non-relay peers. The
 old `vyuh_node_flow` implementation and dependency are removed.
 

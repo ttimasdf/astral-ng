@@ -78,6 +78,7 @@
   "rooms_list_view": "列表视图",
   "rooms_network_topology_view": "拓扑视图",
   "rooms_settings": "房间视图设置",
+  "rooms_copy_link": "复制房间链接",
   "rooms_settings_desc": "成员列表的更改会立即生效。",
   "rooms_display_style": "卡片详情",
   "rooms_compact": "简洁",

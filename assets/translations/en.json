@@ -78,6 +78,7 @@
   "rooms_list_view": "List view",
   "rooms_network_topology_view": "Topology view",
   "rooms_settings": "Room view settings",
+  "rooms_copy_link": "Copy room link",
   "rooms_settings_desc": "Changes to the member list apply immediately.",
   "rooms_display_style": "Card detail",
   "rooms_compact": "Compact",

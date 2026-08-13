@@ -3,6 +3,7 @@ import 'package:astral/core/states/connection_state.dart';
 import 'package:astral/core/states/display_state.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/shared/utils/network/node_utils.dart';
+import 'package:astral/features/rooms/dialogs/room_share_export_dialog.dart';
 import 'package:astral/features/rooms/widgets/all_user_card.dart';
 import 'package:astral/features/rooms/widgets/mini_user_card.dart';
 import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
@@ -29,31 +30,28 @@ class _UserPageState extends State<UserPage> {
     final colorScheme = Theme.of(context).colorScheme;
     // 使用 Riverpod 监听节点数据
     return Scaffold(
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: 'topology_toggle',
-            onPressed: () {
-              setState(() {
-                _showConstellation = !_showConstellation;
-              });
-            },
-            tooltip:
-                _showConstellation
-                    ? LocaleKeys.rooms_list_view.tr()
-                    : LocaleKeys.rooms_network_topology_view.tr(),
-            child: Icon(_showConstellation ? Icons.list : Icons.auto_awesome),
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: 'room_settings',
-            onPressed: () => RoomSettingsSheet.show(context),
-            tooltip: LocaleKeys.rooms_settings.tr(),
-            child: const Icon(Icons.bar_chart),
-          ),
-        ],
-      ),
+      floatingActionButton: Watch((context) {
+        final selectedRoom = ServiceManager().roomState.selectedRoom.watch(
+          context,
+        );
+        return RoomViewActions(
+          showTopology: _showConstellation,
+          onToggleView: () {
+            setState(() {
+              _showConstellation = !_showConstellation;
+            });
+          },
+          onOpenSettings: () => RoomSettingsSheet.show(context),
+          onCopyLink:
+              selectedRoom == null
+                  ? null
+                  : () => RoomShareExportDialogs.copyShareLink(
+                    context,
+                    selectedRoom,
+                    linkOnly: true,
+                  ),
+        );
+      }),
       body: Watch((context) {
         final netStatus = ServiceManager().connectionState.netStatus.watch(
           context,
@@ -256,4 +254,53 @@ class _UserPageState extends State<UserPage> {
     }
     return 1; // 窄屏使用单列
   }
+}
+
+class RoomViewActions extends StatelessWidget {
+  final bool showTopology;
+  final VoidCallback onToggleView;
+  final VoidCallback onOpenSettings;
+  final VoidCallback? onCopyLink;
+
+  const RoomViewActions({
+    super.key,
+    required this.showTopology,
+    required this.onToggleView,
+    required this.onOpenSettings,
+    required this.onCopyLink,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      FloatingActionButton(
+        heroTag: 'topology_toggle',
+        onPressed: onToggleView,
+        tooltip:
+            showTopology
+                ? LocaleKeys.rooms_list_view.tr()
+                : LocaleKeys.rooms_network_topology_view.tr(),
+        child: Icon(showTopology ? Icons.list : Icons.auto_awesome),
+      ),
+      const SizedBox(height: 16),
+      FloatingActionButton(
+        heroTag: 'room_settings',
+        onPressed: onOpenSettings,
+        tooltip: LocaleKeys.rooms_settings.tr(),
+        child: const Icon(Icons.bar_chart),
+      ),
+      if (onCopyLink != null) ...[
+        const SizedBox(height: 16),
+        FloatingActionButton(
+          key: const ValueKey('room_copy_link'),
+          heroTag: 'room_copy_link',
+          onPressed: onCopyLink,
+          tooltip: LocaleKeys.rooms_copy_link.tr(),
+          child: const Icon(Icons.share_rounded),
+        ),
+      ],
+    ],
+  );
 }
