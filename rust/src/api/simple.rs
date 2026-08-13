@@ -581,8 +581,9 @@ pub async fn get_peer_route_pairs() -> Result<Vec<PeerRoutePair>, String> {
                     let my_peer_id = info
                         .peers
                         .iter()
-                        .find(|p| p.conns.iter().any(|c| !c.is_client))
-                        .map(|p| p.peer_id)
+                        .flat_map(|peer| peer.conns.iter())
+                        .map(|connection| connection.my_peer_id)
+                        .next()
                         .unwrap_or(0);
 
                     // 创建一个表示本地节点的Route
@@ -645,8 +646,9 @@ pub async fn get_network_status() -> KVNetworkStatus {
         .and_then(|info| {
             info.peers
                 .iter()
-                .find(|p| p.conns.iter().any(|c| !c.is_client))
-                .map(|p| p.peer_id)
+                .flat_map(|peer| peer.conns.iter())
+                .map(|connection| connection.my_peer_id)
+                .next()
         })
         .unwrap_or(0);
 

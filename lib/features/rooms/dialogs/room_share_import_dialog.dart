@@ -66,7 +66,7 @@ class RoomShareImportDialogs {
         return false;
       }
 
-      final room = RoomShareCodec.decryptRoom(shareCode);
+      final room = RoomShareCodec.decodeRoom(shareCode);
       if (room == null) {
         AppSnackBars.error(context, '分享码解析失败', '无法解析房间信息，可能是分享码已过期或损坏');
         return false;

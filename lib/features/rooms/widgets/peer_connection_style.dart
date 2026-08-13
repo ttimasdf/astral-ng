@@ -1,3 +1,4 @@
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 
 /// 节点连接展示共用样式（All / Mini 用户卡共用）
@@ -20,45 +21,33 @@ class PeerConnectionStyle {
     String connectionType,
     ColorScheme colorScheme,
   ) {
-    final lowerType = connectionType.toLowerCase();
-    if (lowerType.contains('server') || lowerType.contains('服务器')) {
-      return Colors.deepPurple;
-    }
-    if (lowerType.contains('p2p') || lowerType.contains('直链')) {
-      return Colors.green;
-    }
-    if (lowerType.contains('relay') || lowerType.contains('中转')) {
-      return Colors.orange;
-    }
-    if (lowerType.contains('direct') || lowerType.contains('本机')) {
-      return colorScheme.primary;
-    }
-    return Colors.grey;
+    return switch (connectionType) {
+      LocaleKeys.rooms_connection_server => Colors.deepPurple,
+      LocaleKeys.rooms_connection_direct => Colors.green,
+      LocaleKeys.rooms_connection_relay => Colors.orange,
+      LocaleKeys.rooms_connection_local => colorScheme.primary,
+      _ => Colors.grey,
+    };
   }
 
   static String mapConnectionType(int connType, String ip, String thisip) {
-    if (ip == '0.0.0.0') return '服务器';
-    if (thisip.isNotEmpty && ip == thisip) return '本机';
-    if (connType == 1) return '直链';
-    if (connType >= 2) return '中转';
-    return '未知';
+    if (ip == '0.0.0.0') return LocaleKeys.rooms_connection_server;
+    if (thisip.isNotEmpty && ip == thisip) {
+      return LocaleKeys.rooms_connection_local;
+    }
+    if (connType == 1) return LocaleKeys.rooms_connection_direct;
+    if (connType >= 2) return LocaleKeys.rooms_connection_relay;
+    return LocaleKeys.rooms_connection_unknown;
   }
 
   static IconData getConnectionIcon(String connectionType) {
-    final lowerType = connectionType.toLowerCase();
-    if (lowerType.contains('server') || lowerType.contains('服务器')) {
-      return Icons.dns;
-    }
-    if (lowerType.contains('p2p') || lowerType.contains('直链')) {
-      return Icons.link;
-    }
-    if (lowerType.contains('relay') || lowerType.contains('中转')) {
-      return Icons.swap_horiz;
-    }
-    if (lowerType.contains('direct') || lowerType.contains('本机')) {
-      return Icons.computer;
-    }
-    return Icons.device_unknown;
+    return switch (connectionType) {
+      LocaleKeys.rooms_connection_server => Icons.dns,
+      LocaleKeys.rooms_connection_direct => Icons.link,
+      LocaleKeys.rooms_connection_relay => Icons.swap_horiz,
+      LocaleKeys.rooms_connection_local => Icons.computer,
+      _ => Icons.device_unknown,
+    };
   }
 
   static Color getLatencyColor(double latency) {

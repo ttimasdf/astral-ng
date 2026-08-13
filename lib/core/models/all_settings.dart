@@ -66,4 +66,7 @@ class AllSettings {
 
   /// 连接失败后的重试次数，0 表示禁用
   int connectionRetryLimit = 3;
+
+  /// 当前设备针对各房间保存的 Mission Control 偏好覆盖。
+  String missionControlOverridesJson = '{}';
 }

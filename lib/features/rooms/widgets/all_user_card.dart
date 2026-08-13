@@ -1,6 +1,8 @@
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:astral/features/rooms/widgets/all_user_card_tile.dart';
+import 'package:astral/generated/locale_keys.g.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,8 +35,7 @@ class _AllUserCardState extends State<AllUserCard> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(
-            color:
-                isHovered ? widget.colorScheme.primary : Colors.transparent,
+            color: isHovered ? widget.colorScheme.primary : Colors.transparent,
             width: 1,
           ),
         ),
@@ -44,8 +45,10 @@ class _AllUserCardState extends State<AllUserCard> {
             Clipboard.setData(ClipboardData(text: widget.player.ipv4));
             AppSnackBars.success(
               context,
-              '已复制',
-              'IP: ${widget.player.ipv4}',
+              LocaleKeys.rooms_copied.tr(),
+              LocaleKeys.rooms_ip_copied.tr(
+                namedArgs: {'ip': widget.player.ipv4},
+              ),
               duration: const Duration(seconds: 2),
             );
           },

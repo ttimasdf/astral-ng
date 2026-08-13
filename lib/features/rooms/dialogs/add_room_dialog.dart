@@ -5,7 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showAddRoomDialog(BuildContext context) async {
-  bool isEncrypted = true;
+  bool simpleMode = true;
   String? name = RandomName();
   String? roomName;
   String? roomPassword;
@@ -36,8 +36,8 @@ Future<void> showAddRoomDialog(BuildContext context) async {
                   ),
                 ),
                 RadioGroup<bool>(
-                  groupValue: isEncrypted,
-                  onChanged: (value) => setState(() => isEncrypted = value!),
+                  groupValue: simpleMode,
+                  onChanged: (value) => setState(() => simpleMode = value!),
                   child: Column(
                     children: [
                       RadioListTile<bool>(
@@ -56,7 +56,7 @@ Future<void> showAddRoomDialog(BuildContext context) async {
                   ),
                 ),
 
-                if (!isEncrypted) ...[
+                if (!simpleMode) ...[
                   TextField(
                     decoration: const InputDecoration(labelText: '房间号'),
                     onChanged: (value) => roomName = value,
@@ -76,8 +76,8 @@ Future<void> showAddRoomDialog(BuildContext context) async {
               ),
               TextButton(
                 onPressed: () {
-                  addEncryptedRoom(
-                    isEncrypted,
+                  addRoomForMode(
+                    simpleMode,
                     name ?? RandomName(),
                     roomName ?? "",
                     roomPassword ?? "",

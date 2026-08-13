@@ -270,8 +270,9 @@ pub async fn get_peer_route_pairs(instance_id: String) -> Result<Vec<PeerRoutePa
         let my_peer_id = info
             .peers
             .iter()
-            .find(|p| p.conns.iter().any(|c| !c.is_client))
-            .map(|p| p.peer_id)
+            .flat_map(|peer| peer.conns.iter())
+            .map(|connection| connection.my_peer_id)
+            .next()
             .unwrap_or(0);
 
         let my_route = Route {
@@ -318,8 +319,9 @@ pub async fn get_network_status(instance_id: String) -> KVNetworkStatus {
         .and_then(|info| {
             info.peers
                 .iter()
-                .find(|p| p.conns.iter().any(|c| !c.is_client))
-                .map(|p| p.peer_id)
+                .flat_map(|peer| peer.conns.iter())
+                .map(|connection| connection.my_peer_id)
+                .next()
         })
         .unwrap_or(0);
 

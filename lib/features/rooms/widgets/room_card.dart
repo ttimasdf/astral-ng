@@ -166,15 +166,6 @@ class _RoomCardState extends State<RoomCard> {
                             constraints: const BoxConstraints(),
                             tooltip: '编辑房间',
                           ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          room.encrypted ? Icons.auto_awesome : Icons.tune,
-                          color:
-                              room.encrypted
-                                  ? colorScheme.primary
-                                  : colorScheme.secondary,
-                          size: 20,
-                        ),
                       ],
                     ),
                   ],
@@ -184,7 +175,7 @@ class _RoomCardState extends State<RoomCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LocaleKeys.room_mode.tr()}: ${RoomMode.label(room.encrypted)}',
+                      '${LocaleKeys.room_mode.tr()}: ${RoomMode.label(room.simpleMode)}',
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                     if (room.servers.isNotEmpty)

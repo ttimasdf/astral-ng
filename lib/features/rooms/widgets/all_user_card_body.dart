@@ -1,7 +1,9 @@
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/features/rooms/widgets/player_card_stats.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/shared/utils/platform_version_parser.dart';
 import 'package:astral/src/rust/api/simple.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Body sections for [AllUserCardTile].
@@ -15,7 +17,7 @@ class AllUserCardBody {
     if (player.connections.isEmpty) {
       return Center(
         child: Text(
-          '无连接数据',
+          LocaleKeys.rooms_no_connection_data.tr(),
           style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
         ),
       );
@@ -29,7 +31,7 @@ class AllUserCardBody {
             Icon(Icons.wifi, size: 20, color: colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              '网络数据:',
+              '${LocaleKeys.rooms_network_data.tr()}:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
@@ -65,7 +67,7 @@ class AllUserCardBody {
           PlayerCardStats.buildInfoRow(
             context,
             Icons.lan_outlined,
-            'IP地址',
+            LocaleKeys.rooms_ip_address.tr(),
             player.ipv4,
             colorScheme,
             showCopyButton: true,
@@ -74,7 +76,7 @@ class AllUserCardBody {
         PlayerCardStats.buildInfoRow(
           context,
           PlatformVersionParser.getPlatformIcon(player.version),
-          'ET版本',
+          LocaleKeys.rooms_easytier_version.tr(),
           PlatformVersionParser.getVersionNumber(player.version),
           colorScheme,
         ),
@@ -82,7 +84,7 @@ class AllUserCardBody {
         PlayerCardStats.buildInfoRow(
           context,
           natTypeIcon,
-          'NAT类型',
+          LocaleKeys.rooms_nat_type.tr(),
           natTypeString,
           colorScheme,
           valueColor: natTypeColor,
@@ -92,7 +94,7 @@ class AllUserCardBody {
           PlayerCardStats.buildInfoRow(
             context,
             Icons.router,
-            '隧道类型',
+            LocaleKeys.rooms_tunnel_type.tr(),
             PeerConnectionStyle.formatTunnelProto(player.tunnelProto),
             colorScheme,
           ),
@@ -105,7 +107,10 @@ class AllUserCardBody {
     );
   }
 
-  static Widget buildHopsInfo(List<NodeHopStats> hops, ColorScheme colorScheme) {
+  static Widget buildHopsInfo(
+    List<NodeHopStats> hops,
+    ColorScheme colorScheme,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,9 +120,9 @@ class AllUserCardBody {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '连接路径:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                '${LocaleKeys.rooms_connection_path.tr()}:',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               // 改为每行显示一个跃点

@@ -63,6 +63,40 @@ baseline.
   covering its title and navigation bars. Android back now unwinds those nested
   views reliably, and exiting the Android engine closes its VPN service instead
   of leaving a stale system VPN indicator. ([#12])
+- Redesigned Home as Mission Control with live session summaries and per-room
+  path, peer-connectivity, and Windows LAN-discovery controls. Connected state
+  now reads “Mesh network connected” / “网络已连接,” and setup editing shares
+  a responsive action row with Connect. Changes made during a connection are
+  staged until the user explicitly reconnects. The pending-change notice now
+  stacks its explanation above a full-width Reconnect and apply action for
+  narrow layouts. During connection, the progress bar spans the complete Edit
+  and Connect action row.
+- Replaced the room topology graph with a deterministic, route-aware
+  network topology. Room peers receive stable emoji identities derived from
+  username and virtual IP; the same identity appears in Home and connection
+  setup and updates while editing. Relay servers retain a server glyph, direct
+  links are solid, and every segment of a relayed path is dashed. Desktop lays
+  out route branches horizontally around the local peer; mobile rotates the
+  composition vertically. Home preserves its local-centered direct/forwarded
+  route preview but fits the graph's occupied bounds to the canvas with stable
+  margins; its disconnected state keeps the local identity without the
+  placeholder oval. Rooms keeps complete relay paths. Node-detail values use a consistent
+  left-aligned content column, and the member list remains available. Room view
+  settings, member-list details, connection and NAT labels, and the Tools
+  destination are localized in English and Chinese. A compact, responsive stats
+  row above both room views reports peer/direct/forwarded counts plus peer-median
+  latency and recent packet loss from EasyTier's rolling observations. The
+  topology view replaces the attribution chip with a shared NAT-family color
+  legend. NAT colors now use one contrast-safe semantic palette across topology
+  borders, local double borders, relay shapes, compact badges, and list details.
+  The connected room page replaces the old share prompt row with a dedicated
+  copy-link action above Settings, with the topology/list toggle at the bottom.
+  Deterministic graph updates no longer freeze nodes at the center when Astral
+  moves to the background. Before connecting, room actions now use a matching
+  vertical Sort, Import, Add stack with a dedicated import icon, and room cards
+  omit the redundant Simple/Advanced mode glyph. ([#13])
+- Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
+  relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary
   name, `astral-canary` command, distinct package identities, and a
   grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
@@ -231,6 +265,7 @@ changes. ([upstream-v2.7.3])
 [#10]: https://github.com/ttimasdf/astral-ng/pull/10
 [#11]: https://github.com/ttimasdf/astral-ng/pull/11
 [#12]: https://github.com/ttimasdf/astral-ng/pull/12
+[#13]: https://github.com/ttimasdf/astral-ng/pull/13
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

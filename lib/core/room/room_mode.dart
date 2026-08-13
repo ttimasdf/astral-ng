@@ -6,8 +6,8 @@ class RoomMode {
   const RoomMode._();
 
   /// Simple mode generates private credentials; advanced mode accepts them.
-  static String label(bool usesGeneratedCredentials) =>
-      usesGeneratedCredentials
+  static String label(bool simpleMode) =>
+      simpleMode
           ? LocaleKeys.room_mode_simple.tr()
           : LocaleKeys.room_mode_advanced.tr();
 }

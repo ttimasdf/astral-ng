@@ -177,16 +177,16 @@ class _MainScreenState extends State<MainScreen>
       page: const RoomPage(),
     ),
     NavigationItem(
-      icon: Icons.build_outlined,
-      activeIcon: Icons.build,
-      label: '工具',
-      page: const ToolsPage(),
-    ),
-    NavigationItem(
       icon: Icons.dns_outlined,
       activeIcon: Icons.dns,
       label: LocaleKeys.nav_server.tr(),
       page: const ServersPage(),
+    ),
+    NavigationItem(
+      icon: Icons.build_outlined,
+      activeIcon: Icons.build,
+      label: LocaleKeys.nav_tools.tr(),
+      page: const ToolsPage(),
     ),
     NavigationItem(
       icon: Icons.settings_outlined,

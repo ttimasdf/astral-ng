@@ -1,8 +1,10 @@
-import 'package:astral/features/rooms/widgets/mini_user_card_nat.dart';
+import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
 import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/shared/utils/platform_version_parser.dart';
 import 'package:astral/src/rust/api/simple.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -46,9 +48,7 @@ class _MiniUserCardState extends State<MiniUserCard> {
     );
     final latencyColor = PeerConnectionStyle.getLatencyColor(player.latencyMs);
     final lossColor = PeerConnectionStyle.getPacketLossColor(player.lossRate);
-    final natDifficulty = MiniUserCardNat.mapNatType(player.nat);
-    final natDifficultyColor = MiniUserCardNat.getNatTypeColor(natDifficulty);
-    final natDifficultyIcon = MiniUserCardNat.getNatTypeIcon(natDifficulty);
+    final natStyle = NatVisualStyle.resolve(player.nat, colorScheme);
 
     return MouseRegion(
       onEnter: (_) => setState(() => isHovered = true),
@@ -68,8 +68,8 @@ class _MiniUserCardState extends State<MiniUserCard> {
             Clipboard.setData(ClipboardData(text: player.ipv4));
             AppSnackBars.success(
               context,
-              '已复制',
-              'IP地址: ${player.ipv4}',
+              LocaleKeys.rooms_copied.tr(),
+              LocaleKeys.rooms_ip_copied.tr(namedArgs: {'ip': player.ipv4}),
               duration: const Duration(seconds: 2),
             );
           },
@@ -109,7 +109,7 @@ class _MiniUserCardState extends State<MiniUserCard> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        connectionType,
+                        connectionType.tr(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -117,13 +117,10 @@ class _MiniUserCardState extends State<MiniUserCard> {
                       ),
                     ),
                     // 只有不是本机时才显示延迟和丢包
-                    if (connectionType != '本机') ...[
+                    if (connectionType !=
+                        LocaleKeys.rooms_connection_local) ...[
                       const SizedBox(width: 10),
-                      Icon(
-                        Icons.timer_outlined,
-                        size: 16,
-                        color: latencyColor,
-                      ),
+                      Icon(Icons.timer_outlined, size: 16, color: latencyColor),
                       Text(
                         '${player.latencyMs.toStringAsFixed(0)}ms',
                         style: TextStyle(
@@ -184,29 +181,43 @@ class _MiniUserCardState extends State<MiniUserCard> {
                         fontSize: 13,
                       ),
                     ),
-                    if (connectionType != '本机' && player.nat.isNotEmpty) ...[
+                    if (connectionType !=
+                        LocaleKeys.rooms_connection_local) ...[
                       const SizedBox(width: 10),
-                      Icon(
-                        natDifficultyIcon,
-                        size: 16,
-                        color: natDifficultyColor,
-                      ),
-                      Text(
-                        natDifficulty,
-                        style: TextStyle(
-                          color: natDifficultyColor,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: natStyle.background,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(color: natStyle.border),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              natStyle.icon,
+                              size: 14,
+                              color: natStyle.foreground,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              natStyle.labelKey.tr(),
+                              style: TextStyle(
+                                color: natStyle.foreground,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                     if (player.tunnelProto != '') ...[
                       const SizedBox(width: 10),
-                      Icon(
-                        Icons.router,
-                        size: 16,
-                        color: colorScheme.primary,
-                      ),
+                      Icon(Icons.router, size: 16, color: colorScheme.primary),
                       Text(
                         PeerConnectionStyle.formatTunnelProto(
                           player.tunnelProto,
