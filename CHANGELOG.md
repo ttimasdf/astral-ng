@@ -86,7 +86,9 @@ baseline.
   latency and recent packet loss from EasyTier's rolling observations. The
   topology attribution label no longer overlaps the settings control. The
   connected room page replaces the old share prompt row with a dedicated
-  bottom-right action that copies the selected room link. ([#13])
+  copy-link action above Settings, with the topology/list toggle at the bottom.
+  Deterministic graph updates no longer freeze nodes at the center when Astral
+  moves to the background. ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary

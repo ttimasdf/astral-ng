@@ -252,7 +252,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
     _algorithm = _RouteConstellationAlgorithm();
     _topology = _topologyFingerprint(widget.model);
     _graph = _buildGraph(widget.model);
-    _graphView = _buildGraphView(animate: false);
+    _graphView = _buildGraphView();
   }
 
   @override
@@ -263,7 +263,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
     if (nextTopology == _topology) return;
     _topology = nextTopology;
     _graph = _buildGraph(widget.model);
-    _graphView = _buildGraphView(animate: !widget.reduceMotion);
+    _graphView = _buildGraphView();
     _needsFrame = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _frameConstellation();
@@ -371,15 +371,14 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
           ..scaleByDouble(scale, scale, 1, 1);
   }
 
-  Widget _buildGraphView({required bool animate}) => gv.GraphView(
+  Widget _buildGraphView() => gv.GraphView(
     key: ValueKey(
       '$_topology:${_renderCanvasSize?.width.round()}x${_renderCanvasSize?.height.round()}',
     ),
     graph: _graph,
     algorithm: _algorithm,
-    animated: animate,
-    toggleAnimationDuration:
-        animate ? const Duration(milliseconds: 260) : Duration.zero,
+    animated: false,
+    toggleAnimationDuration: Duration.zero,
     builder: (graphNode) {
       final id = graphNode.key?.value as String?;
       final node = id == null ? null : _latestNodes[id];
@@ -438,7 +437,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
                     ?.id;
           if (_renderCanvasSize != canvasSize) {
             _renderCanvasSize = canvasSize;
-            _graphView = _buildGraphView(animate: false);
+            _graphView = _buildGraphView();
             _needsFrame = true;
           }
           if (_needsFrame) {

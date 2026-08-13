@@ -850,7 +850,8 @@ session details, and connection setup, where it follows draft username and IP
 changes. Rooms uses `graphview` for keyed node/edge rendering and bounded
 interaction, with Astral's own route-depth layout positioning nodes only on
 identity or topology changes. Ordinary metric refreshes do not restart layout,
-and hidden application states suspend graph animation. The local peer anchors
+and deterministic updates are applied without an entrance transition so hidden
+application states cannot freeze nodes at the center. The local peer anchors
 the center; first-hop branches balance across the horizontal desktop canvas or
 vertical mobile canvas, and forwarded continuations extend outward from their
 observed first hop. Node spacing targets roughly 3–5 peer glyphs. Pan and zoom
@@ -865,8 +866,9 @@ member list remains available as a secondary view. Room view settings and member
 list details use synchronized English and Chinese strings; compact NAT badges
 show the reported technical NAT category instead of opaque quality grades. The
 network-topology attribution label is placed away from the room settings control,
-and the connected room page replaces the room-share prompt row with a dedicated
-bottom-right copy-link action. Both the topology and member-list views share a
+and the connected room page replaces the room-share prompt row with a copy-link
+action at the top of the right-side stack; Settings remains in the middle and
+the topology/list toggle sits at the bottom. Both room views share a
 compact metric-cell header with endpoint
 counts plus median latency and recent loss across observed non-relay peers. The
 old `vyuh_node_flow` implementation and dependency are removed.

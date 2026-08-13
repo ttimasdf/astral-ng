@@ -275,7 +275,26 @@ class RoomViewActions extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.end,
     children: [
+      if (onCopyLink != null) ...[
+        FloatingActionButton(
+          key: const ValueKey('room_copy_link'),
+          heroTag: 'room_copy_link',
+          onPressed: onCopyLink,
+          tooltip: LocaleKeys.rooms_copy_link.tr(),
+          child: const Icon(Icons.share_rounded),
+        ),
+        const SizedBox(height: 16),
+      ],
       FloatingActionButton(
+        key: const ValueKey('room_settings'),
+        heroTag: 'room_settings',
+        onPressed: onOpenSettings,
+        tooltip: LocaleKeys.rooms_settings.tr(),
+        child: const Icon(Icons.bar_chart),
+      ),
+      const SizedBox(height: 16),
+      FloatingActionButton(
+        key: const ValueKey('room_view_toggle'),
         heroTag: 'topology_toggle',
         onPressed: onToggleView,
         tooltip:
@@ -284,23 +303,6 @@ class RoomViewActions extends StatelessWidget {
                 : LocaleKeys.rooms_network_topology_view.tr(),
         child: Icon(showTopology ? Icons.list : Icons.auto_awesome),
       ),
-      const SizedBox(height: 16),
-      FloatingActionButton(
-        heroTag: 'room_settings',
-        onPressed: onOpenSettings,
-        tooltip: LocaleKeys.rooms_settings.tr(),
-        child: const Icon(Icons.bar_chart),
-      ),
-      if (onCopyLink != null) ...[
-        const SizedBox(height: 16),
-        FloatingActionButton(
-          key: const ValueKey('room_copy_link'),
-          heroTag: 'room_copy_link',
-          onPressed: onCopyLink,
-          tooltip: LocaleKeys.rooms_copy_link.tr(),
-          child: const Icon(Icons.share_rounded),
-        ),
-      ],
     ],
   );
 }

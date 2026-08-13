@@ -24,6 +24,15 @@ void main() {
         final share = find.byKey(const ValueKey('room_copy_link'));
         expect(share, findsOneWidget);
         expect(find.byIcon(Icons.share_rounded), findsOneWidget);
+        final shareTop = tester.getTopLeft(share).dy;
+        final settingsTop =
+            tester.getTopLeft(find.byKey(const ValueKey('room_settings'))).dy;
+        final toggleTop =
+            tester
+                .getTopLeft(find.byKey(const ValueKey('room_view_toggle')))
+                .dy;
+        expect(shareTop, lessThan(settingsTop));
+        expect(settingsTop, lessThan(toggleTop));
         await tester.tap(share);
         expect(copied, isTrue);
         expect(tester.takeException(), isNull);

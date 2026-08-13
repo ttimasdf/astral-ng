@@ -154,6 +154,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('background lifecycle keeps settled node geometry', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MeshConstellation(
+          nodes: [
+            _node(1, 'Local', '10.1.0.1', 0),
+            _node(2, 'Peer', '10.1.0.2', 1),
+          ],
+          localIp: '10.1.0.1',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final local = find.byKey(const ValueKey('ip_10.1.0.1'));
+    final peer = find.byKey(const ValueKey('ip_10.1.0.2'));
+    final beforeLocal = tester.getCenter(local);
+    final beforePeer = tester.getCenter(peer);
+    expect(
+      tester.widget<gv.GraphView>(find.byType(gv.GraphView)).animated,
+      isFalse,
+    );
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    await tester.pump();
+
+    expect(tester.getCenter(local), beforeLocal);
+    expect(tester.getCenter(peer), beforePeer);
+    expect(
+      (tester.getCenter(peer) - tester.getCenter(local)).distance,
+      greaterThan(80),
+    );
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(tester.getCenter(local), beforeLocal);
+    expect(tester.getCenter(peer), beforePeer);
+  });
+
   testWidgets('metric refresh keeps the settled graph element', (tester) async {
     final nodes = ValueNotifier<List<KVNodeInfo>>([
       _node(1, 'Local', '10.1.0.1', 0),
