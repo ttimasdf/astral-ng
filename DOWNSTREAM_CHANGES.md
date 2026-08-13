@@ -857,8 +857,10 @@ vertical mobile canvas, and forwarded continuations extend outward from their
 observed first hop. Node spacing targets roughly 3–5 peer glyphs. Pan and zoom
 remain bounded within the visible canvas. Hover-inert graph children avoid the
 package's child-cache invalidation bug on desktop pointer movement. Direct edges are solid; every segment through
-a relay is dashed. Home uses a separate simplified endpoint-only projection and
-omits relay servers. Virtual IPv4 identities prevent the synthetic local status
+a relay is dashed. Home uses a separate simplified projection that omits relay
+servers while preserving its local identity and direct/forwarded route spokes.
+The disconnected placeholder oval is removed, and connected graphs fit their
+actual occupied bounds to the preview canvas with fixed margins. Virtual IPv4 identities prevent the synthetic local status
 row from colliding with a remote peer ID, while reported route cost remains
 authoritative.
 Node-detail sheets use a stable label column and left-aligned value column. The

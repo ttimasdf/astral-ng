@@ -36,7 +36,6 @@ class HomePage extends StatelessWidget {
             .watch(context);
         final reduceMotion = services.appSettingsState.reduceTopologyAnimations
             .watch(context);
-
         // Establish reactive dependencies used by preference resolution.
         services.networkConfigState.latencyFirst.watch(context);
         services.networkConfigState.disableP2p.watch(context);

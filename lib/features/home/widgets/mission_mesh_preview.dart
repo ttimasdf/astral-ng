@@ -14,7 +14,79 @@ List<KVNodeInfo> projectMissionMeshEndpoints(
     )
     .toList(growable: false);
 
-/// A simplified endpoint overview for Home.
+class MissionMeshGraphLayout {
+  final Offset localCenter;
+  final List<Offset> peerCenters;
+
+  const MissionMeshGraphLayout({
+    required this.localCenter,
+    required this.peerCenters,
+  });
+}
+
+/// Fits the original local-centered graph to the peers that actually exist.
+MissionMeshGraphLayout layoutMissionMeshGraph(
+  List<KVNodeInfo> peers,
+  Size size,
+) {
+  const local = Offset.zero;
+  if (peers.isEmpty || size.isEmpty) {
+    return MissionMeshGraphLayout(
+      localCenter: Offset(size.width / 2, (size.height - 92) / 2),
+      peerCenters: const [],
+    );
+  }
+
+  final occupied = <int>{};
+  const slotCount = 48;
+  final sortedPeers = [...peers]
+    ..sort((a, b) => _identity(a).compareTo(_identity(b)));
+  final rawPeers = <Offset>[];
+  for (final peer in sortedPeers) {
+    var slot = _stableHash(_identity(peer)) % slotCount;
+    while (occupied.contains(slot)) {
+      slot = (slot + 1) % slotCount;
+    }
+    occupied.add(slot);
+    final angle = -math.pi / 2 + slot * math.pi * 2 / slotCount;
+    rawPeers.add(Offset(math.cos(angle) * 180, math.sin(angle) * 100));
+  }
+
+  final points = [local, ...rawPeers];
+  final minX = points.map((point) => point.dx).reduce(math.min);
+  final maxX = points.map((point) => point.dx).reduce(math.max);
+  final minY = points.map((point) => point.dy).reduce(math.min);
+  final maxY = points.map((point) => point.dy).reduce(math.max);
+  final rawWidth = maxX - minX;
+  final rawHeight = maxY - minY;
+
+  // Leave room for node circles and for the metrics overlay at the bottom.
+  final target = Rect.fromLTRB(
+    40,
+    28,
+    math.max(40, size.width - 40),
+    math.max(28, size.height - 100),
+  );
+  final scaleX = rawWidth > .001 ? target.width / rawWidth : 0.0;
+  final scaleY = rawHeight > .001 ? target.height / rawHeight : 0.0;
+  final rawCenter = Offset((minX + maxX) / 2, (minY + maxY) / 2);
+  final targetCenter = target.center;
+
+  Offset fit(Offset point) => Offset(
+    rawWidth > .001
+        ? targetCenter.dx + (point.dx - rawCenter.dx) * scaleX
+        : targetCenter.dx,
+    rawHeight > .001
+        ? targetCenter.dy + (point.dy - rawCenter.dy) * scaleY
+        : targetCenter.dy,
+  );
+  return MissionMeshGraphLayout(
+    localCenter: fit(local),
+    peerCenters: rawPeers.map(fit).toList(growable: false),
+  );
+}
+
+/// A simplified route overview for Home.
 ///
 /// Relay servers are intentionally omitted. Each room peer is projected from
 /// the local node using a solid direct line or a dashed forwarded line.
@@ -38,7 +110,6 @@ class MissionMeshPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final peers =
         connected
             ? projectMissionMeshEndpoints(nodes, localIp: localIp)
@@ -57,8 +128,8 @@ class MissionMeshPreview extends StatelessWidget {
         curve: Curves.easeOutCubic,
         builder:
             (context, progress, _) => CustomPaint(
-              painter: _MissionMeshPainter(
-                colorScheme: colorScheme,
+              painter: MissionMeshPainter(
+                colorScheme: Theme.of(context).colorScheme,
                 peers: peers,
                 localEmoji: localEmoji,
                 connected: connected,
@@ -72,7 +143,7 @@ class MissionMeshPreview extends StatelessWidget {
   }
 }
 
-class _MissionMeshPainter extends CustomPainter {
+class MissionMeshPainter extends CustomPainter {
   final ColorScheme colorScheme;
   final List<KVNodeInfo> peers;
   final String localEmoji;
@@ -80,7 +151,7 @@ class _MissionMeshPainter extends CustomPainter {
   final bool connecting;
   final double progress;
 
-  const _MissionMeshPainter({
+  const MissionMeshPainter({
     required this.colorScheme,
     required this.peers,
     required this.localEmoji,
@@ -91,9 +162,9 @@ class _MissionMeshPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * .43);
-    final radiusX = math.max(0, size.width / 2 - 34);
-    final radiusY = math.max(0, size.height * .34 - 28);
+    final sortedPeers = [...peers]
+      ..sort((a, b) => _identity(a).compareTo(_identity(b)));
+    final layout = layoutMissionMeshGraph(sortedPeers, size);
     final linePaint =
         Paint()
           ..style = PaintingStyle.stroke
@@ -102,39 +173,14 @@ class _MissionMeshPainter extends CustomPainter {
             alpha: connected ? .52 : .24,
           );
 
-    if (peers.isEmpty) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: center,
-          width: radiusX * 1.45,
-          height: radiusY * 1.25,
-        ),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..color = colorScheme.outlineVariant.withValues(alpha: .38),
-      );
-    }
-
-    final occupied = <int>{};
-    const slotCount = 48;
-    for (final peer in [...peers]
-      ..sort((a, b) => _identity(a).compareTo(_identity(b)))) {
-      var slot = _stableHash(_identity(peer)) % slotCount;
-      while (occupied.contains(slot)) {
-        slot = (slot + 1) % slotCount;
-      }
-      occupied.add(slot);
-      final angle = -math.pi / 2 + slot * math.pi * 2 / slotCount;
-      final target = Offset(
-        center.dx + math.cos(angle) * radiusX,
-        center.dy + math.sin(angle) * radiusY,
-      );
-      final endpoint = Offset.lerp(center, target, progress)!;
+    for (var index = 0; index < sortedPeers.length; index++) {
+      final peer = sortedPeers[index];
+      final endpoint =
+          Offset.lerp(layout.localCenter, layout.peerCenters[index], progress)!;
       if (peer.cost >= 2) {
-        _drawDashedLine(canvas, center, endpoint, linePaint);
+        _drawDashedLine(canvas, layout.localCenter, endpoint, linePaint);
       } else {
-        canvas.drawLine(center, endpoint, linePaint);
+        canvas.drawLine(layout.localCenter, endpoint, linePaint);
       }
       _drawEmojiNode(
         canvas,
@@ -145,9 +191,10 @@ class _MissionMeshPainter extends CustomPainter {
       );
     }
 
+    // Disconnected keeps the local identity but deliberately has no oval.
     _drawEmojiNode(
       canvas,
-      center,
+      layout.localCenter,
       localEmoji,
       local: true,
       opacity: connected || connecting ? 1 : .68,
@@ -207,24 +254,24 @@ class _MissionMeshPainter extends CustomPainter {
     }
   }
 
-  String _identity(KVNodeInfo node) =>
-      '${node.hostname.trim().toLowerCase()}|${node.ipv4.trim()}';
-
-  int _stableHash(String source) {
-    var hash = 2166136261;
-    for (final unit in source.codeUnits) {
-      hash ^= unit;
-      hash = (hash * 16777619) & 0x7fffffff;
-    }
-    return hash;
-  }
-
   @override
-  bool shouldRepaint(_MissionMeshPainter oldDelegate) =>
+  bool shouldRepaint(MissionMeshPainter oldDelegate) =>
       oldDelegate.peers != peers ||
       oldDelegate.localEmoji != localEmoji ||
       oldDelegate.connected != connected ||
       oldDelegate.connecting != connecting ||
       oldDelegate.progress != progress ||
       oldDelegate.colorScheme != colorScheme;
+}
+
+String _identity(KVNodeInfo node) =>
+    '${node.hostname.trim().toLowerCase()}|${node.ipv4.trim()}';
+
+int _stableHash(String source) {
+  var hash = 2166136261;
+  for (final unit in source.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 16777619) & 0x7fffffff;
+  }
+  return hash;
 }

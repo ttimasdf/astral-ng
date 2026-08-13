@@ -77,8 +77,10 @@ baseline.
   setup and updates while editing. Relay servers retain a server glyph, direct
   links are solid, and every segment of a relayed path is dashed. Desktop lays
   out route branches horizontally around the local peer; mobile rotates the
-  composition vertically. Home uses a simplified endpoint-only version, while
-  Rooms keeps complete relay paths. Node-detail values use a consistent
+  composition vertically. Home preserves its local-centered direct/forwarded
+  route preview but fits the graph's occupied bounds to the canvas with stable
+  margins; its disconnected state keeps the local identity without the
+  placeholder oval. Rooms keeps complete relay paths. Node-detail values use a consistent
   left-aligned content column, and the member list remains available. Room view
   settings, member-list details, connection and NAT labels, and the Tools
   destination are localized in English and Chinese. A compact, responsive stats
