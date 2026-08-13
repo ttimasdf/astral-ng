@@ -88,7 +88,9 @@ baseline.
   connected room page replaces the old share prompt row with a dedicated
   copy-link action above Settings, with the topology/list toggle at the bottom.
   Deterministic graph updates no longer freeze nodes at the center when Astral
-  moves to the background. ([#13])
+  moves to the background. Before connecting, room actions now use a matching
+  vertical Sort, Import, Add stack with a dedicated import icon, and room cards
+  omit the redundant Simple/Advanced mode glyph. ([#13])
 - Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
   relay rows now toggle on click, with editing available from the edit button.
 - Separated canary snapshots from production installs with the AstralNG Canary

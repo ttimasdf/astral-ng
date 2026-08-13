@@ -868,8 +868,11 @@ show the reported technical NAT category instead of opaque quality grades. The
 network-topology attribution label is placed away from the room settings control,
 and the connected room page replaces the room-share prompt row with a copy-link
 action at the top of the right-side stack; Settings remains in the middle and
-the topology/list toggle sits at the bottom. Both room views share a
-compact metric-cell header with endpoint
+the topology/list toggle sits at the bottom. A single room-page scaffold and
+shared vertical action-stack component own controls across connection-state
+transitions. Before connection, the stack contains Sort, Import, and Add, with a
+dedicated import glyph; room cards rely on their localized mode label instead of
+a duplicate sparkles/sliders glyph. Both connected room views share a compact metric-cell header with endpoint
 counts plus median latency and recent loss across observed non-relay peers. The
 old `vyuh_node_flow` implementation and dependency are removed.
 
@@ -883,7 +886,7 @@ remain unchanged.
 - `lib/features/home/pages/home_page.dart`, `lib/features/home/widgets/mission_*`, `lib/features/home/widgets/connect_button.dart`: responsive Mission Control, setup dialog, simplified endpoint-only emoji preview, integrated connection action, staged quick controls, and session details
 - `lib/core/models/mission_control_preferences.dart`, `lib/core/states/mission_control_state.dart`, `lib/core/services/mission_control_service.dart`, `lib/core/models/all_settings.dart`: preference precedence and persisted device-local room overrides
 - `lib/core/builders/server_config_builder.dart`, `lib/core/services/server_connection_manager.dart`, `lib/core/states/connection_state.dart`: apply and record effective session preferences for pending-change detection
-- `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/room_network_stats.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`, `lib/shared/utils/network/mesh_peer_identity.dart`, `lib/shared/widgets/network/mesh_peer_badge.dart`, `pubspec.yaml`, `pubspec.lock`: deterministic route-aware network topology, shared responsive network stats, deterministic shared emoji identity, solid/dashed routes, collision-safe route projection, localized secondary list view and room-view controls, and technical NAT labels
+- `lib/features/rooms/pages/room_page.dart`, `lib/features/rooms/pages/user_page.dart`, `lib/features/rooms/widgets/room_action_stack.dart`, `lib/features/rooms/widgets/mesh_constellation.dart`, `lib/features/rooms/widgets/mesh_constellation_model.dart`, `lib/features/rooms/widgets/room_network_stats.dart`, `lib/features/rooms/widgets/*user_card*`, `lib/features/rooms/widgets/peer_connection_style.dart`, `lib/features/rooms/widgets/room_settings_sheet.dart`, `lib/shared/utils/network/mesh_peer_identity.dart`, `lib/shared/widgets/network/mesh_peer_badge.dart`, `pubspec.yaml`, `pubspec.lock`: deterministic route-aware network topology, shared responsive network stats, deterministic shared emoji identity, solid/dashed routes, collision-safe route projection, localized secondary list view and room-view controls, and technical NAT labels
 - `rust/src/api/simple.rs`, `rust/src/api/p2p.rs`: derive the synthetic local status row from each connection's local peer ID rather than borrowing a remote peer ID
 - `lib/features/rooms/widgets/network_topology*.dart`, `pubspec.yaml`, `pubspec.lock`: remove the old graph implementation and `vyuh_node_flow`
 - `lib/features/home/pages/main_screen.dart`, `lib/core/ui/main_tab.dart`, `lib/features/servers/widgets/server_list_tile.dart`: reorder the Relay destination and update desktop relay interactions

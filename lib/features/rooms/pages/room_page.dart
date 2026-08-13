@@ -4,8 +4,11 @@ import 'package:astral/features/rooms/dialogs/edit_room_dialog.dart';
 import 'package:astral/features/rooms/dialogs/room_share_export_dialog.dart';
 import 'package:astral/features/rooms/dialogs/room_share_import_dialog.dart';
 import 'package:astral/features/rooms/pages/user_page.dart';
+import 'package:astral/features/rooms/widgets/room_action_stack.dart';
 import 'package:astral/features/rooms/widgets/room_card.dart';
 import 'package:astral/features/rooms/widgets/room_reorder_sheet.dart';
+import 'package:astral/features/rooms/widgets/room_settings_sheet.dart';
+import 'package:astral/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:astral/core/services/service_manager.dart';
@@ -13,6 +16,7 @@ import 'package:astral/core/states/connection_state.dart';
 import 'package:astral/core/models/room.dart';
 import 'package:uuid/uuid.dart';
 import 'package:signals_flutter/signals_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class RoomPage extends StatefulWidget {
   const RoomPage({super.key});
@@ -24,6 +28,7 @@ class RoomPage extends StatefulWidget {
 // 在_RoomPageState类中添加排序相关方法
 class _RoomPageState extends State<RoomPage> {
   final _services = ServiceManager();
+  bool _showTopology = true;
   // 根据宽度计算列数
   int _getColumnCount(double width) {
     if (width >= 1200) {
@@ -142,19 +147,18 @@ class _RoomPageState extends State<RoomPage> {
   @override
   Widget build(BuildContext context) {
     return Watch((context) {
-      // 监听连接状态
-      final isConnected = _services.connectionState.connectionState.watch(
+      final connectionState = _services.connectionState.connectionState.watch(
         context,
       );
+      final selectedRoom = _services.roomState.selectedRoom.watch(context);
+      final connected = connectionState != CoState.idle;
       return Scaffold(
         body: Column(
           children: [
             Expanded(
               child:
-                  isConnected != CoState.idle
-                      // 已连接：显示用户列表
-                      ? const UserPage()
-                      // 未连接：显示房间列表
+                  connected
+                      ? UserPage(showTopology: _showTopology)
                       : LayoutBuilder(
                         builder: (context, constraints) {
                           return _buildRoomsView(context, constraints);
@@ -164,41 +168,120 @@ class _RoomPageState extends State<RoomPage> {
           ],
         ),
         floatingActionButton:
-            isConnected != CoState.idle
-                ? null // 已连接时不显示按钮
-                : Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    // 排序按钮移到最前
-                    FloatingActionButton(
-                      heroTag: 'room_sort',
-                      onPressed: () {
-                        RoomReorderSheet.show(
-                          context,
-                          _services.roomState.rooms.value,
-                        );
-                      },
-                      child: const Icon(Icons.sort),
-                    ),
-                    const SizedBox(width: 16),
-                    // 黏贴按钮居中
-                    FloatingActionButton(
-                      heroTag: 'paste',
-                      onPressed: _showPasteDialog,
-                      child: const Icon(Icons.paste),
-                    ),
-                    const SizedBox(width: 16),
-                    // 增加按钮最后
-                    FloatingActionButton(
-                      heroTag: 'add',
-                      onPressed: () => showAddRoomDialog(context),
-                      child: const Icon(Icons.add),
-                    ),
-                  ],
+            connected
+                ? RoomViewActions(
+                  showTopology: _showTopology,
+                  onToggleView:
+                      () => setState(() => _showTopology = !_showTopology),
+                  onOpenSettings: () => RoomSettingsSheet.show(context),
+                  onCopyLink:
+                      selectedRoom == null
+                          ? null
+                          : () => RoomShareExportDialogs.copyShareLink(
+                            context,
+                            selectedRoom,
+                            linkOnly: true,
+                          ),
+                )
+                : RoomListActions(
+                  onSort: () {
+                    RoomReorderSheet.show(
+                      context,
+                      _services.roomState.rooms.value,
+                    );
+                  },
+                  onImport: _showPasteDialog,
+                  onAdd: () => showAddRoomDialog(context),
                 ),
       );
     });
   }
+}
+
+class RoomListActions extends StatelessWidget {
+  final VoidCallback onSort;
+  final VoidCallback onImport;
+  final VoidCallback onAdd;
+
+  const RoomListActions({
+    super.key,
+    required this.onSort,
+    required this.onImport,
+    required this.onAdd,
+  });
+
+  @override
+  Widget build(BuildContext context) => RoomActionStack(
+    actions: [
+      RoomAction(
+        key: const ValueKey('room_sort'),
+        heroTag: 'room_sort',
+        tooltip: LocaleKeys.rooms_sort_rooms.tr(),
+        icon: Icons.sort,
+        onPressed: onSort,
+      ),
+      RoomAction(
+        key: const ValueKey('room_import'),
+        heroTag: 'room_import',
+        tooltip: LocaleKeys.rooms_import_room.tr(),
+        icon: Icons.file_download_outlined,
+        onPressed: onImport,
+      ),
+      RoomAction(
+        key: const ValueKey('room_add'),
+        heroTag: 'room_add',
+        tooltip: LocaleKeys.rooms_add_room.tr(),
+        icon: Icons.add,
+        onPressed: onAdd,
+      ),
+    ],
+  );
+}
+
+class RoomViewActions extends StatelessWidget {
+  final bool showTopology;
+  final VoidCallback onToggleView;
+  final VoidCallback onOpenSettings;
+  final VoidCallback? onCopyLink;
+
+  const RoomViewActions({
+    super.key,
+    required this.showTopology,
+    required this.onToggleView,
+    required this.onOpenSettings,
+    required this.onCopyLink,
+  });
+
+  @override
+  Widget build(BuildContext context) => RoomActionStack(
+    actions: [
+      if (onCopyLink != null)
+        RoomAction(
+          key: const ValueKey('room_copy_link'),
+          heroTag: 'room_copy_link',
+          tooltip: LocaleKeys.rooms_copy_link.tr(),
+          icon: Icons.share_rounded,
+          onPressed: onCopyLink!,
+        ),
+      RoomAction(
+        key: const ValueKey('room_settings'),
+        heroTag: 'room_settings',
+        tooltip: LocaleKeys.rooms_settings.tr(),
+        icon: Icons.bar_chart,
+        onPressed: onOpenSettings,
+      ),
+      RoomAction(
+        key: const ValueKey('room_view_toggle'),
+        heroTag: 'topology_toggle',
+        tooltip:
+            showTopology
+                ? LocaleKeys.rooms_list_view.tr()
+                : LocaleKeys.rooms_network_topology_view.tr(),
+        icon: showTopology ? Icons.list : Icons.auto_awesome,
+        onPressed: onToggleView,
+      ),
+    ],
+  );
 }
 
 void addRoomForMode(

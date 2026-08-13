@@ -1,4 +1,5 @@
-import 'package:astral/features/rooms/pages/user_page.dart';
+import 'package:astral/features/rooms/pages/room_page.dart';
+import 'package:astral/features/rooms/widgets/room_action_stack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -39,6 +40,51 @@ void main() {
       },
     );
   }
+
+  testWidgets('both room states use one shared action-stack pattern', (
+    tester,
+  ) async {
+    var connected = false;
+    late StateSetter setState;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, update) {
+            setState = update;
+            return Scaffold(
+              body: const SizedBox.expand(),
+              floatingActionButton:
+                  connected
+                      ? RoomViewActions(
+                        showTopology: true,
+                        onToggleView: () {},
+                        onOpenSettings: () {},
+                        onCopyLink: () {},
+                      )
+                      : RoomListActions(
+                        onSort: () {},
+                        onImport: () {},
+                        onAdd: () {},
+                      ),
+            );
+          },
+        ),
+      ),
+    );
+
+    expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.byType(RoomActionStack), findsOneWidget);
+    expect(find.byKey(const ValueKey('room_add')), findsOneWidget);
+
+    setState(() => connected = true);
+    await tester.pump();
+
+    expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.byType(RoomActionStack), findsOneWidget);
+    expect(find.byKey(const ValueKey('room_copy_link')), findsOneWidget);
+    expect(find.byKey(const ValueKey('room_add')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('copy-link action is hidden without a selected room', (
     tester,

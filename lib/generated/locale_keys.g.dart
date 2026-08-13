@@ -84,6 +84,9 @@ abstract class LocaleKeys {
   static const rooms_network_topology_view = 'rooms_network_topology_view';
   static const rooms_settings = 'rooms_settings';
   static const rooms_copy_link = 'rooms_copy_link';
+  static const rooms_sort_rooms = 'rooms_sort_rooms';
+  static const rooms_import_room = 'rooms_import_room';
+  static const rooms_add_room = 'rooms_add_room';
   static const rooms_settings_desc = 'rooms_settings_desc';
   static const rooms_display_style = 'rooms_display_style';
   static const rooms_compact = 'rooms_compact';

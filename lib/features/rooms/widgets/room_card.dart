@@ -166,15 +166,6 @@ class _RoomCardState extends State<RoomCard> {
                             constraints: const BoxConstraints(),
                             tooltip: '编辑房间',
                           ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          room.simpleMode ? Icons.auto_awesome : Icons.tune,
-                          color:
-                              room.simpleMode
-                                  ? colorScheme.primary
-                                  : colorScheme.secondary,
-                          size: 20,
-                        ),
                       ],
                     ),
                   ],
