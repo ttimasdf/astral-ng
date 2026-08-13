@@ -67,7 +67,7 @@ abstract class LocaleKeys {
   static const mission_encrypted = 'mission_encrypted';
   static const mission_not_encrypted = 'mission_not_encrypted';
   static const mission_session_traffic = 'mission_session_traffic';
-  static const rooms_constellation = 'rooms_constellation';
+  static const rooms_network_topology = 'rooms_network_topology';
   static const rooms_observed_here = 'rooms_observed_here';
   static const rooms_visible_summary = 'rooms_visible_summary';
   static const rooms_this_device = 'rooms_this_device';
@@ -77,7 +77,7 @@ abstract class LocaleKeys {
   static const rooms_transport = 'rooms_transport';
   static const rooms_nat = 'rooms_nat';
   static const rooms_list_view = 'rooms_list_view';
-  static const rooms_constellation_view = 'rooms_constellation_view';
+  static const rooms_network_topology_view = 'rooms_network_topology_view';
   static const rooms_settings = 'rooms_settings';
   static const rooms_settings_desc = 'rooms_settings_desc';
   static const rooms_display_style = 'rooms_display_style';

@@ -61,6 +61,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: MeshConstellation(nodes: nodes, localIp: '10.1.0.1')),
     );
+    expect(
+      tester.widget<gv.GraphView>(find.byType(gv.GraphView)).animated,
+      isFalse,
+    );
     await tester.pumpAndSettle();
     final mobileLocal = tester.getCenter(
       find.byKey(const ValueKey('ip_10.1.0.1')),

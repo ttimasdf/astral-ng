@@ -41,7 +41,7 @@ class _UserPageState extends State<UserPage> {
             tooltip:
                 _showConstellation
                     ? LocaleKeys.rooms_list_view.tr()
-                    : LocaleKeys.rooms_constellation_view.tr(),
+                    : LocaleKeys.rooms_network_topology_view.tr(),
             child: Icon(_showConstellation ? Icons.list : Icons.auto_awesome),
           ),
           const SizedBox(height: 16),

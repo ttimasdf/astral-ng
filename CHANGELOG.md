@@ -72,7 +72,7 @@ baseline.
   narrow layouts. During connection, the progress bar spans the complete Edit
   and Connect action row.
 - Replaced the room topology graph with a deterministic, route-aware
-  constellation. Room peers receive stable emoji identities derived from
+  network topology. Room peers receive stable emoji identities derived from
   username and virtual IP; the same identity appears in Home and connection
   setup and updates while editing. Relay servers retain a server glyph, direct
   links are solid, and every segment of a relayed path is dashed. Desktop lays

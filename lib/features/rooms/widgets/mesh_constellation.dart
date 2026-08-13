@@ -250,7 +250,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
     _algorithm = _RouteConstellationAlgorithm();
     _topology = _topologyFingerprint(widget.model);
     _graph = _buildGraph(widget.model);
-    _graphView = _buildGraphView();
+    _graphView = _buildGraphView(animate: false);
   }
 
   @override
@@ -261,7 +261,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
     if (nextTopology == _topology) return;
     _topology = nextTopology;
     _graph = _buildGraph(widget.model);
-    _graphView = _buildGraphView();
+    _graphView = _buildGraphView(animate: !widget.reduceMotion);
     _needsFrame = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _frameConstellation();
@@ -369,15 +369,15 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
           ..scaleByDouble(scale, scale, 1, 1);
   }
 
-  Widget _buildGraphView() => gv.GraphView(
+  Widget _buildGraphView({required bool animate}) => gv.GraphView(
     key: ValueKey(
       '$_topology:${_renderCanvasSize?.width.round()}x${_renderCanvasSize?.height.round()}',
     ),
     graph: _graph,
     algorithm: _algorithm,
-    animated: !widget.reduceMotion,
+    animated: animate,
     toggleAnimationDuration:
-        widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260),
+        animate ? const Duration(milliseconds: 260) : Duration.zero,
     builder: (graphNode) {
       final id = graphNode.key?.value as String?;
       final node = id == null ? null : _latestNodes[id];
@@ -436,7 +436,7 @@ class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
                     ?.id;
           if (_renderCanvasSize != canvasSize) {
             _renderCanvasSize = canvasSize;
-            _graphView = _buildGraphView();
+            _graphView = _buildGraphView(animate: false);
             _needsFrame = true;
           }
           if (_needsFrame) {
@@ -800,7 +800,7 @@ class _ConstellationLegend extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              LocaleKeys.rooms_constellation.tr(),
+              LocaleKeys.rooms_network_topology.tr(),
               style: TextStyle(
                 color: colorScheme.onSurface,
                 fontWeight: FontWeight.w800,
