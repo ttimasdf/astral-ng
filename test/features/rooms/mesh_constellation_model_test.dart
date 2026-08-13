@@ -1,6 +1,5 @@
 import 'package:astral/features/rooms/widgets/mesh_constellation_model.dart';
 import 'package:astral/src/rust/api/simple.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -155,76 +154,29 @@ void main() {
     },
   );
 
-  test('stable peers keep positions when another peer joins', () {
-    final baseModel = MeshConstellationModel.fromNetwork([
-      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
-      _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
-      _node(peerId: 3, name: 'B', ip: '10.1.0.3', cost: 2),
-    ], localIp: '10.1.0.1');
-    final expandedModel = MeshConstellationModel.fromNetwork([
-      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
-      _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
-      _node(peerId: 3, name: 'B', ip: '10.1.0.3', cost: 2),
-      _node(peerId: 4, name: 'C', ip: '10.1.0.4', cost: 1),
-    ], localIp: '10.1.0.1');
-    const size = Size(800, 500);
-    final before = layoutMeshConstellation(baseModel.nodes, size, margin: 60);
-    final after = layoutMeshConstellation(
-      expandedModel.nodes,
-      size,
-      margin: 60,
-    );
-
-    for (final id in before.keys) {
-      expect(after[id], before[id]);
-    }
-  });
-
-  test('layout resolves collisions between hashed ring slots', () {
+  test('marks every segment of a relay path as forwarded', () {
     final model = MeshConstellationModel.fromNetwork([
       _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
-      for (var id = 2; id <= 17; id++)
-        _node(
-          peerId: id,
-          name: 'Peer $id',
-          ip: '10.1.0.$id',
-          cost: id.isEven ? 1 : 2,
-        ),
+      _node(peerId: 2, name: 'PublicServer_Relay', ip: '10.1.0.2', cost: 1),
+      _node(
+        peerId: 3,
+        name: 'Relayed peer',
+        ip: '10.1.0.3',
+        cost: 2,
+        hops: const [
+          NodeHopStats(
+            peerId: 2,
+            targetIp: '10.1.0.2',
+            latencyMs: 10,
+            packetLoss: 0,
+            nodeName: 'PublicServer_Relay',
+          ),
+        ],
+      ),
     ], localIp: '10.1.0.1');
-    final positions =
-        layoutMeshConstellation(
-          model.nodes,
-          const Size(800, 500),
-          margin: 60,
-        ).values.toList();
 
-    for (var first = 0; first < positions.length; first++) {
-      for (var second = first + 1; second < positions.length; second++) {
-        expect(
-          (positions[first] - positions[second]).distance,
-          greaterThanOrEqualTo(54),
-        );
-      }
-    }
-  });
-
-  test('layout centers local and organizes peers into role rings', () {
-    final model = MeshConstellationModel.fromNetwork([
-      _node(peerId: 1, name: 'Local', ip: '10.1.0.1', cost: 0),
-      _node(peerId: 2, name: 'A', ip: '10.1.0.2', cost: 1),
-      _node(peerId: 3, name: 'B', ip: '10.1.0.3', cost: 1),
-      _node(peerId: 4, name: 'C', ip: '10.1.0.4', cost: 2),
-    ], localIp: '10.1.0.1');
-    const size = Size(800, 500);
-    final positions = layoutMeshConstellation(model.nodes, size, margin: 60);
-    final local = model.nodes.singleWhere((node) => node.isLocal);
-
-    expect(positions, hasLength(model.nodes.length));
-    expect(positions[local.id], size.center(Offset.zero));
-    for (final position in positions.values) {
-      expect(position.dx, inInclusiveRange(60, 740));
-      expect(position.dy, inInclusiveRange(60, 440));
-    }
+    expect(model.edges, hasLength(2));
+    expect(model.edges.every((edge) => edge.forwarded), isTrue);
   });
 }
 

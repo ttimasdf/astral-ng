@@ -2,13 +2,17 @@ import 'dart:math' as math;
 
 import 'package:astral/features/rooms/widgets/mesh_constellation_model.dart';
 import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
-import 'package:astral/src/rust/api/simple.dart';
 import 'package:astral/generated/locale_keys.g.dart';
+import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
+import 'package:astral/src/rust/api/simple.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:graphview/GraphView.dart' as gv;
 
-/// A stable, non-hierarchical view of routes observed by this device.
+Offset meshConstellationAxisScale(Size canvasSize) =>
+    canvasSize.width < 600 ? const Offset(.92, 1.18) : const Offset(1.18, .88);
+
+/// A force-directed view of routes observed by this device.
 class MeshConstellation extends StatelessWidget {
   final List<KVNodeInfo> nodes;
   final String localIp;
@@ -28,32 +32,19 @@ class MeshConstellation extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final size = Size(constraints.maxWidth, constraints.maxHeight);
         final compact = constraints.maxWidth < 600;
         final dense = model.nodes.length > 12;
-        final positions = layoutMeshConstellation(
-          model.nodes,
-          size,
-          margin:
-              compact
-                  ? 42
-                  : dense
-                  ? 54
-                  : 72,
-        );
-
         return ClipRect(
           child: Material(
             color: colorScheme.surface,
             child: Stack(
               children: [
+                const Positioned.fill(child: _StarField()),
                 Positioned.fill(
-                  child: _AnimatedConstellationScene(
+                  child: _ConstellationGraphScene(
                     model: model,
-                    positions: positions,
                     dense: dense,
                     reduceMotion: reduceMotion,
-                    colorScheme: colorScheme,
                     onNodeTap: (node) => _showNodeDetails(context, node),
                   ),
                 ),
@@ -223,138 +214,352 @@ class MeshConstellation extends StatelessWidget {
   }
 }
 
-class _AnimatedConstellationScene extends StatefulWidget {
+class _ConstellationGraphScene extends StatefulWidget {
   final MeshConstellationModel model;
-  final Map<String, Offset> positions;
   final bool dense;
   final bool reduceMotion;
-  final ColorScheme colorScheme;
   final ValueChanged<MeshConstellationNode> onNodeTap;
 
-  const _AnimatedConstellationScene({
+  const _ConstellationGraphScene({
     required this.model,
-    required this.positions,
     required this.dense,
     required this.reduceMotion,
-    required this.colorScheme,
     required this.onNodeTap,
   });
 
   @override
-  State<_AnimatedConstellationScene> createState() =>
-      _AnimatedConstellationSceneState();
+  State<_ConstellationGraphScene> createState() =>
+      _ConstellationGraphSceneState();
 }
 
-class _AnimatedConstellationSceneState
-    extends State<_AnimatedConstellationScene>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  Map<String, Offset> _from = const {};
-  Map<String, Offset> _to = const {};
+class _ConstellationGraphSceneState extends State<_ConstellationGraphScene>
+    with WidgetsBindingObserver {
+  late final TransformationController _transformationController;
+  final _graphNodes = <String, gv.Node>{};
+  final _latestNodes = <String, MeshConstellationNode>{};
+  late gv.Graph _graph;
+  late _StableFruchtermanReingoldAlgorithm _algorithm;
+  late Widget _graphView;
+  late String _topology;
+  bool _appVisible = true;
+  bool _needsFrame = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
+    WidgetsBinding.instance.addObserver(this);
+    _transformationController = TransformationController();
+    _algorithm = _StableFruchtermanReingoldAlgorithm(
+      gv.FruchtermanReingoldConfiguration(
+        iterations: 180,
+        repulsionRate: .46,
+        attractionRate: .08,
+        repulsionPercentage: .7,
+        lerpFactor: .08,
+        movementThreshold: .35,
+        shuffleNodes: false,
+      ),
     );
-    _to = widget.positions;
-    _from = {
-      for (final entry in _to.entries) entry.key: _spawnPosition(entry.key),
-    };
-    if (widget.reduceMotion) {
-      _controller.value = 1;
-    } else {
-      _controller.forward();
-    }
+    _topology = _topologyFingerprint(widget.model);
+    _graph = _buildGraph(widget.model);
+    _graphView = _buildGraphView();
   }
 
   @override
-  void didUpdateWidget(_AnimatedConstellationScene oldWidget) {
+  void didUpdateWidget(_ConstellationGraphScene oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (mapEquals(oldWidget.positions, widget.positions)) return;
-    final current = _interpolatedPositions();
-    _from = {
-      for (final entry in widget.positions.entries)
-        entry.key: current[entry.key] ?? _spawnPosition(entry.key),
-    };
-    _to = widget.positions;
-    if (widget.reduceMotion) {
-      _controller.value = 1;
-    } else {
-      _controller.forward(from: 0);
-    }
+    _syncLatestNodes(widget.model);
+    final nextTopology = _topologyFingerprint(widget.model);
+    if (nextTopology == _topology) return;
+    _topology = nextTopology;
+    _graph = _buildGraph(widget.model);
+    _graphView = _buildGraphView();
+    _needsFrame = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _frameConstellation();
+    });
   }
 
-  Offset _spawnPosition(String id) {
-    for (final edge in widget.model.edges) {
-      final next = _to[edge.b];
-      if (edge.a == id && next != null) return next;
-      final previous = _to[edge.a];
-      if (edge.b == id && previous != null) return previous;
+  gv.Graph _buildGraph(MeshConstellationModel model) {
+    final activeIds = model.nodes.map((node) => node.id).toSet();
+    _graphNodes.removeWhere((id, _) => !activeIds.contains(id));
+    _syncLatestNodes(model);
+
+    final local = model.nodes.where((node) => node.isLocal).firstOrNull;
+    if (local != null) {
+      _graphNodes.putIfAbsent(local.id, () {
+        final node = gv.Node.Id(local.id);
+        node.position = const Offset(400, 300);
+        return node;
+      });
     }
+
+    for (final modelNode in model.nodes.where((node) => !node.isLocal)) {
+      _graphNodes.putIfAbsent(modelNode.id, () {
+        final node = gv.Node.Id(modelNode.id);
+        node.position = _seedPosition(modelNode.id, model);
+        return node;
+      });
+    }
+
+    final graph = gv.Graph();
+    graph.addNodes([
+      for (final modelNode in model.nodes) _graphNodes[modelNode.id]!,
+    ]);
+    for (final edge in model.edges) {
+      graph.addEdgeS(
+        gv.Edge(
+          _graphNodes[edge.a]!,
+          _graphNodes[edge.b]!,
+          key: ValueKey(edge.key),
+        ),
+      );
+    }
+    return graph;
+  }
+
+  void _syncLatestNodes(MeshConstellationModel model) {
+    _latestNodes
+      ..clear()
+      ..addEntries(model.nodes.map((node) => MapEntry(node.id, node)));
+  }
+
+  Offset _seedPosition(String id, MeshConstellationModel model) {
+    for (final edge in model.edges) {
+      final neighborId =
+          edge.a == id
+              ? edge.b
+              : edge.b == id
+              ? edge.a
+              : null;
+      final neighbor = neighborId == null ? null : _graphNodes[neighborId];
+      if (neighbor != null) {
+        final angle = _stableHash(id) % 360 * math.pi / 180;
+        return neighbor.position +
+            Offset(math.cos(angle), math.sin(angle)) * 36;
+      }
+    }
+
+    final hash = _stableHash(id);
+    final angle = hash % 360 * math.pi / 180;
+    final radius = 150.0 + hash % 90;
+    return const Offset(400, 300) +
+        Offset(math.cos(angle), math.sin(angle)) * radius;
+  }
+
+  void _frameConstellation() {
     final local = widget.model.nodes.where((node) => node.isLocal).firstOrNull;
-    return local == null ? Offset.zero : _to[local.id] ?? Offset.zero;
+    final localNode = local == null ? null : _graphNodes[local.id];
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (localNode == null || renderBox == null || !renderBox.hasSize) return;
+
+    final viewport = renderBox.size;
+    final bounds = _graph.calculateGraphBounds();
+    final localCenter =
+        localNode.position + Offset(localNode.width / 2, localNode.height / 2);
+    final horizontalExtent = math.max(
+      (localCenter.dx - bounds.left).abs(),
+      (bounds.right - localCenter.dx).abs(),
+    );
+    final verticalExtent = math.max(
+      (localCenter.dy - bounds.top).abs(),
+      (bounds.bottom - localCenter.dy).abs(),
+    );
+    final scaleX =
+        horizontalExtent == 0
+            ? 1.0
+            : viewport.width * .82 / (horizontalExtent * 2);
+    final scaleY =
+        verticalExtent == 0
+            ? 1.0
+            : viewport.height * .82 / (verticalExtent * 2);
+    final scale = math.min(1.0, math.min(scaleX, scaleY)).clamp(.55, 1.0);
+    final translation = viewport.center(Offset.zero) - localCenter * scale;
+    _transformationController.value =
+        Matrix4.identity()
+          ..translateByDouble(translation.dx, translation.dy, 0, 1)
+          ..scaleByDouble(scale, scale, 1, 1);
   }
 
-  Map<String, Offset> _interpolatedPositions() {
-    final progress = Curves.easeOutCubic.transform(_controller.value);
-    return {
-      for (final entry in _to.entries)
-        entry.key:
-            Offset.lerp(
-              _from[entry.key] ?? entry.value,
-              entry.value,
-              progress,
-            )!,
-    };
+  Widget _buildGraphView() => gv.GraphView(
+    key: ValueKey(_topology),
+    graph: _graph,
+    algorithm: _algorithm,
+    animated: !widget.reduceMotion,
+    toggleAnimationDuration:
+        widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260),
+    builder: (graphNode) {
+      final id = graphNode.key?.value as String?;
+      final node = id == null ? null : _latestNodes[id];
+      if (node == null) return const SizedBox.shrink();
+      return _ConstellationNode(
+        key: ValueKey(node.id),
+        node: node,
+        dense: widget.dense,
+        onTap: () => widget.onNodeTap(_latestNodes[node.id] ?? node),
+      );
+    },
+  );
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final visible = state == AppLifecycleState.resumed;
+    if (_appVisible == visible) return;
+    setState(() => _appVisible = visible);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _transformationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final positions = _interpolatedPositions();
-        final nodeSize = widget.dense ? 48.0 : 62.0;
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: _ConstellationPainter(
-                  positions: positions,
-                  edges: widget.model.edges,
-                  colorScheme: widget.colorScheme,
-                ),
-              ),
-            ),
-            for (final node in widget.model.nodes)
-              if (positions[node.id] case final position?)
-                Positioned(
-                  key: ValueKey('position-${node.id}'),
-                  left: position.dx - nodeSize / 2,
-                  top: position.dy - nodeSize / 2,
-                  child: GestureDetector(
-                    key: ValueKey(node.id),
-                    onTap: () => widget.onNodeTap(node),
-                    child: _ConstellationNode(
-                      node: node,
-                      dense: widget.dense,
-                      onTap: () => widget.onNodeTap(node),
-                    ),
-                  ),
-                ),
-          ],
-        );
+    final colorScheme = Theme.of(context).colorScheme;
+    _algorithm.renderer = _ObservedRouteRenderer(
+      forwardedByEdge: {
+        for (final edge in widget.model.edges) edge.key: edge.forwarded,
       },
+      color: colorScheme.onSurfaceVariant.withValues(alpha: .56),
     );
+
+    return TickerMode(
+      enabled: _appVisible,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final canvasSize = constraints.biggest;
+          final glyphSize = widget.dense ? 36.0 : 42.0;
+          final vertical = canvasSize.width < 600;
+          final preferredLength = glyphSize * (vertical ? 3.25 : 4.1);
+          final primaryExtent = vertical ? canvasSize.height : canvasSize.width;
+          final availableLength = primaryExtent * (vertical ? .22 : .18);
+          _algorithm
+            ..targetEdgeLength = math.min(preferredLength, availableLength)
+            ..canvasSize = canvasSize
+            ..vertical = vertical
+            ..anchorNodeId =
+                widget.model.nodes
+                    .where((node) => node.isLocal)
+                    .firstOrNull
+                    ?.id;
+          if (_needsFrame) {
+            _needsFrame = false;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _frameConstellation();
+            });
+          }
+          return InteractiveViewer(
+            transformationController: _transformationController,
+            constrained: false,
+            boundaryMargin: EdgeInsets.zero,
+            minScale: .55,
+            maxScale: 1.8,
+            panEnabled: _appVisible,
+            scaleEnabled: _appVisible,
+            child: SizedBox(
+              width: canvasSize.width,
+              height: canvasSize.height,
+              child: RepaintBoundary(child: _graphView),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StableFruchtermanReingoldAlgorithm
+    extends gv.FruchtermanReingoldAlgorithm {
+  double targetEdgeLength = 150;
+  Size canvasSize = const Size(800, 600);
+  bool vertical = false;
+  String? anchorNodeId;
+
+  _StableFruchtermanReingoldAlgorithm(super.configuration);
+
+  @override
+  Size run(gv.Graph? graph, double shiftX, double shiftY) {
+    if (graph == null || graph.nodes.isEmpty) return Size.zero;
+    init(graph);
+    super.run(graph, 0, 0);
+    _normalizeSpacing(graph);
+    return canvasSize;
+  }
+
+  void _normalizeSpacing(gv.Graph graph) {
+    final lengths =
+        graph.edges
+            .map(
+              (edge) =>
+                  (_nodeCenter(edge.source) - _nodeCenter(edge.destination))
+                      .distance,
+            )
+            .where((length) => length > 0)
+            .toList()
+          ..sort();
+    final median =
+        lengths.isEmpty ? targetEdgeLength : lengths[lengths.length ~/ 2];
+    final scale = (targetEdgeLength / median).clamp(.45, 1.8);
+    final axisScale = meshConstellationAxisScale(canvasSize);
+    final anchor = _graphCenter(graph);
+    for (final node in graph.nodes) {
+      final delta = _nodeCenter(node) - anchor;
+      final normalizedCenter =
+          anchor +
+          Offset(
+            delta.dx * scale * axisScale.dx,
+            delta.dy * scale * axisScale.dy,
+          );
+      node.position =
+          normalizedCenter - Offset(node.width / 2, node.height / 2);
+    }
+
+    final bounds = graph.calculateGraphBounds();
+    final translation = canvasSize.center(Offset.zero) - bounds.center;
+    for (final node in graph.nodes) {
+      node.position += translation;
+    }
+  }
+
+  Offset _nodeCenter(gv.Node node) =>
+      node.position + Offset(node.width / 2, node.height / 2);
+
+  Offset _graphCenter(gv.Graph graph) {
+    final anchor =
+        graph.nodes
+            .where((node) => node.key?.value == anchorNodeId)
+            .firstOrNull;
+    return anchor == null
+        ? graph.calculateGraphBounds().center
+        : _nodeCenter(anchor);
+  }
+}
+
+class _ObservedRouteRenderer extends gv.EdgeRenderer {
+  final Map<String, bool> forwardedByEdge;
+  final Color color;
+
+  _ObservedRouteRenderer({required this.forwardedByEdge, required this.color});
+
+  @override
+  void renderEdge(Canvas canvas, gv.Edge edge, Paint paint) {
+    final start = getNodeCenter(edge.source);
+    final end = getNodeCenter(edge.destination);
+    final routePaint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..strokeCap = StrokeCap.round
+          ..color = color;
+    final key =
+        edge.key is ValueKey ? (edge.key as ValueKey).value as String : '';
+    if (forwardedByEdge[key] == true) {
+      drawDashedLine(canvas, start, end, routePaint, .58);
+    } else {
+      canvas.drawLine(start, end, routePaint);
+    }
   }
 }
 
@@ -364,6 +569,7 @@ class _ConstellationNode extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ConstellationNode({
+    super.key,
     required this.node,
     required this.dense,
     required this.onTap,
@@ -372,7 +578,8 @@ class _ConstellationNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final diameter = dense ? 48.0 : 62.0;
+    final glyphSize = dense ? 36.0 : 42.0;
+    final width = dense ? 104.0 : 120.0;
     return Semantics(
       button: true,
       label:
@@ -381,43 +588,33 @@ class _ConstellationNode extends StatelessWidget {
               : node.isRelay
               ? LocaleKeys.rooms_forwarding_peer.tr()
               : LocaleKeys.rooms_mesh_peer.tr()}',
-      child: Tooltip(
-        message:
-            node.ip.isEmpty || node.isRelay
-                ? node.name
-                : '${node.name}\n${node.ip}',
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: diameter,
-            height: diameter,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                _NodeGlyph(node: node, size: diameter),
-                if (!dense)
-                  Positioned(
-                    top: diameter + 5,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 100),
-                      child: Text(
-                        node.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: colorScheme.onSurface,
-                          fontSize: 10,
-                          fontWeight:
-                              node.isLocal ? FontWeight.w800 : FontWeight.w600,
-                        ),
-                      ),
-                    ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: width,
+          height: dense ? 62 : 70,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _NodeGlyph(node: node, size: glyphSize),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  node.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: dense ? 9 : 10,
+                    fontWeight:
+                        node.isLocal ? FontWeight.w800 : FontWeight.w600,
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -434,38 +631,32 @@ class _NodeGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color =
-        node.isLocal
-            ? colorScheme.primary
-            : node.isRelay
-            ? colorScheme.tertiary
-            : colorScheme.secondary;
+    if (!node.isRelay) {
+      return MeshPeerBadge(
+        username: node.name,
+        ip: node.ip,
+        size: size,
+        isLocal: node.isLocal,
+      );
+    }
+
     return Container(
-      width: size,
-      height: size,
-      padding: EdgeInsets.all(size * .18),
+      width: size * 1.16,
+      height: size * .82,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
         color: Color.alphaBlend(
-          color.withValues(alpha: .18),
+          colorScheme.tertiary.withValues(alpha: .16),
           colorScheme.surface,
         ),
-        border: Border.all(color: color, width: node.isLocal ? 2.5 : 1.4),
-        boxShadow:
-            node.isLocal
-                ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: .22),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                ]
-                : null,
+        border: Border.all(color: colorScheme.tertiary, width: 1.4),
+        borderRadius: BorderRadius.circular(size * .2),
       ),
-      child:
-          node.isRelay
-              ? Icon(Icons.dns_rounded, size: size * .36, color: color)
-              : Text(node.emoji, style: TextStyle(fontSize: size * .34)),
+      child: Icon(
+        Icons.dns_rounded,
+        size: size * .48,
+        color: colorScheme.tertiary,
+      ),
     );
   }
 }
@@ -478,104 +669,98 @@ class _ConstellationLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: .92),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            LocaleKeys.rooms_constellation.tr(),
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w800,
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: .92),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: colorScheme.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              LocaleKeys.rooms_constellation.tr(),
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            LocaleKeys.rooms_visible_summary.tr(
-              namedArgs: {
-                'nodes': '${model.nodes.length}',
-                'direct': '${model.directPeerCount}',
-                'forwarded': '${model.forwardedPeerCount}',
-              },
+            const SizedBox(height: 5),
+            Text(
+              LocaleKeys.rooms_visible_summary.tr(
+                namedArgs: {
+                  'nodes': '${model.nodes.length}',
+                  'direct': '${model.directPeerCount}',
+                  'forwarded': '${model.forwardedPeerCount}',
+                },
+              ),
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 11,
+              ),
             ),
-            style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 11),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ConstellationPainter extends CustomPainter {
-  final Map<String, Offset> positions;
-  final List<MeshConstellationEdge> edges;
-  final ColorScheme colorScheme;
+class _StarField extends StatelessWidget {
+  const _StarField();
 
-  const _ConstellationPainter({
-    required this.positions,
-    required this.edges,
-    required this.colorScheme,
-  });
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _StarFieldPainter(Theme.of(context).colorScheme.outlineVariant),
+  );
+}
+
+class _StarFieldPainter extends CustomPainter {
+  final Color color;
+
+  const _StarFieldPainter(this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final starPaint =
-        Paint()..color = colorScheme.outlineVariant.withValues(alpha: .5);
+    final paint = Paint()..color = color.withValues(alpha: .5);
     final seed = math.Random(47);
     for (var i = 0; i < 90; i++) {
       canvas.drawCircle(
         Offset(seed.nextDouble() * size.width, seed.nextDouble() * size.height),
         i % 11 == 0 ? 1.2 : .65,
-        starPaint,
-      );
-    }
-
-    for (final edge in edges) {
-      final start = positions[edge.a];
-      final end = positions[edge.b];
-      if (start == null || end == null) continue;
-      final paint =
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.6
-            ..color = colorScheme.onSurfaceVariant.withValues(alpha: .52);
-      if (edge.forwarded) {
-        _drawDashedLine(canvas, start, end, paint);
-      } else {
-        canvas.drawLine(start, end, paint);
-      }
-    }
-  }
-
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
-    final distance = (end - start).distance;
-    final direction = (end - start) / distance;
-    const dashLength = 7.0;
-    const gapLength = 5.0;
-    for (
-      var offset = 0.0;
-      offset < distance;
-      offset += dashLength + gapLength
-    ) {
-      final dashEnd = math.min(offset + dashLength, distance);
-      canvas.drawLine(
-        start + direction * offset,
-        start + direction * dashEnd,
         paint,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_ConstellationPainter oldDelegate) =>
-      oldDelegate.positions != positions ||
-      oldDelegate.edges != edges ||
-      oldDelegate.colorScheme != colorScheme;
+  bool shouldRepaint(_StarFieldPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+String _topologyFingerprint(MeshConstellationModel model) {
+  final nodes =
+      model.nodes
+          .map(
+            (node) =>
+                '${node.id}:${node.name}:${node.emoji}:${node.isLocal}:${node.isRelay}',
+          )
+          .toList()
+        ..sort();
+  final edges =
+      model.edges.map((edge) => '${edge.key}:${edge.forwarded}').toList()
+        ..sort();
+  return '${nodes.join(',')}|${edges.join(',')}';
+}
+
+int _stableHash(String source) {
+  var hash = 2166136261;
+  for (final unit in source.codeUnits) {
+    hash ^= unit;
+    hash = (hash * 16777619) & 0x7fffffff;
+  }
+  return hash;
 }

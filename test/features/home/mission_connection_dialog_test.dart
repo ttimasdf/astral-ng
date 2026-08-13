@@ -2,6 +2,8 @@ import 'package:astral/core/models/room.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/features/home/widgets/connect_button.dart';
 import 'package:astral/features/home/widgets/mission_connection_dialog.dart';
+import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
+import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,6 +21,29 @@ void main() {
     expect(
       canonicalRoomSelection(selected, [Room(id: 8, name: 'Lyra')]),
       isNull,
+    );
+  });
+
+  testWidgets('peer emoji follows the draft username', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: MissionConnectionDialog())),
+    );
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Live Preview Peer',
+    );
+    await tester.pump();
+
+    final badge = tester.widget<MeshPeerBadge>(
+      find.byKey(const ValueKey('connection-peer-emoji')),
+    );
+    expect(badge.username, 'Live Preview Peer');
+    expect(
+      find.text(
+        MeshPeerIdentity.emojiFor(username: badge.username, ip: badge.ip),
+      ),
+      findsWidgets,
     );
   });
 

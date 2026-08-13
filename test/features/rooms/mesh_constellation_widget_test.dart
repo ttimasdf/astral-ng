@@ -1,10 +1,21 @@
 import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
 import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
 import 'package:astral/src/rust/api/simple.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:graphview/GraphView.dart' as gv;
 
 void main() {
+  test('axis profile is horizontal on desktop and vertical on mobile', () {
+    final desktop = meshConstellationAxisScale(const Size(1200, 700));
+    final mobile = meshConstellationAxisScale(const Size(390, 700));
+
+    expect(desktop.dx, greaterThan(desktop.dy));
+    expect(mobile.dy, greaterThan(mobile.dx));
+  });
+
   testWidgets(
     'constellation renders tappable peers without a parent scaffold',
     (tester) async {
@@ -34,7 +45,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(InkWell), findsNWidgets(4));
+      expect(find.byType(GestureDetector), findsWidgets);
       expect(find.byIcon(Icons.my_location_rounded), findsNothing);
       expect(
         find.text(MeshPeerIdentity.emojiFor(username: 'Local', ip: '10.1.0.1')),
@@ -48,6 +59,84 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('pointer hover does not remove the graph nodes', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MeshConstellation(
+          nodes: [
+            _node(1, 'Local', '10.1.0.1', 0),
+            _node(2, 'Peer', '10.1.0.2', 1),
+          ],
+          localIp: '10.1.0.1',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final emoji = MeshPeerIdentity.emojiFor(username: 'Peer', ip: '10.1.0.2');
+    expect(find.text(emoji), findsOneWidget);
+
+    final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(pointer.removePointer);
+    await pointer.addPointer(location: tester.getCenter(find.text(emoji)));
+    await tester.pump();
+
+    expect(find.text(emoji), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('metric refresh keeps the settled graph element', (tester) async {
+    final nodes = ValueNotifier<List<KVNodeInfo>>([
+      _node(1, 'Local', '10.1.0.1', 0),
+      _node(2, 'Peer', '10.1.0.2', 1),
+    ]);
+    addTearDown(nodes.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ValueListenableBuilder<List<KVNodeInfo>>(
+          valueListenable: nodes,
+          builder:
+              (context, value, _) =>
+                  MeshConstellation(nodes: value, localIp: '10.1.0.1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final graphElement = tester.element(find.byType(gv.GraphView));
+
+    nodes.value = [
+      _node(1, 'Local', '10.1.0.1', 0),
+      _node(2, 'Peer', '10.1.0.2', 1, latency: 88),
+    ];
+    await tester.pump();
+
+    expect(tester.element(find.byType(gv.GraphView)), same(graphElement));
+  });
+
+  testWidgets('pan and zoom stay within Astral bounds', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MeshConstellation(
+          nodes: [
+            _node(1, 'Local', '10.1.0.1', 0),
+            _node(2, 'Peer', '10.1.0.2', 1),
+          ],
+          localIp: '10.1.0.1',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final viewer = tester.widget<InteractiveViewer>(
+      find.byType(InteractiveViewer),
+    );
+    expect(find.byType(Tooltip), findsNothing);
+    expect(find.byType(InkWell), findsNothing);
+    expect(viewer.minScale, .55);
+    expect(viewer.maxScale, 1.8);
+    expect(viewer.boundaryMargin, EdgeInsets.zero);
+  });
 
   testWidgets('detail values align and scroll in a short viewport', (
     tester,
@@ -94,11 +183,12 @@ KVNodeInfo _node(
   int cost, {
   List<NodeHopStats> hops = const [],
   String nat = '',
+  double latency = 12,
 }) => KVNodeInfo(
   peerId: peerId,
   hostname: name,
   ipv4: ip,
-  latencyMs: 12,
+  latencyMs: latency,
   nat: nat,
   hops: hops,
   lossRate: 0,

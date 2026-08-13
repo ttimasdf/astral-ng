@@ -8,6 +8,7 @@ import 'package:astral/features/home/widgets/mission_mesh_preview.dart';
 import 'package:astral/features/home/widgets/mission_quick_controls.dart';
 import 'package:astral/generated/locale_keys.g.dart';
 import 'package:astral/shared/utils/network/node_utils.dart';
+import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
 import 'package:astral/src/rust/api/simple.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -251,7 +252,15 @@ class _MissionHero extends StatelessWidget {
                 icon: Icons.hub_outlined,
                 label: room?.name ?? LocaleKeys.select_room.tr(),
               ),
-              _InfoPill(icon: Icons.person_outline, label: username),
+              _InfoPill(
+                leading: MeshPeerBadge(
+                  username: username,
+                  ip: virtualIp,
+                  size: 20,
+                  framed: false,
+                ),
+                label: username,
+              ),
               _InfoPill(
                 icon: Icons.lan_outlined,
                 label:
@@ -549,7 +558,12 @@ class _SessionCard extends StatelessWidget {
               value: room == null ? '—' : RoomMode.label(room!.simpleMode),
             ),
             _DetailRow(
-              icon: Icons.person_outline,
+              leading: MeshPeerBadge(
+                username: username,
+                ip: virtualIp,
+                size: 22,
+                framed: false,
+              ),
               label: LocaleKeys.username.tr(),
               value: username,
             ),
@@ -589,17 +603,19 @@ class _SessionCard extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final String label;
   final String value;
   final Color? valueColor;
 
   const _DetailRow({
-    required this.icon,
+    this.icon,
+    this.leading,
     required this.label,
     required this.value,
     this.valueColor,
-  });
+  }) : assert(icon != null || leading != null);
 
   @override
   Widget build(BuildContext context) {
@@ -608,7 +624,7 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: colorScheme.primary),
+          leading ?? Icon(icon, size: 18, color: colorScheme.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -635,10 +651,12 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _InfoPill extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final String label;
 
-  const _InfoPill({required this.icon, required this.label});
+  const _InfoPill({this.icon, this.leading, required this.label})
+    : assert(icon != null || leading != null);
 
   @override
   Widget build(BuildContext context) {
@@ -652,7 +670,7 @@ class _InfoPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: colorScheme.primary),
+          leading ?? Icon(icon, size: 15, color: colorScheme.primary),
           const SizedBox(width: 6),
           Text(label, style: const TextStyle(fontSize: 12)),
         ],

@@ -1,9 +1,6 @@
-import 'dart:math' as math;
-
 import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
 import 'package:astral/shared/utils/network/node_utils.dart';
 import 'package:astral/src/rust/api/simple.dart';
-import 'package:flutter/material.dart';
 
 class MeshConstellationNode {
   final String id;
@@ -157,13 +154,16 @@ class MeshConstellationModel {
         }
         route.add(targetId);
 
+        final routeUsesRelay = route.any(
+          (routeNode) => nodes[routeNode]?.isRelay == true,
+        );
         var previous = localId;
         for (var index = 0; index < route.length; index++) {
           _addEdge(
             edges,
             previous,
             route[index],
-            forwarded: index > 0 || route.length == 1,
+            forwarded: routeUsesRelay || index > 0 || route.length == 1,
           );
           previous = route[index];
         }
@@ -193,112 +193,9 @@ class MeshConstellationModel {
     if (a == b) return;
     final edge = MeshConstellationEdge(a: a, b: b, forwarded: forwarded);
     final existing = edges[edge.key];
-    if (existing == null || (existing.forwarded && !forwarded)) {
+    if (existing == null || (!existing.forwarded && forwarded)) {
       edges[edge.key] = edge;
     }
-  }
-}
-
-Map<String, Offset> layoutMeshConstellation(
-  List<MeshConstellationNode> nodes,
-  Size size, {
-  double margin = 64,
-}) {
-  if (nodes.isEmpty || size.isEmpty) return {};
-  final usableWidth = math.max(0, size.width - margin * 2);
-  final usableHeight = math.max(0, size.height - margin * 2);
-  final center = Offset(size.width / 2, size.height / 2);
-  final result = <String, Offset>{};
-
-  final local = nodes.where((node) => node.isLocal).firstOrNull;
-  if (local != null) result[local.id] = center;
-
-  final relays = nodes.where((node) => node.isRelay && !node.isLocal).toList();
-  final direct =
-      nodes
-          .where((node) => !node.isLocal && !node.isRelay && node.cost == 1)
-          .toList();
-  final forwarded =
-      nodes
-          .where((node) => !node.isLocal && !node.isRelay && node.cost >= 2)
-          .toList();
-  final unknown =
-      nodes
-          .where((node) => !node.isLocal && !node.isRelay && node.cost <= 0)
-          .toList();
-
-  _placeRing(
-    relays,
-    result,
-    center: center,
-    radiusX: usableWidth * .24,
-    radiusY: usableHeight * .22,
-  );
-  _placeRing(
-    direct,
-    result,
-    center: center,
-    radiusX: usableWidth * .40,
-    radiusY: usableHeight * .38,
-  );
-  _placeRing(
-    forwarded,
-    result,
-    center: center,
-    radiusX: usableWidth * .48,
-    radiusY: usableHeight * .47,
-  );
-  _placeRing(
-    unknown,
-    result,
-    center: center,
-    radiusX: usableWidth * .44,
-    radiusY: usableHeight * .43,
-  );
-  return result;
-}
-
-void _placeRing(
-  List<MeshConstellationNode> nodes,
-  Map<String, Offset> result, {
-  required Offset center,
-  required double radiusX,
-  required double radiusY,
-}) {
-  if (nodes.isEmpty) return;
-  const slotCount = 48;
-  const trackCount = 3;
-  const minimumDistance = 54.0;
-  final ordered = [...nodes]..sort((a, b) {
-    final hashOrder = _stableHash(a.id).compareTo(_stableHash(b.id));
-    return hashOrder != 0 ? hashOrder : a.id.compareTo(b.id);
-  });
-
-  for (final node in ordered) {
-    final hash = _stableHash(node.id);
-    final initialSlot = hash % slotCount;
-    final initialTrack = (hash ~/ slotCount) % trackCount;
-    Offset? fallback;
-
-    for (var attempt = 0; attempt < slotCount * trackCount; attempt++) {
-      final slot = (initialSlot + attempt) % slotCount;
-      final track = (initialTrack + attempt ~/ slotCount) % trackCount;
-      final radiusFactor = .86 + track * .07;
-      final angle = -math.pi / 2 + slot * math.pi * 2 / slotCount;
-      final candidate = Offset(
-        center.dx + math.cos(angle) * radiusX * radiusFactor,
-        center.dy + math.sin(angle) * radiusY * radiusFactor,
-      );
-      fallback ??= candidate;
-      if (result.values.every(
-        (position) => (position - candidate).distance >= minimumDistance,
-      )) {
-        result[node.id] = candidate;
-        break;
-      }
-    }
-
-    result.putIfAbsent(node.id, () => fallback!);
   }
 }
 

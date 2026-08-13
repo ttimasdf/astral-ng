@@ -1,6 +1,7 @@
 import 'package:astral/core/models/room.dart';
 import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/generated/locale_keys.g.dart';
+import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -53,10 +54,23 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
     );
     _automaticIp = _services.networkConfigState.dhcp.value;
     _room = _services.roomState.selectedRoom.value;
+    _nameController.addListener(_refreshIdentity);
+    _ipController.addListener(_refreshIdentity);
   }
+
+  void _refreshIdentity() {
+    if (mounted) setState(() {});
+  }
+
+  String get _identityIp =>
+      _automaticIp
+          ? _services.networkConfigState.ipv4.value
+          : _ipController.text.trim();
 
   @override
   void dispose() {
+    _nameController.removeListener(_refreshIdentity);
+    _ipController.removeListener(_refreshIdentity);
     _nameController.dispose();
     _ipController.dispose();
     super.dispose();
@@ -95,10 +109,14 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return AlertDialog(
-      icon: Icon(Icons.tune_rounded, color: colorScheme.primary),
+      icon: MeshPeerBadge(
+        key: const ValueKey('connection-peer-emoji'),
+        username: _nameController.text,
+        ip: _identityIp,
+        size: 48,
+        isLocal: true,
+      ),
       title: Text(LocaleKeys.mission_connection_details.tr()),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -112,7 +130,15 @@ class _MissionConnectionDialogState extends State<MissionConnectionDialog> {
                   controller: _nameController,
                   decoration: InputDecoration(
                     labelText: LocaleKeys.username.tr(),
-                    prefixIcon: const Icon(Icons.person_outline_rounded),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: MeshPeerBadge(
+                        username: _nameController.text,
+                        ip: _identityIp,
+                        size: 28,
+                        framed: false,
+                      ),
+                    ),
                   ),
                   validator:
                       (value) =>
