@@ -7,177 +7,133 @@ baseline.
 
 ## Unreleased
 
-> **Highlight:** Troubleshooting is now safer and more consistent with structured diagnostics across desktop and mobile.
+> **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
-> **版本亮点：** 通过桌面端与移动端统一的结构化诊断，故障排查现更加安全一致。
+> **版本亮点：** AstralNG 3.0 全新登场：焕新的任务控制台、路径感知网络拓扑、更清晰的设置与更安全的诊断，让每一次连接都尽在掌控。
 
 ### Added
 
-- Added structured, redacted diagnostics across desktop and mobile, including
-  runtime log controls, bounded JSONL persistence, correlation filters, and
-  reviewable support-bundle exports.
-- Added process-only pre-start diagnostic flags for desktop and debuggable
-  Android builds, plus a cross-platform troubleshooting guide covering
-  application, network, routing, and EasyTier inspection tools. The guide is
-  split by investigation type and includes a project-wide catalog of modules,
-  event codes, and native console tags across Dart, Rust, and Kotlin.
-- Added an Android Quick Settings tile that shows the current connection state
-  and connects or disconnects Astral-ng with one tap. ([#10])
-- Added automatic connection retries with a configurable retry limit.
-  ([upstream-auto-retry])
-- Added a local SOCKS5 listener for accessing the virtual network in NO-TUN
-  mode, including a configurable listen port. ([upstream-#229])
-- Added UDP broadcast relay support on Windows. ([upstream-udp-relay])
-- Added an option to hide the desktop system-tray icon for the current session.
-  ([upstream-#74])
-- Added a reduced-animation mode that lowers topology and connection animation
-  updates while the window is hidden or minimized. ([upstream-topology])
+- **Android Quick Settings.** Added a tile that shows connection state and
+  connects or disconnects AstralNG with one tap. ([#10])
+- **Upstream additions.**
+  - **Automatic retries.** Added a configurable retry limit for failed
+    connections. ([upstream-auto-retry])
+  - **NO-TUN SOCKS5 access.** Added a configurable local listener for reaching
+    the virtual network. ([upstream-#229])
+  - **Windows UDP relay.** Added UDP broadcast forwarding on Windows.
+    ([upstream-udp-relay])
+  - **Tray visibility.** Added an option to hide the desktop tray icon for the
+    current session. ([upstream-#74])
+  - **Reduced animation.** Added a mode that lowers topology and connection
+    animation updates while the window is hidden. ([upstream-topology])
+- **Structured diagnostics.** Added redacted desktop and mobile logs with
+  runtime controls, bounded persistence, correlation filters, and reviewable
+  support-bundle exports. ([#15])
+- **Troubleshooting toolkit.** Added pre-start diagnostic flags and guides for
+  application, network, routing, EasyTier, module, event-code, and native-log
+  investigations. ([#15])
 
 ### Changed
 
-- **Breaking:** Replaced artifact and package version suffixes with canonical
-  SemVer. Canary files now use `3.0.0-alpha.CI_RUN+SHORTREF`, production files
-  use `3.0.0`, and Linux package managers receive an equivalent `~alpha`
-  prerelease. Download automation must stop matching
-  `v3.0.0-canary.CI_RUN-SHORTREF` or `v3.0.0` suffixes and use the new SemVer
-  names.
-- **Breaking:** Moved the database to the platform Application Support directory
-  and diagnostic JSONL to Application Cache on every platform. Existing
-  installations may start with reset state; desktop users can stop Astral-ng
-  and move the complete Isar database file set into the new `db` subdirectory,
-  while other users must reconfigure the app. Existing logs are not migrated,
-  and cache diagnostics may be removed early by the OS or user.
-- Redesigned Settings with responsive desktop and mobile category navigation,
-  clearer status and dependency descriptions, and a consolidated
-  Network & Connection workspace. Setting storage and localization identifiers
-  now match their current concepts instead of retaining historical names. This
-  schema reset requires Android users to back up server and room credentials,
-  uninstall the previous APK, and install the new build. Connection retries now
-  use a 0–10 slider where 0 disables retries; the TUN control is expressed as a
-  recommended enable switch; SOCKS5 can optionally listen on all interfaces;
-  and desktop toolbar tooltips describe the action each button performs. Theme
-  mode, peer protocol, traffic compression, and update channel now use direct
-  segmented choices. Language now lives under General, while updates, versions,
-  logs, and diagnostics share one Update & About category. Settings, Tools, and
-  other destination subpages stay inside the application shell instead of
-  covering its title and navigation bars. Android back now unwinds those nested
-  views reliably, and exiting the Android engine closes its VPN service instead
-  of leaving a stale system VPN indicator. ([#12])
-- Redesigned Home as Mission Control with live session summaries and per-room
-  path, peer-connectivity, and Windows LAN-discovery controls. Connected state
-  now reads “Mesh network connected” / “网络已连接,” and setup editing shares
-  a responsive action row with Connect. Changes made during a connection are
-  staged until the user explicitly reconnects. The pending-change notice now
-  stacks its explanation above a full-width Reconnect and apply action for
-  narrow layouts. During connection, the progress bar spans the complete Edit
-  and Connect action row.
-- Replaced the room topology graph with a deterministic, route-aware
-  network topology. Room peers receive stable emoji identities derived from
-  username and virtual IP; the same identity appears in Home and connection
-  setup and updates while editing. Relay servers retain a server glyph, direct
-  links are solid, and every segment of a relayed path is dashed. Desktop lays
-  out route branches horizontally around the local peer; mobile rotates the
-  composition vertically. Home preserves its local-centered direct/forwarded
-  route preview but fits the graph's occupied bounds to the canvas with stable
-  margins; its disconnected state keeps the local identity without the
-  placeholder oval. Rooms keeps complete relay paths. Node-detail values use a consistent
-  left-aligned content column, and the member list remains available. Room view
-  settings, member-list details, connection and NAT labels, and the Tools
-  destination are localized in English and Chinese. A compact, responsive stats
-  row above both room views reports peer/direct/forwarded counts plus peer-median
-  latency and recent packet loss from EasyTier's rolling observations. The
-  topology view replaces the attribution chip with a shared NAT-family color
-  legend. NAT colors now use one contrast-safe semantic palette across topology
-  borders, local double borders, relay shapes, compact badges, and list details.
-  The connected room page replaces the old share prompt row with a dedicated
-  copy-link action above Settings, with the topology/list toggle at the bottom.
-  Deterministic graph updates no longer freeze nodes at the center when Astral
-  moves to the background. Before connecting, room actions now use a matching
-  vertical Sort, Import, Add stack with a dedicated import icon, and room cards
-  omit the redundant Simple/Advanced mode glyph. ([#13])
-- Renamed the Server destination to Relay and moved it ahead of Tools. Desktop
-  relay rows now toggle on click, with editing available from the edit button.
-- Separated canary snapshots from production installs with the AstralNG Canary
-  name, `astral-canary` command, distinct package identities, and a
-  grayscale-and-gold icon on Linux, Windows, and Android. Linux and Windows
-  development builds retain Flutter's discoverable executable name so canary
-  sessions work with `flutter run`, while packaged artifacts still expose
-  `astral-canary`. Nix development shells default Flutter build, run, drive,
-  and test commands to the canary identity. About now identifies canary builds
-  by their seven-character commit, showing a compact friendly version in the
-  hero and SemVer in installed-version rows.
-- Renamed the visible application, widget, notification, installer, and Quick
-  Settings tile branding to AstralNG across supported platforms.
-- Improved Android and iOS server management with short, spring-back gestures:
-  tap a row to edit, swipe right to enable or disable it, swipe left to request
-  confirmed deletion, and identify enabled or disabled rows by their green or
-  red indicator. ([#11])
-- Replaced the desktop server switch and overflow menu with direct toggle and
-  delete icon buttons; clicking the row opens editing. ([#11])
-- Added canonical SemVer suffixes to downloadable CI snapshots and release
-  assets, and made workflow artifacts downloadable without an additional ZIP
-  wrapper.
-- Renamed room credential choices to **Simple** and **Advanced**. Simple mode
-  generates credentials; Advanced mode accepts shared credentials. This choice
-  is separate from network-traffic encryption. ([#3])
-- Replaced the Explore area with a focused Tools page for NAT testing, port
-  whitelists, and the Windows Magic Wall. ([upstream-v2.9.9])
-- Improved update downloads with selectable mirrors and automatic mirror
-  benchmarking. ([upstream-#226])
-- Improved Android home-screen widgets with theme-aware layouts, more reliable
-  status refreshes, and one-tap connection toggling. ([upstream-widgets])
-- Connection attempts now check for a selected room, an enabled server, and the
-  Windows Npcap driver before starting, and report the specific missing
-  prerequisite. ([upstream-connect-guard])
+- **⚠ BREAKING — Android settings.** Android users must back up room and relay
+  credentials, uninstall the previous APK, install 3.0.0, and restore their
+  configuration after the settings schema reset. ([#12])
+- **⚠ BREAKING — Data directories.** Existing installs may appear reset.
+  Desktop users must move every Isar file into Application Support's `db`
+  directory; other platforms must reconfigure. Old logs are not migrated. ([#15])
+- **⚠ BREAKING — Artifact names.** Download automation must replace legacy
+  `v3.0.0-canary.*` and `v3.0.0` suffixes with canonical SemVer names such as
+  `3.0.0-alpha.CI_RUN+SHORTREF` and `3.0.0`. ([#4])
+- **Responsive settings.** Redesigned desktop and mobile navigation, status
+  descriptions, and Network & Connection controls with clearer segmented
+  choices and dependency guidance. ([#12])
+- **Nested app navigation.** Settings and Tools stay inside the app shell,
+  Android Back unwinds nested views, and engine exit now stops the VPN service.
+  ([#12])
+- **Mission Control.** Redesigned Home around live session summaries and
+  per-room route, connectivity, and Windows LAN controls; connected edits remain
+  staged until Reconnect and apply. ([#13])
+- **Network topology.** Added deterministic route-aware placement, stable emoji
+  identities, solid direct paths, dashed forwarded paths, responsive layouts,
+  and complete relay routes in Rooms. ([#13])
+- **Mesh metrics and NAT.** Added peer counts, median latency and loss, a shared
+  NAT-family palette and legend, and consistent NAT presentation across
+  topology and list views. ([#13])
+- **Room action rails.** Unified connected and disconnected action stacks,
+  added quick link copying, retained list view, and removed duplicate room-mode
+  glyphs. ([#13])
+- **Relay navigation.** Renamed Server to Relay, moved it ahead of Tools, and
+  made desktop rows directly editable and toggleable. ([#11], [#13])
+- **Canary identity.** Canary builds now use separate names, commands, package
+  identities, icons, and SemVer displays across Linux, Windows, and Android.
+  ([#14])
+- **AstralNG branding.** Unified visible application, widget, notification,
+  installer, and Quick Settings branding across supported platforms. ([#14])
+- **Mobile relay gestures.** Tap edits, right swipe toggles, and left swipe asks
+  before deletion on Android and iOS. ([#11])
+- **Desktop relay controls.** Replaced the switch and overflow menu with direct
+  toggle and delete actions; clicking a row opens editing. ([#11])
+- **CI artifact downloads.** Snapshot and release artifacts now download
+  directly instead of arriving inside an additional ZIP wrapper. ([#5])
+- **Room credential modes.** Renamed credential choices to **Simple** and
+  **Advanced**, independent of network-traffic encryption. ([#3])
+- **Upstream changes.**
+  - **Focused Tools page.** Replaced Explore with NAT testing, port whitelists,
+    and Windows Magic Wall tools. ([upstream-v2.9.9])
+  - **Update mirrors.** Added selectable download mirrors and automatic mirror
+    benchmarking. ([upstream-#226])
+  - **Android widgets.** Improved widget themes, status refresh, and one-tap
+    connection control. ([upstream-widgets])
+  - **Connection prerequisites.** Connection attempts now identify a missing
+    room, enabled relay, or Windows Npcap driver before starting.
+    ([upstream-connect-guard])
 
 ### Fixed
 
-- Fixed Android reporting a connection before VPN consent, TUN creation, and
-  Rust file-descriptor handoff completed. The Android TUN now uses EasyTier's
-  assigned virtual address, failed VPN setup disconnects cleanly, and requested
-  disconnects remove the VPN interface, agent, and service.
-- Fixed Android VPN startup treating a null VPN interface as revoked permission,
-  preserving the original failure and correlation details for troubleshooting.
-- Fixed Android canary snapshots remaining on the white launch screen when
-  startup tried to resolve home-widget providers from the canary package ID.
-- Fixed Android VPN routes not refreshing when a connected peer advertises or
-  changes a proxy subnet. ([upstream-#231])
-- Fixed room member filtering when switching between user and server types.
-  ([upstream-#236])
-- Fixed low frame rates and delayed window closing on Windows.
-  ([upstream-windows-fps], [upstream-window-close])
-- Fixed Linux DEB and RPM artifacts reporting version `1.0.0`, allowing package
-  managers to recognize upgrades correctly. ([upstream-#237])
+- **Android VPN readiness.** Connection now appears only after consent, TUN
+  creation, and descriptor handoff; setup failures and requested disconnects
+  clean up the VPN interface and service. ([#15])
+- **Canary launch screen.** Android canary builds no longer remain on the white
+  launch screen while resolving home-widget providers. ([#14])
+- **Upstream fixes.**
+  - **Android VPN routes.** Fixed route refresh when a connected peer advertises
+    or changes a proxy subnet. ([upstream-#231])
+  - **Room member filters.** Fixed switching between user and relay member
+    types. ([upstream-#236])
+  - **Windows responsiveness.** Fixed low frame rates and delayed window
+    closing. ([upstream-windows-fps], [upstream-window-close])
+  - **Linux package versions.** DEB and RPM packages now report the real version
+    instead of `1.0.0`, allowing package managers to recognize upgrades.
+    ([upstream-#237])
+- **Android VPN diagnostics.** Startup now preserves the original failure and
+  correlation details when VPN interface creation returns null. ([#15])
 
 ### Removed
 
-- Removed German, Spanish, French, Japanese, Korean, and Russian translations.
-  The interface currently supports English and Chinese. ([upstream-v2.9.9])
+- **Language catalog.** Removed German, Spanish, French, Japanese, Korean, and
+  Russian translations; the interface now supports English and Chinese.
+  ([upstream-v2.9.9])
 
 ### Developer notes
 
-- Merged upstream Astral through `v2.9.9` while preserving Astral-ng's
-  independent application version and active downstream behavior.
-  ([upstream-v2.9.9])
-- Pinned EasyTier to release tag `v2.6.4`; Windows builds obtain the Npcap SDK
-  separately rather than from a vendored EasyTier tree. ([#2])
-- Made `VERSION` the source of truth for production versions and build numbers;
-  CI now labels non-release artifacts as canary builds and validates production
-  tags. ([#4])
-- Consolidated validation and release packaging into tiered CI: pull requests
-  run analysis and Linux by default, while the `full-ci` label adds Windows and
-  Android; main-branch pushes now retain the same short-lived test artifacts.
+- **Upstream baseline.** Merged Astral through `v2.9.9` while preserving the
+  fork's independent version and downstream behavior. ([upstream-v2.9.9])
+- **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
+  separately instead of from a vendored EasyTier tree. ([#2])
+- **Version source.** `VERSION` now controls production versions and build
+  numbers; CI labels non-release artifacts as canaries and validates tags.
+  ([#4])
+- **Tiered CI.** Pull requests run analysis and Linux by default; `full-ci` adds
+  Windows and Android, while main retains short-lived test artifacts.
   ([#5], [#6])
-- Updated the Nix development and packaging environment to Flutter 3.44 for
-  Dart 3.12 source compatibility. ([nix-flutter-3.44])
-- Made the locked nixpkgs package set authoritative for development toolchains,
-  added a complete local Android SDK/NDK environment, and synchronized versions
-  for standard local tools and CI. ([#9])
-- Added a `flutter-android` development command that defaults local Android work
-  to the canary identity and isolates NDK builds from NixOS desktop compiler
-  settings.
-- Added the pinned EasyTier CLI to the Nix development shell for local no-TUN
-  peer and end-to-end network diagnostics.
+- **Flutter toolchain.** Updated Nix development and packaging to Flutter 3.44
+  for Dart 3.12 compatibility. ([nix-flutter-3.44])
+- **Reproducible toolchains.** Locked nixpkgs now supplies local and CI tools,
+  including the Android SDK and NDK. ([#9])
+- **Android build helper.** Added `flutter-android` for canary defaults and
+  isolated NDK builds on NixOS.
+- **EasyTier diagnostics.** Added the pinned CLI to the development shell for
+  local no-TUN and end-to-end network investigations.
 
 ## v2.8.1 - 2026-03-31
 
@@ -189,22 +145,21 @@ Published release: [v2.8.1-release].
 
 ### Added
 
-- Added small, medium, and large Android home-screen widgets with connection
-  status and tap-to-open behavior.
-- Added a setting to enable or disable persistent Android connection
-  notifications.
+- **Android home widgets.** Added small, medium, and large widgets with
+  connection status and tap-to-open behavior.
+- **Connection notifications.** Added a setting for persistent Android
+  connection notifications.
 
 ### Fixed
 
-- Fixed Magic Wall startup so rules are synchronized before the engine starts.
-- Fixed Magic Wall shutdown leaving firewall rules or its in-memory rule store
-  active.
+- **Magic Wall startup.** Rules now synchronize before the engine starts.
+- **Magic Wall cleanup.** Shutdown now removes firewall rules and clears the
+  in-memory rule store.
 
 ### Developer notes
 
-- Forward-ported selected Android widget, notification, and Magic Wall changes
-  from upstream `v2.7.8`. The original release was a forward-port; an
-  ancestry-preserving upstream merge was completed later.
+- **Upstream forward-port.** Forward-ported Android widget, notification, and
+  Magic Wall changes from `v2.7.8`; an ancestry-preserving merge followed later.
   ([v2.8.1-forward-port], [v2.7.8-merge])
 
 ## v2.8.0 - 2026-03-26
@@ -217,38 +172,37 @@ Published release: [v2.8.0-release].
 
 ### Added
 
-- Added a dynamic Connect/Disconnect action to the desktop tray menu.
+- **Desktop tray control.** Added a dynamic Connect or Disconnect action to the
+  tray menu.
 
 ### Changed
 
-- Rebranded the application, installer metadata, and platform icons from Astral
-  to Astral-ng.
-- Changed the application identifier to `pw.rabit.astralng`, allowing Astral-ng
-  to install independently of upstream Astral.
-- Removed the Linux startup requirement to run the entire GUI as root. The
-  selected network mode and package must still provide any privileges required
-  to create a TUN interface.
-- Removed Google Services from the Android build.
-- Removed the built-in server blocklist and temporarily hid the home-page
-  Hitokoto quote card.
-- Relicensed the fork from CC BY-NC-ND 4.0 to GPL-3.0.
+- **Application identity.** Rebranded application metadata and icons from
+  Astral to Astral-ng.
+- **Independent installation.** Changed the application ID to
+  `pw.rabit.astralng`, allowing installation alongside upstream Astral.
+- **Linux privileges.** The GUI no longer requires root at startup; the selected
+  network mode must still have permission to create its TUN interface.
+- **Android services.** Removed Google Services from the Android build.
+- **Home and relays.** Removed the built-in relay blocklist and temporarily hid
+  the Hitokoto card.
+- **Project license.** Relicensed the fork from CC BY-NC-ND 4.0 to GPL-3.0.
 
 ### Fixed
 
-- Fixed crashes when EasyTier emitted `ConfigPatched` or `ProxyCidrsUpdated`
-  events.
-- Fixed the Connect button animating continuously while idle, which could cause
-  high CPU usage while the application window was active.
-- Fixed Windows builds failing to locate the Npcap `Packet.lib` library.
+- **EasyTier events.** Fixed crashes from `ConfigPatched` and
+  `ProxyCidrsUpdated` events.
+- **Idle Connect animation.** Stopped continuous idle animation that could raise
+  CPU usage while the window was active.
+- **Windows Npcap builds.** Fixed lookup of the Npcap `Packet.lib` library.
 
 ### Developer notes
 
-- Added a Nix flake, development shell, and NixOS package definition.
-- Replaced the vendored EasyTier source with a git submodule pinned to
-  `v2.5.0`; the Unreleased changes later replace that submodule with the current
-  `v2.6.4` release-tag dependency.
-- Replaced the upstream platform-specific workflow collection with unified
-  validation and release automation.
+- **Nix environment.** Added a flake, development shell, and NixOS package.
+- **EasyTier source.** Replaced vendored source with a `v2.5.0` submodule; later
+  Unreleased work moves to the `v2.6.4` release dependency.
+- **Release automation.** Replaced platform-specific workflows with unified
+  validation and packaging.
 
 ## Earlier upstream history
 
@@ -266,6 +220,8 @@ changes. ([upstream-v2.7.3])
 [#11]: https://github.com/ttimasdf/astral-ng/pull/11
 [#12]: https://github.com/ttimasdf/astral-ng/pull/12
 [#13]: https://github.com/ttimasdf/astral-ng/pull/13
+[#14]: https://github.com/ttimasdf/astral-ng/pull/14
+[#15]: https://github.com/ttimasdf/astral-ng/pull/15
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
