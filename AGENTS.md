@@ -120,13 +120,38 @@ integrators, supported platforms, or release artifacts. Add the entry to
 the change; do not generate entries mechanically from commit subjects.
 
 Keep the changelog concise and user-facing, with links or a short `Developer
-notes` section for implementation provenance. Every `Unreleased` and version
-section must begin with the exact machine-readable bilingual highlight block
-defined by the guideline, including its quoted blank separator. Maintain
-`DOWNSTREAM_CHANGES.md` separately for exact fork-only behavior. Release
-headings must start with
-`## vMAJOR.MINOR.PATCH` so CI can extract them, and an upstream merge must not
-set or imply the downstream release version.
+notes` section for implementation provenance. Every entry must begin with a
+bold two-to-seven-word navigation brief and remain at or below 300 characters.
+Within `Added`, `Changed`, and `Fixed`, collect upstream-derived entries under
+the corresponding nested upstream group. Order security and breaking notices
+first, user-facing workflow and UI/UX changes next, and operational or
+developer-facing changes such as logs, packaging, and toolchains last. Format
+breaking briefs with the prominent `⚠ BREAKING —` marker and retain an exact
+migration action.
+
+Every `Unreleased` and version section must retain the exact machine-readable
+bilingual highlight block defined by the guideline, including its quoted blank
+separator. Routine feature, fix, maintenance, and upstream-sync work may add
+factual entries under `Unreleased`, but must not create, replace, or revise that
+section's highlight.
+
+Write a new release highlight only when the user explicitly requests a version
+bump. Treat the highlight as release content requiring separate review:
+
+1. Inspect the accumulated `Unreleased` entries and draft an exact bilingual
+   highlight block that follows `docs/CHANGELOG_GUIDELINES.md`.
+2. Apply the proposed block to `CHANGELOG.md` as an uncommitted draft and show
+   the user the target version and both highlight lines.
+3. Ask the user to confirm or revise that exact draft. A general feature,
+   release, or bump request is not confirmation of agent-authored highlight
+   wording.
+4. Only after explicit confirmation, run the version bump command, finalize the
+   release section, commit the release preparation, and proceed with any
+   separately authorized tag or publication workflow.
+
+Maintain `DOWNSTREAM_CHANGES.md` separately for exact fork-only behavior.
+Release headings must start with `## vMAJOR.MINOR.PATCH` so CI can extract them,
+and an upstream merge must not set or imply the downstream release version.
 
 ## Fork Maintenance
 
