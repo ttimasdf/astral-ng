@@ -44,7 +44,7 @@ chronological order:
 - **Android VPN routes.** Fixed route refresh when a peer advertises a new
   subnet. ([#231])
 
-## v2.8.7 - 2026-07-30
+## [v2.8.7] - 2026-07-30
 
 > **Highlight:** Connect more reliably with automatic retries and clearer setup.
 >
@@ -54,10 +54,18 @@ chronological order:
 ```
 
 Release automation extracts notes by matching a heading that starts with
-`## v<version>`. Every release heading must therefore use exactly:
+`## v<version>` or `## [v<version>]`. Every release heading must therefore use
+exactly:
 
 ```text
-## vMAJOR.MINOR.PATCH - YYYY-MM-DD
+## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD
+```
+
+Add the corresponding GitHub release URL as a reference-style footnote, for
+example:
+
+```markdown
+[v2.8.7]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.7
 ```
 
 Use the GitHub publication date in UTC for an existing release. Use the actual
@@ -83,7 +91,7 @@ machine-readable field with this exact grammar:
 ```
 
 The parser must first select the requested `## Unreleased` or
-`## vMAJOR.MINOR.PATCH` section, then require exactly one block match. Capture
+`## [vMAJOR.MINOR.PATCH]` section, then require exactly one block match. Capture
 group 1 is English and capture group 2 is Chinese; both are suitable for a
 future release manifest after normal JSON string escaping:
 
@@ -276,7 +284,8 @@ Before merging a changelog update, verify that:
 - removals, compatibility losses, and migration steps are not hidden under
   `Changed`;
 - links resolve to the intended repository and item;
-- release headings match `## vMAJOR.MINOR.PATCH - YYYY-MM-DD`;
+- release headings match `## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD` and include
+  the corresponding release URL reference;
 - every release section has exactly one valid bilingual highlight pair, with
   each value at most 160 characters;
 - internal maintenance noise has been omitted.

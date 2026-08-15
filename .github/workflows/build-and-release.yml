@@ -549,7 +549,7 @@ jobs:
           fi
           CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.version_base }}" '
             /^## / { in_section = 0 }
-            $0 ~ "^## " ver { in_section = 1; next }
+            $0 ~ "^## \\[?" ver "\\]?" { in_section = 1; next }
             in_section { print }
           ' CHANGELOG.md | sed '/^$/d')
           {

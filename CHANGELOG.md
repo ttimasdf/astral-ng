@@ -6,6 +6,12 @@ provenance.
 
 ## Unreleased
 
+> **Highlight:** No notable changes yet.
+>
+> **版本亮点：** 暂无重要更新。
+
+## [v3.0.0] - 2026-08-15
+
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
 > **版本亮点：** AstralNG 3.0 全新登场：焕新的任务控制台、路径感知网络拓扑、更清晰的设置与更安全的诊断，让每一次连接都尽在掌控。
@@ -144,13 +150,11 @@ provenance.
 - **EasyTier diagnostics.** Added the pinned CLI to the development shell for
   local no-TUN and end-to-end network investigations.
 
-## v2.8.1 - 2026-03-31
+## [v2.8.1] - 2026-03-31
 
 > **Highlight:** Android widgets put connection status on your home screen.
 >
 > **版本亮点：** Android 主屏幕小组件可直接显示连接状态。
-
-Published release: [v2.8.1-release].
 
 ### Added
 
@@ -171,13 +175,11 @@ Published release: [v2.8.1-release].
   Magic Wall changes from `v2.7.8`; an ancestry-preserving merge followed later.
   ([v2.8.1-forward-port], [v2.7.8-merge])
 
-## v2.8.0 - 2026-03-26
+## [v2.8.0] - 2026-03-26
 
 > **Highlight:** Astral became Astral-ng with its own independent identity.
 >
 > **版本亮点：** Astral 正式更名为 Astral-ng，并启用独立的应用标识。
-
-Published release: [v2.8.0-release].
 
 ### Added
 
@@ -249,6 +251,7 @@ changes. ([upstream-v2.7.3])
 [upstream-window-close]: https://github.com/ldoubil/astral/commit/e6f42be69152a24f16cd47fd36cb1a32c394e1d3
 [upstream-windows-fps]: https://github.com/ldoubil/astral/commit/eb08c820630e7d14e1611e36e4017e0986fe3ec8
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
-[v2.8.0-release]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
-[v2.8.1-release]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
+[v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
+[v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
+[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
