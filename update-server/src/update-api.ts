@@ -3,7 +3,7 @@ import { getCache } from '@vercel/functions';
 const API_VERSION = '2022-11-28';
 const SCHEMA_VERSION = 1;
 const DEFAULT_REPOSITORY = 'ttimasdf/astral-ng';
-const DEFAULT_WORKFLOW = 'build-and-release.yml';
+const DEFAULT_WORKFLOW = 'build.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
 const BETA_INDEX_TTL_SECONDS = 600;

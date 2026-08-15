@@ -30,8 +30,8 @@ GET /api/v1/versions?channel=stable|beta&limit=1..30
 
 `limit` defaults to `10`. The service rejects unknown, duplicate, or malformed
 query parameters. `stable` is sourced from non-draft, non-prerelease GitHub
-Releases. `beta` is sourced from successful `build-and-release.yml` push runs on
-`main` with a complete set of unexpired canary artifacts.
+Releases. `beta` is sourced from successful `build.yml` push runs on `main`
+with a complete set of unexpired canary artifacts.
 
 Stable pages link to the GitHub Release. Beta pages link to the GitHub Actions
 run. The API does not return artifact download URLs or expose the GitHub token.
@@ -78,8 +78,7 @@ Set these Vercel environment variables for Production and Preview as needed:
   value to the client.
 - `GITHUB_REPOSITORY`: optional `OWNER/REPOSITORY`; defaults to
   `ttimasdf/astral-ng`.
-- `GITHUB_WORKFLOW`: optional workflow filename; defaults to
-  `build-and-release.yml`.
+- `GITHUB_WORKFLOW`: optional workflow filename; defaults to `build.yml`.
 - `GITHUB_DEFAULT_BRANCH`: optional branch; defaults to `main`.
 
 Functions are pinned to Vercel’s Hong Kong region (`hkg1`) in

@@ -28,7 +28,7 @@ const originalFetch = globalThis.fetch;
 beforeEach(() => {
   setRuntimeCacheForTests(new MemoryCache());
   process.env.GITHUB_REPOSITORY = 'ttimasdf/astral-ng';
-  process.env.GITHUB_WORKFLOW = 'build-and-release.yml';
+  process.env.GITHUB_WORKFLOW = 'build.yml';
   process.env.GITHUB_DEFAULT_BRANCH = 'main';
   process.env.GITHUB_TOKEN = 'test-token';
 });
