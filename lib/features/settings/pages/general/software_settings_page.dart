@@ -20,7 +20,6 @@ class SoftwareSettingsPage extends BaseStatefulSettingsPage {
 
 class _SoftwareSettingsPageState
     extends BaseStatefulSettingsPageState<SoftwareSettingsPage> {
-  bool _hasInstallPermission = false;
   bool _hasNotificationPermission = false;
 
   @override
@@ -30,7 +29,6 @@ class _SoftwareSettingsPageState
   void initState() {
     super.initState();
     if (SettingsAvailability.androidOnly.isSupported) {
-      _checkInstallPermission();
       _checkNotificationPermission();
     }
   }
@@ -112,83 +110,6 @@ class _SoftwareSettingsPageState
     );
   }
 
-  Future<void> _checkInstallPermission() async {
-    try {
-      final status = await Permission.requestInstallPackages.status;
-      if (mounted) {
-        setState(() {
-          _hasInstallPermission = status.isGranted;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _hasInstallPermission = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _requestInstallPermission() async {
-    try {
-      final status = await Permission.requestInstallPackages.request();
-      if (!mounted) return;
-
-      await _checkInstallPermission();
-
-      if (!mounted) return;
-      if (status.isGranted) {
-        AppSnackBars.success(
-          context,
-          LocaleKeys.permission_install_success.tr(),
-          '',
-        );
-      } else {
-        AppSnackBars.error(
-          context,
-          LocaleKeys.permission_install_failed.tr(),
-          '',
-        );
-      }
-
-      if (status.isPermanentlyDenied) {
-        _showPermissionDialog();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      AppSnackBars.error(
-        context,
-        LocaleKeys.permission_install_request_failed.tr(),
-        '',
-      );
-    }
-  }
-
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(LocaleKeys.permission_denied.tr()),
-          content: Text(LocaleKeys.permission_denied_message.tr()),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(LocaleKeys.cancel.tr()),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                openAppSettings();
-              },
-              child: Text(LocaleKeys.go_settings.tr()),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget buildContent(BuildContext context) {
     return ListView(
@@ -203,21 +124,6 @@ class _SoftwareSettingsPageState
               leading: const Icon(Icons.settings),
             ),
             buildDivider(),
-            if (SettingsAvailability.androidOnly.isVisible)
-              ListTile(
-                leading: const Icon(Icons.install_mobile),
-                title: Text(LocaleKeys.install_update_permission.tr()),
-                subtitle: Text(
-                  _hasInstallPermission
-                      ? LocaleKeys.install_permission_granted.tr()
-                      : LocaleKeys.install_permission_not_granted.tr(),
-                ),
-                trailing:
-                    _hasInstallPermission
-                        ? const Icon(Icons.check_circle, color: Colors.green)
-                        : const Icon(Icons.warning, color: Colors.orange),
-                onTap: _hasInstallPermission ? null : _requestInstallPermission,
-              ),
             if (SettingsAvailability.desktopOnly.isVisible)
               SettingsSegmentedChoice<WindowCloseBehavior>(
                 title: LocaleKeys.settings_close_behavior.tr(),
@@ -356,12 +262,6 @@ class _SoftwareSettingsPageState
                   await ServiceManager().appSettings
                       .setConnectionNotificationEnabled(value);
                 },
-              ),
-              buildDivider(),
-              ListTile(
-                title: Text(LocaleKeys.permission_description.tr()),
-                subtitle: Text(LocaleKeys.permission_description_desc.tr()),
-                leading: const Icon(Icons.info_outline),
               ),
             ],
           ),

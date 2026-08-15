@@ -122,6 +122,12 @@ describe('normalized metadata parsing', () => {
     const artifacts = completeArtifacts(100, version);
     expect(artifactVersion(artifacts[0].name)).toBe(version);
     expect(completeArtifactVersion(artifacts)).toBe(version);
+    expect(
+      completeArtifactVersion([
+        ...artifacts,
+        artifact(99, 100, 'astral-canary-extra-3.0.0-alpha.67+1234567.zip'),
+      ]),
+    ).toBe(version);
     expect(completeArtifactVersion(artifacts.slice(1))).toBeNull();
     expect(artifactVersion('random.zip')).toBeNull();
   });
@@ -228,7 +234,7 @@ describe('HTTP contract', () => {
     expect(post.status).toBe(405);
   });
 
-  test('normalizes stable releases and ignores drafts and prereleases', async () => {
+  test('normalizes stable releases and ignores drafts, prereleases, noncanonical tags, and untrusted pages', async () => {
     globalThis.fetch = mock(async (input: string | URL | Request) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
       if (url.pathname.endsWith('/releases')) {
@@ -248,6 +254,22 @@ describe('HTTP contract', () => {
             prerelease: true,
             published_at: '2026-08-14T02:00:00Z',
             html_url: 'https://github.com/example/releases/tag/v3.1.0-beta.1',
+          },
+          {
+            id: 5,
+            tag_name: '3.2.0',
+            draft: false,
+            prerelease: false,
+            published_at: '2026-08-14T03:00:00Z',
+            html_url: 'https://github.com/example/releases/tag/3.2.0',
+          },
+          {
+            id: 6,
+            tag_name: 'v3.3.0',
+            draft: false,
+            prerelease: false,
+            published_at: '2026-08-14T04:00:00Z',
+            html_url: 'https://example.invalid/releases/tag/v3.3.0',
           },
         ]);
       }
@@ -280,14 +302,68 @@ describe('HTTP contract', () => {
     });
   });
 
+  test('uses only required artifacts to determine beta expiry', async () => {
+    const version = '3.0.0-alpha.67+abcdef0';
+    globalThis.fetch = mock(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.includes('/actions/workflows/')) {
+        expect(url.searchParams.get('page')).toBe('1');
+        return githubJson({
+          total_count: 1,
+          workflow_runs: [
+            {
+              id: 101,
+              run_number: 67,
+              run_attempt: 1,
+              status: 'completed',
+              conclusion: 'success',
+              event: 'push',
+              head_branch: 'main',
+              head_sha: 'abcdef0123456789',
+              head_commit: { message: 'Keep required artifacts available' },
+              html_url: 'https://github.com/example/actions/runs/101',
+              created_at: '2026-08-14T00:00:00Z',
+              updated_at: '2026-08-14T00:20:00Z',
+            },
+          ],
+        });
+      }
+      if (url.pathname.endsWith('/actions/artifacts')) {
+        expect(url.searchParams.get('page')).toBe('1');
+        return githubJson({
+          total_count: 7,
+          artifacts: [
+            ...completeArtifacts(101, version),
+            artifact(
+              99,
+              101,
+              `astral-canary-extra-${version}.zip`,
+              '2026-08-14T00:01:00Z',
+            ),
+          ],
+        });
+      }
+      return new Response('not found', { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const response = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=beta'),
+      'latest',
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { data: { expiresAt: string } };
+    expect(body.data.expiresAt).toBe('2026-11-12T00:00:00Z');
+  });
+
   test('returns complete active beta builds, removes expired builds, and shares its index cache', async () => {
     const version = '3.0.0-alpha.66+abcdef0';
     const expiredVersion = '3.0.0-alpha.65+1234567';
-    let upstreamRequests = 0;
+    let githubRequests = 0;
     globalThis.fetch = mock(async (input: string | URL | Request) => {
-      upstreamRequests += 1;
+      githubRequests += 1;
       const url = new URL(input instanceof Request ? input.url : input.toString());
       if (url.pathname.includes('/actions/workflows/')) {
+        expect(url.searchParams.get('page')).toBe('1');
         return githubJson({
           total_count: 3,
           workflow_runs: [
@@ -339,6 +415,7 @@ describe('HTTP contract', () => {
         });
       }
       if (url.pathname.endsWith('/actions/artifacts')) {
+        expect(url.searchParams.get('page')).toBe('1');
         return githubJson({
           total_count: 12,
           artifacts: [
@@ -383,6 +460,6 @@ describe('HTTP contract', () => {
     );
     const listBody = await list.json();
     expect(listBody.data).toHaveLength(1);
-    expect(upstreamRequests).toBe(2);
+    expect(githubRequests).toBe(2);
   });
 });

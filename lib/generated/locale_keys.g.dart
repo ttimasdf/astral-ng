@@ -156,12 +156,7 @@ abstract class LocaleKeys {
   static const nav_server = 'nav_server';
   static const nav_tools = 'nav_tools';
   static const nav_settings = 'nav_settings';
-  static const permission_install_success = 'permission_install_success';
-  static const permission_install_failed = 'permission_install_failed';
-  static const permission_install_request_failed =
-      'permission_install_request_failed';
   static const permission_denied = 'permission_denied';
-  static const permission_denied_message = 'permission_denied_message';
   static const cancel = 'cancel';
   static const copy = 'copy';
   static const go_settings = 'go_settings';
@@ -226,10 +221,6 @@ abstract class LocaleKeys {
   static const kcp_for_tcp_streams = 'kcp_for_tcp_streams';
   static const kcp_for_tcp_streams_desc = 'kcp_for_tcp_streams_desc';
   static const software_settings = 'software_settings';
-  static const install_update_permission = 'install_update_permission';
-  static const install_permission_granted = 'install_permission_granted';
-  static const install_permission_not_granted =
-      'install_permission_not_granted';
   static const tray_show_window = 'tray_show_window';
   static const tray_exit = 'tray_exit';
   static const tray_hide = 'tray_hide';
@@ -248,41 +239,26 @@ abstract class LocaleKeys {
   static const beta_channel = 'beta_channel';
   static const automatic_update_checks = 'automatic_update_checks';
   static const automatic_update_checks_desc = 'automatic_update_checks_desc';
-  static const update_download_source = 'update_download_source';
   static const check_update = 'check_update';
+  static const update_available_title = 'update_available_title';
+  static const update_browser_install_notice = 'update_browser_install_notice';
+  static const open_release_page = 'open_release_page';
+  static const app_up_to_date = 'app_up_to_date';
+  static const current_version_value = 'current_version_value';
+  static const beta_unavailable = 'beta_unavailable';
+  static const beta_unavailable_desc = 'beta_unavailable_desc';
+  static const update_check_failed = 'update_check_failed';
+  static const update_check_failed_desc = 'update_check_failed_desc';
   static const update_behavior_desc = 'update_behavior_desc';
   static const check_update_available = 'check_update_available';
   static const previous_versions = 'previous_versions';
   static const previous_versions_desc = 'previous_versions_desc';
-  static const update_description = 'update_description';
-  static const update_description_desc = 'update_description_desc';
-  static const beta_version = 'beta_version';
-  static const beta_version_desc = 'beta_version_desc';
-  static const update_download_source_desc = 'update_download_source_desc';
-  static const update_download_source_automatic =
-      'update_download_source_automatic';
-  static const update_download_source_custom = 'update_download_source_custom';
-  static const update_download_source_custom_hint =
-      'update_download_source_custom_hint';
-  static const update_download_source_direct = 'update_download_source_direct';
-  static const update_download_source_automatic_current =
-      'update_download_source_automatic_current';
-  static const update_download_source_automatic_pending =
-      'update_download_source_automatic_pending';
-  static const update_download_source_benchmark =
-      'update_download_source_benchmark';
-  static const update_download_source_benchmarking =
-      'update_download_source_benchmarking';
-  static const update_download_source_unavailable =
-      'update_download_source_unavailable';
   static const disable_sym_hole_punching = 'disable_sym_hole_punching';
   static const disable_sym_hole_punching_desc =
       'disable_sym_hole_punching_desc';
   static const software_behavior_desc = 'software_behavior_desc';
   static const android_settings = 'android_settings';
   static const android_settings_desc = 'android_settings_desc';
-  static const permission_description = 'permission_description';
-  static const permission_description_desc = 'permission_description_desc';
   static const notification_permission = 'notification_permission';
   static const notification_permission_granted =
       'notification_permission_granted';
@@ -403,16 +379,12 @@ abstract class LocaleKeys {
   static const advanced_network = 'advanced_network';
   static const advanced_network_warning = 'advanced_network_warning';
   static const beta_update_checks_required = 'beta_update_checks_required';
-  static const redownload_update = 'redownload_update';
-  static const redownload_update_desc = 'redownload_update_desc';
   static const stable_channel_desc = 'stable_channel_desc';
   static const permission_open_system_settings =
       'permission_open_system_settings';
   static const permission_granted = 'permission_granted';
   static const permission_required = 'permission_required';
   static const permissions_managed_by_system = 'permissions_managed_by_system';
-  static const install_permission_explanation =
-      'install_permission_explanation';
   static const notification_permission_explanation =
       'notification_permission_explanation';
   static const connection_notification = 'connection_notification';

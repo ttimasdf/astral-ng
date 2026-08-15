@@ -7,10 +7,10 @@ const DEFAULT_WORKFLOW = 'build-and-release.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
 const BETA_INDEX_TTL_SECONDS = 600;
-const GITHUB_SOURCE_CACHE_TTL_SECONDS = 86_400;
 const MAX_BETA_ARTIFACT_AGE_SECONDS = 90 * 24 * 60 * 60;
 const EMPTY_CHANNEL_TTL_SECONDS = 60;
 const MAX_LIMIT = 30;
+const MAX_GITHUB_PAGES = 10;
 const GITHUB_API = 'https://api.github.com';
 
 export type Channel = 'stable' | 'beta';
@@ -64,7 +64,7 @@ type GitHubWorkflowRun = {
   head_commit?: {
     message?: string | null;
   } | null;
-  html_url: string;
+  html_url: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -163,7 +163,11 @@ function githubHeaders(etag?: string | null): Headers {
   return headers;
 }
 
-async function githubRequest<T>(path: string, cacheKey: string): Promise<T> {
+async function githubRequest<T>(
+  path: string,
+  cacheKey: string,
+  sourceTtlSeconds: number,
+): Promise<T> {
   const cache = runtimeCache();
   const scopedCacheKey = `source:v1:${repository()}:${workflow()}:${branch()}:${cacheKey}`;
   const cached = (await cache.get(scopedCacheKey)) as CachedGitHubValue<T> | null;
@@ -173,7 +177,7 @@ async function githubRequest<T>(path: string, cacheKey: string): Promise<T> {
   });
 
   if (response.status === 304 && cached) {
-    await cache.set(scopedCacheKey, cached, { ttl: GITHUB_SOURCE_CACHE_TTL_SECONDS });
+    await cache.set(scopedCacheKey, cached, { ttl: sourceTtlSeconds });
     return cached.data;
   }
   if (!response.ok) {
@@ -188,7 +192,7 @@ async function githubRequest<T>(path: string, cacheKey: string): Promise<T> {
       etag: response.headers.get('etag'),
       data,
     } satisfies CachedGitHubValue<T>,
-    { ttl: GITHUB_SOURCE_CACHE_TTL_SECONDS },
+    { ttl: sourceTtlSeconds },
   );
   return data;
 }
@@ -249,6 +253,16 @@ function validateSearchParams(
   return { channel, limit: route === 'latest' ? 1 : limit! };
 }
 
+function isGitHubPageUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' &&
+      (url.hostname === 'github.com' || url.hostname === 'www.github.com');
+  } catch {
+    return false;
+  }
+}
+
 function semverParts(value: string): {
   major: number;
   minor: number;
@@ -305,10 +319,8 @@ function sortVersions(values: VersionSummary[]): VersionSummary[] {
 }
 
 function releaseVersion(tag: string): string | null {
-  const value = tag.startsWith('v') ? tag.slice(1) : tag;
-  const parts = semverParts(value);
-  if (!parts || parts.prerelease.length > 0) return null;
-  return value;
+  if (!/^v\d+\.\d+\.\d+$/.test(tag)) return null;
+  return tag.slice(1);
 }
 
 function extractChangelogHighlights(markdown: string, version: string): Highlights | null {
@@ -324,16 +336,6 @@ function extractChangelogHighlights(markdown: string, version: string): Highligh
     content,
   );
   return match ? { en: match[1], zh: match[2] } : null;
-}
-
-function extractUnreleasedHighlight(markdown: string): string | null {
-  const sectionMatch = /^## Unreleased\s*$/m.exec(markdown);
-  if (!sectionMatch) return null;
-  const section = markdown.slice(sectionMatch.index);
-  const nextHeading = /^##\s/m.exec(section.slice(sectionMatch[0].length));
-  const content = nextHeading ? section.slice(0, sectionMatch[0].length + nextHeading.index) : section;
-  const match = /> \*\*Highlight:\*\* ([^\r\n]+)$/m.exec(content);
-  return match?.[1] ?? null;
 }
 
 function escapeRegExp(value: string): string {
@@ -361,16 +363,23 @@ const REQUIRED_CANARY_ARTIFACTS = [
   /^astral-canary-linux-x64-.+\.tar\.gz$/,
 ];
 
+function requiredArtifacts(artifacts: GitHubArtifact[]): GitHubArtifact[] {
+  return artifacts.filter((artifact) =>
+    REQUIRED_CANARY_ARTIFACTS.some((pattern) => pattern.test(artifact.name)),
+  );
+}
+
 function completeArtifactVersion(artifacts: GitHubArtifact[]): string | null {
+  const required = requiredArtifacts(artifacts);
   if (
     !REQUIRED_CANARY_ARTIFACTS.every((pattern) =>
-      artifacts.some((artifact) => pattern.test(artifact.name)),
+      required.some((artifact) => pattern.test(artifact.name)),
     )
   ) {
     return null;
   }
   const versions = new Set(
-    artifacts.map((artifact) => artifactVersion(artifact.name)).filter(Boolean),
+    required.map((artifact) => artifactVersion(artifact.name)).filter(Boolean),
   );
   return versions.size === 1 ? [...versions][0]! : null;
 }
@@ -378,10 +387,6 @@ function completeArtifactVersion(artifacts: GitHubArtifact[]): string | null {
 function usableArtifact(artifact: GitHubArtifact, now: number): boolean {
   if (artifact.expired || !artifact.expires_at) return false;
   return Date.parse(artifact.expires_at) > now;
-}
-
-function githubPageForRuns(): string {
-  return `https://github.com/${repository()}/actions`;
 }
 
 async function immutableReleaseChangelog(
@@ -398,6 +403,7 @@ async function immutableReleaseChangelog(
     const response = await githubRequest<{ content?: string; encoding?: string }>(
       `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(tag)}`,
       `github:stable:changelog:v1:${tag}`,
+      STABLE_INDEX_TTL_SECONDS,
     );
     if (response.content) {
       content = decodeBase64(response.content, response.encoding);
@@ -417,6 +423,7 @@ async function stableVersions(): Promise<VersionSummary[]> {
   const releases = await githubRequest<GitHubRelease[]>(
     `/repos/${repo}/releases?per_page=100`,
     'github:stable:releases:v1',
+    STABLE_INDEX_TTL_SECONDS,
   );
   let changelog = '';
   try {
@@ -426,6 +433,7 @@ async function stableVersions(): Promise<VersionSummary[]> {
     }>(
       `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(branch())}`,
       'github:stable:changelog:v1',
+      STABLE_INDEX_TTL_SECONDS,
     );
     if (changelogResponse.content) {
       changelog = decodeBase64(changelogResponse.content, changelogResponse.encoding);
@@ -435,13 +443,20 @@ async function stableVersions(): Promise<VersionSummary[]> {
   }
 
   const values: VersionSummary[] = [];
-  // Prefer the immutable tagged changelog. Older releases from before this
-  // changelog existed fall back to the current release-history index. Missing
-  // sections or malformed highlights are intentionally non-fatal.
+  // Prefer the immutable tagged changelog for the latest release. Older
+  // releases use the current release-history index to keep a cold refresh
+  // bounded to one extra GitHub request. Missing sections or malformed
+  // highlights are intentionally non-fatal.
   for (const release of releases) {
     if (values.length >= MAX_LIMIT) break;
     const version = releaseVersion(release.tag_name);
-    if (release.draft || release.prerelease || !version || !release.published_at) {
+    if (
+      release.draft ||
+      release.prerelease ||
+      !version ||
+      !release.published_at ||
+      !isGitHubPageUrl(release.html_url)
+    ) {
       continue;
     }
 
@@ -479,10 +494,11 @@ function decodeBase64(value: string, encoding = 'base64'): string {
 
 async function fetchAllArtifacts(repo: string, now: number): Promise<GitHubArtifact[]> {
   const artifacts: GitHubArtifact[] = [];
-  for (let page = 1; page <= 10; page += 1) {
+  for (let page = 1; page <= MAX_GITHUB_PAGES; page += 1) {
     const response = await githubRequest<GitHubListResponse<GitHubArtifact>>(
       `/repos/${repo}/actions/artifacts?per_page=100&page=${page}`,
       `github:beta:artifacts:v1:${page}`,
+      BETA_INDEX_TTL_SECONDS,
     );
     const pageArtifacts = response.artifacts ?? [];
     artifacts.push(...pageArtifacts.filter((artifact) => usableArtifact(artifact, now)));
@@ -501,20 +517,51 @@ async function fetchAllArtifacts(repo: string, now: number): Promise<GitHubArtif
   return artifacts;
 }
 
+async function fetchWorkflowRuns(
+  repo: string,
+  now: number,
+): Promise<GitHubWorkflowRun[]> {
+  const runs: GitHubWorkflowRun[] = [];
+  for (let page = 1; page <= MAX_GITHUB_PAGES; page += 1) {
+    const response = await githubRequest<GitHubListResponse<GitHubWorkflowRun>>(
+      `/repos/${repo}/actions/workflows/${encodeURIComponent(workflow())}/runs?branch=${encodeURIComponent(branch())}&event=push&status=completed&exclude_pull_requests=true&per_page=100&page=${page}`,
+      `github:beta:runs:v1:${page}`,
+      BETA_INDEX_TTL_SECONDS,
+    );
+    const pageRuns = response.workflow_runs ?? [];
+    runs.push(
+      ...pageRuns.filter(
+        (run) =>
+          run.status === 'completed' &&
+          run.conclusion === 'success' &&
+          run.event === 'push' &&
+          run.head_branch === branch() &&
+          run.html_url !== null &&
+          isGitHubPageUrl(run.html_url),
+      ),
+    );
+    if (pageRuns.length < 100) break;
+    const oldestCreated = pageRuns
+      .map((run) => Date.parse(run.created_at))
+      .filter((value) => Number.isFinite(value))
+      .sort((left, right) => left - right)[0];
+    if (
+      oldestCreated !== undefined &&
+      oldestCreated <= now - MAX_BETA_ARTIFACT_AGE_SECONDS * 1000
+    ) {
+      break;
+    }
+  }
+  return runs;
+}
+
 async function betaVersions(max: number): Promise<VersionSummary[]> {
   const repo = repository();
-  const runsResponse = await githubRequest<GitHubListResponse<GitHubWorkflowRun>>(
-    `/repos/${repo}/actions/workflows/${encodeURIComponent(workflow())}/runs?branch=${encodeURIComponent(branch())}&event=push&status=success&exclude_pull_requests=true&per_page=100`,
-    'github:beta:runs:v1',
-  );
-  const runs = (runsResponse.workflow_runs ?? []).filter(
-    (run) =>
-      run.status === 'completed' &&
-      run.conclusion === 'success' &&
-      run.event === 'push' &&
-      run.head_branch === branch(),
-  );
-  const artifacts = await fetchAllArtifacts(repo, Date.now());
+  const now = Date.now();
+  const [runs, artifacts] = await Promise.all([
+    fetchWorkflowRuns(repo, now),
+    fetchAllArtifacts(repo, now),
+  ]);
   const artifactsByRun = new Map<number, GitHubArtifact[]>();
   for (const artifact of artifacts) {
     const runId = artifact.workflow_run?.id;
@@ -534,11 +581,14 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
     if (Number(parts.prerelease[1]) !== run.run_number) continue;
     if (version.slice(-7).toLowerCase() !== run.head_sha.slice(0, 7).toLowerCase()) continue;
 
-    const expiresAt = runArtifacts
+    const requiredRunArtifacts = requiredArtifacts(runArtifacts).filter(
+      (artifact) => artifactVersion(artifact.name) === version,
+    );
+    const expiresAt = requiredRunArtifacts
       .map((artifact) => artifact.expires_at)
       .filter((value): value is string => value !== null)
       .sort()[0];
-    if (!expiresAt || Date.parse(expiresAt) <= Date.now()) continue;
+    if (!expiresAt || Date.parse(expiresAt) <= now) continue;
     versions.push({
       channel: 'beta',
       version,
@@ -546,7 +596,7 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
       highlights: { en: commitSubject(run.head_commit?.message) || `Beta v${version}` },
       publishedAt: run.updated_at,
       expiresAt,
-      pageUrl: run.html_url || githubPageForRuns(),
+      pageUrl: run.html_url!,
       source: {
         type: 'github_actions',
         id: String(run.id),
@@ -712,7 +762,6 @@ export async function handleUpdateRequest(
 
 export {
   extractChangelogHighlights,
-  extractUnreleasedHighlight,
   artifactVersion,
   commitSubject,
   completeArtifactVersion,

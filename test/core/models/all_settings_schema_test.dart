@@ -13,7 +13,6 @@ void main() {
       'connectionRetryLimit',
       'launchAtLogin',
       'preferAstralAdapter',
-      'updateDownloadSource',
     }) {
       expect(source, contains(property));
     }
@@ -23,6 +22,8 @@ void main() {
       'closeMinimize',
       'retryFailedConnections',
       'settingsSchemaVersion',
+      'updateDownloadSource',
+      'latestAvailableVersion',
       'userListSimple',
     }) {
       expect(source, isNot(contains(legacyProperty)));

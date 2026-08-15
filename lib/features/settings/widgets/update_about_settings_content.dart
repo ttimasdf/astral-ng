@@ -226,22 +226,10 @@ class _UpdateAboutSettingsContentState
                 onTap: () => checkForUpdates(context),
               ),
               SettingsLinkTile(
-                icon: Icons.bolt,
-                title: LocaleKeys.update_download_source.tr(),
-                subtitle: updateDownloadSourceDescription(),
-                onTap: () => editUpdateDownloadSource(context),
-              ),
-              SettingsLinkTile(
                 icon: Icons.history,
                 title: LocaleKeys.previous_versions.tr(),
                 subtitle: LocaleKeys.previous_versions_desc.tr(),
                 onTap: () => navigateToHistoryVersions(context),
-              ),
-              SettingsLinkTile(
-                icon: Icons.cloud_download_outlined,
-                title: LocaleKeys.redownload_update.tr(),
-                subtitle: LocaleKeys.redownload_update_desc.tr(),
-                onTap: () => redownloadUpdate(context),
               ),
             ],
           ),
@@ -282,7 +270,7 @@ class _UpdateAboutSettingsContentState
                     : Icons.verified_outlined,
             message:
                 receiveBetaUpdates
-                    ? LocaleKeys.beta_version_desc.tr()
+                    ? LocaleKeys.receive_beta_updates_desc.tr()
                     : LocaleKeys.stable_channel_desc.tr(),
           ),
         ],

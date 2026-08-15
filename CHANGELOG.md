@@ -2,8 +2,7 @@
 
 This file records notable changes to Astral-ng. User-facing entries describe
 observable outcomes; concise developer notes and links provide implementation
-provenance. Astral-ng release versions are independent of the upstream Astral
-baseline.
+provenance.
 
 ## Unreleased
 
@@ -116,8 +115,6 @@ baseline.
 
 ### Developer notes
 
-- **Upstream baseline.** Merged Astral through `v2.9.9` while preserving the
-  fork's independent version and downstream behavior. ([upstream-v2.9.9])
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build

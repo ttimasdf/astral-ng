@@ -83,7 +83,7 @@ module controls. A child module inherits its nearest configured parent policy.
 | `astral.easytier.tunnel` | Rust EasyTier tunnel | Tunnel-target records, including UDP target output |
 | `astral.widgets` | Dart widgets/background services | Widget initialization, sync, and background work |
 | `astral.app-links` | Dart app links and URL schemes | Deep-link dispatch, import, registration, and startup schemes |
-| `astral.updates` | Dart update downloader | Update artifact download failures |
+| `astral.updates` | Dart update checker | Update service and metadata check failures |
 | `astral.magic-wall` | Dart + Rust Magic Wall | Rule, filter, process, WFP, and status operations |
 | `astral.firewall` | Dart firewall service | Firewall initialization, read, and set failures |
 | `astral.window` | Dart desktop window integration | Window initialization boundary |

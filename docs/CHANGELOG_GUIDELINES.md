@@ -1,11 +1,11 @@
 # Changelog guidelines
 
-`CHANGELOG.md` describes notable changes in Astral-ng releases. Its first
-reader is an application user deciding whether to upgrade; its second reader is
-a developer who needs to trace a statement back to its implementation.
+`CHANGELOG.md` records notable Astral-ng releases. Its first reader is an
+application user deciding whether to upgrade; its second reader is a developer
+who needs to trace a statement back to implementation, a pull request, or a
+release.
 
-The changelog is not a commit log, a substitute for a pull request, or the
-fork-maintenance ledger.
+The changelog is not a commit log or a substitute for a pull request.
 
 ## Source hierarchy
 
@@ -13,12 +13,11 @@ Verify an entry against the strongest available source before writing it:
 
 1. Current behavior, tests, and configuration in the repository.
 2. The Astral-ng pull request or issue that introduced the change.
-3. `DOWNSTREAM_CHANGES.md` for intentional differences from upstream.
-4. The merged upstream tag, pull request, issue, or commit.
-5. Commit messages, used only when stronger sources are unavailable.
+3. A release, issue, or commit directly relevant to the behavior.
+4. Commit messages, only when stronger sources are unavailable.
 
-Do not infer user impact from a commit title alone. If the available evidence
-is ambiguous, inspect the implementation or omit the claim until it can be
+Do not infer user impact from a commit title alone. If the available evidence is
+ambiguous, inspect the implementation or omit the claim until it can be
 verified.
 
 ## Document structure
@@ -37,19 +36,13 @@ chronological order:
 
 ### Added
 
-- **Upstream additions.**
-  - **NO-TUN SOCKS5 access.** Added a configurable local listener for reaching
-    the virtual network. ([upstream-#229])
+- **NO-TUN SOCKS5 access.** Added a configurable local listener for reaching
+  the virtual network. ([#229])
 
 ### Fixed
 
-- **Upstream fixes.**
-  - **Android VPN routes.** Fixed route refresh when a peer advertises a new
-    subnet. ([upstream-#231])
-
-### Developer notes
-
-- **Upstream baseline.** Synced through `v2.9.9`. ([upstream-v2.9.9])
+- **Android VPN routes.** Fixed route refresh when a peer advertises a new
+  subnet. ([#231])
 
 ## v2.8.7 - 2026-07-30
 
@@ -68,8 +61,7 @@ Release automation extracts notes by matching a heading that starts with
 ```
 
 Use the GitHub publication date in UTC for an existing release. Use the actual
-release date when preparing a new one. Astral-ng has its own version sequence;
-never derive a release heading from `.upstream-version`.
+release date when preparing a new one.
 
 ## Release highlights
 
@@ -93,8 +85,7 @@ machine-readable field with this exact grammar:
 The parser must first select the requested `## Unreleased` or
 `## vMAJOR.MINOR.PATCH` section, then require exactly one block match. Capture
 group 1 is English and capture group 2 is Chinese; both are suitable for a
-future release manifest after normal JSON string escaping. A future manifest
-should expose them by locale:
+future release manifest after normal JSON string escaping:
 
 ```json
 {
@@ -131,8 +122,8 @@ Use only the headings that have entries:
 - `Deprecated` for supported behavior scheduled for removal.
 - `Removed` for capabilities, platforms, languages, or compatibility that no
   longer exist.
-- `Developer notes` for concise migration, packaging, API, upstream-baseline,
-  or build information that materially affects maintainers and integrators.
+- `Developer notes` for concise migration, packaging, API, or build information
+  that materially affects maintainers and integrators.
 
 ## Entry style
 
@@ -140,7 +131,7 @@ Every list entry begins with a bold, sentence-case navigation brief:
 
 ```markdown
 - **Android VPN routes.** Fixed route refresh when a connected peer advertises
-  a new proxy subnet. ([upstream-#231])
+  a new proxy subnet. ([#231])
 ```
 
 The brief must:
@@ -159,8 +150,8 @@ After the brief, answer in this order:
 
 Use one or at most two short sentences and one observable outcome per entry.
 Keep the complete entry, including its brief and provenance link, at or below
-300 Unicode characters. Move extra rationale and implementation detail to
-`Developer notes`, the pull request, or `DOWNSTREAM_CHANGES.md`.
+300 Unicode characters. Move extra rationale and implementation detail to the
+pull request or developer documentation.
 
 Order entries for readers deciding whether to upgrade:
 
@@ -169,15 +160,11 @@ Order entries for readers deciding whether to upgrade:
 3. operational and developer-facing changes such as diagnostics, logs,
    packaging, build systems, and toolchains.
 
-Apply this order within each category and within upstream groups. Do not place
-logs or implementation infrastructure above visible product changes merely
-because they landed earlier.
-
 Good:
 
 ```markdown
 - **Android VPN routes.** Fixed route refresh when a connected peer advertises
-  a new proxy subnet. ([upstream-#231])
+  a new proxy subnet. ([#231])
 ```
 
 Too vague:
@@ -192,24 +179,6 @@ Too implementation-heavy for a user section:
 - **Proxy CIDR events.** Added `proxyCidrs` to `KVNodeInfo` and called
   `VpnManager.start()` again from `ServerConnectionManager`.
 ```
-
-### Upstream groups
-
-Within each `Added`, `Changed`, and `Fixed` section, collect upstream-derived
-entries beneath one nested navigator item. Keep downstream Astral-ng work as
-normal top-level entries:
-
-```markdown
-- **Upstream fixes.**
-  - **Android VPN routes.** Fixed route refresh when a peer advertises a new
-    proxy subnet. ([upstream-#231])
-  - **Room member filters.** Fixed switching between user and server views.
-    ([upstream-#236])
-```
-
-Use `Upstream additions`, `Upstream changes`, or `Upstream fixes` exactly, and
-keep the nested entries subject to the same brief and length rules. Do not use
-an upstream group when the section contains no upstream-derived entries.
 
 ### Breaking and migration entries
 
@@ -233,20 +202,12 @@ When a durable reference is available and useful, end the entry with the best
 one. Tightly related bullets may share one release link or a grouped developer
 note instead of repeating the same reference:
 
-- Astral-ng pull request for downstream changes;
-- upstream pull request or issue for merged upstream behavior;
-- an exact upstream tag for a summarized synchronization note;
+- Astral-ng pull request or issue;
+- a related external issue or pull request;
 - a commit only when no issue or pull request exists.
 
-Use descriptive reference labels such as `[#3]`, `[upstream-#231]`, and
-`[upstream-v2.9.9]`; do not expose unexplained raw URLs in bullets.
-
-When summarizing an upstream merge:
-
-- list notable user-visible outcomes as normal entries;
-- record the exact merged baseline once under `Developer notes`;
-- do not adopt the upstream version as Astral-ng's release version;
-- distinguish a forward-port or cherry-pick from an ancestry-preserving merge.
+Use descriptive reference labels such as `[#3]`; do not expose unexplained raw
+URLs in bullets.
 
 ## What belongs in the changelog
 
@@ -267,25 +228,10 @@ Usually exclude:
 - dependency or fixed-output hash refreshes with no compatibility impact;
 - CI maintenance that does not alter produced artifacts or contributor
   workflow;
-- merge bookkeeping already represented by an upstream-baseline note.
+- merge bookkeeping.
 
 Do not use catch-all bullets such as "miscellaneous fixes", and do not paste a
 list generated from commit subjects.
-
-## Relationship to maintenance records
-
-The files have different responsibilities:
-
-| File | Audience and purpose |
-| --- | --- |
-| `CHANGELOG.md` | Users and integrators; concise release impact. |
-| `DOWNSTREAM_CHANGES.md` | Maintainers; fork differences needed during sync. |
-| Pull request | Reviewers; design, implementation, and validation. |
-| Commits | Developers; focused implementation history. |
-
-A downstream behavior change normally needs both an `Unreleased` changelog
-entry and a `DOWNSTREAM_CHANGES.md` entry. Routine maintenance may need neither.
-Do not copy the full ledger entry into the changelog.
 
 ## Workflow
 
@@ -294,10 +240,10 @@ Do not copy the full ledger entry into the changelog.
 1. Add the user-facing entry to `Unreleased` in the same pull request as the
    behavior change.
 2. Do not create or revise the `Unreleased` highlight during routine feature,
-   fix, maintenance, or upstream-sync work.
-3. Add or update `DOWNSTREAM_CHANGES.md` when the change is fork-only.
-4. Link the changelog entry to the pull request or upstream source.
-5. Re-read the bullet from the perspective of someone who has not seen the
+   fix, or maintenance work.
+3. Link the changelog entry to the pull request or other durable source when it
+   is useful.
+4. Re-read the bullet from the perspective of someone who has not seen the
    implementation.
 
 ### When releasing
@@ -325,16 +271,12 @@ Before merging a changelog update, verify that:
 - every claim matches current behavior and is not based only on a commit title;
 - user-facing entries describe outcomes rather than implementation;
 - every entry begins with a specific bold brief and stays within 300 characters;
-- upstream additions, changes, and fixes use their nested section groups;
 - user-facing changes precede operational and developer-facing entries;
 - platform and mode limitations are explicit;
 - removals, compatibility losses, and migration steps are not hidden under
   `Changed`;
-- downstream and upstream provenance is distinguishable;
 - links resolve to the intended repository and item;
 - release headings match `## vMAJOR.MINOR.PATCH - YYYY-MM-DD`;
 - every release section has exactly one valid bilingual highlight pair, with
   each value at most 160 characters;
-- dates and versions belong to Astral-ng, not its upstream baseline;
-- internal maintenance noise has been omitted;
-- `DOWNSTREAM_CHANGES.md` was updated when required.
+- internal maintenance noise has been omitted.

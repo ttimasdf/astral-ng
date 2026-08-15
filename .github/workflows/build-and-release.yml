@@ -146,6 +146,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
           archive: false
           if-no-files-found: error
@@ -159,6 +160,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.deb
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.deb
           archive: false
           if-no-files-found: error
@@ -172,6 +174,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.rpm
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.rpm
           archive: false
           if-no-files-found: error
@@ -325,6 +328,7 @@ jobs:
       - name: Upload Windows ZIP
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-windows-x64-${{ env.ASSET_VERSION }}.zip
           path: release/${{ env.APP_EXECUTABLE }}-windows-x64-${{ env.ASSET_VERSION }}.zip
           archive: false
           if-no-files-found: error
@@ -333,6 +337,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
           path: release/${{ env.APP_EXECUTABLE }}-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
           archive: false
           if-no-files-found: error
@@ -393,6 +398,7 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-android-debug-${{ env.ASSET_VERSION }}.apk
           path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-debug-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
@@ -423,6 +429,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-android-arm64-${{ env.ASSET_VERSION }}.apk
           path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-arm64-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
@@ -432,6 +439,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-android-armv7-${{ env.ASSET_VERSION }}.apk
           path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-armv7-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
@@ -441,6 +449,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
+          name: ${{ env.APP_EXECUTABLE }}-android-universal-${{ env.ASSET_VERSION }}.apk
           path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-universal-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error

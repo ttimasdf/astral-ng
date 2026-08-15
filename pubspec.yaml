@@ -9,7 +9,6 @@ environment:
   sdk: ^3.7.0
 
 dependencies:
-  open_file: ^3.0.0
   vpn_service_plugin:
     path: vpn_service_plugin
   flutter:

@@ -9,6 +9,7 @@ fail() {
 
 channel="${BUILD_CHANNEL:-canary}"
 explicit_channel=false
+explicit_update_api_base_url=false
 expect_dart_define_value=false
 flutter_command=""
 
@@ -17,6 +18,8 @@ for argument in "$@"; do
     if [[ "$argument" == BUILD_CHANNEL=* ]]; then
       channel="${argument#BUILD_CHANNEL=}"
       explicit_channel=true
+    elif [[ "$argument" == UPDATE_API_BASE_URL=* ]]; then
+      explicit_update_api_base_url=true
     fi
     expect_dart_define_value=false
     continue
@@ -29,6 +32,9 @@ for argument in "$@"; do
     --dart-define=BUILD_CHANNEL=*)
       channel="${argument#--dart-define=BUILD_CHANNEL=}"
       explicit_channel=true
+      ;;
+    --dart-define=UPDATE_API_BASE_URL=*)
+      explicit_update_api_base_url=true
       ;;
   esac
 
@@ -66,6 +72,9 @@ case "$flutter_command" in
       "--dart-define=BUILD_COMMIT=$build_commit"
       "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
     )
+    if [[ "$explicit_update_api_base_url" == false && -n "${UPDATE_API_BASE_URL:-}" ]]; then
+      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL")
+    fi
     ;;
 esac
 

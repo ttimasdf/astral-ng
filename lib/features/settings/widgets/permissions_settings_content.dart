@@ -18,7 +18,6 @@ class PermissionsSettingsContent extends StatefulWidget {
 
 class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
     with WidgetsBindingObserver {
-  bool _installGranted = false;
   bool _notificationGranted = false;
   bool _checking = true;
 
@@ -48,11 +47,9 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
       return;
     }
 
-    final install = await Permission.requestInstallPackages.status;
     final notification = await Permission.notification.status;
     if (!mounted) return;
     setState(() {
-      _installGranted = install.isGranted;
       _notificationGranted = notification.isGranted;
       _checking = false;
     });
@@ -139,24 +136,6 @@ class _PermissionsSettingsContentState extends State<PermissionsSettingsContent>
             description: LocaleKeys.android_settings_desc.tr(),
             icon: Icons.android,
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 5,
-                ),
-                leading: const Icon(Icons.install_mobile),
-                title: Text(LocaleKeys.install_update_permission.tr()),
-                subtitle: Text(LocaleKeys.install_permission_explanation.tr()),
-                trailing: _permissionStatus(_installGranted),
-                onTap:
-                    _installGranted
-                        ? null
-                        : () => _requestPermission(
-                          Permission.requestInstallPackages,
-                          successKey: LocaleKeys.permission_install_success,
-                          failureKey: LocaleKeys.permission_install_failed,
-                        ),
-              ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 18,

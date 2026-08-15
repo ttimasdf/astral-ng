@@ -27,9 +27,7 @@ When instructed to implement a new feature, use the following workflow:
    If the user requests changes, continue local development and repeat the
    demonstration. Do not push or create a pull request until the user confirms
    that there are no further suggestions.
-6. After the user confirms, begin final wrap-up. Read
-   `docs/DOWNSTREAM_CHANGES_GUIDELINES.md`, then add or update the corresponding
-   `DOWNSTREAM_CHANGES.md` entry using the same slug. Apply the changelog policy
+6. After the user confirms, begin final wrap-up. Apply the changelog policy
    below when the change is user-facing.
 7. Run final local validation from the Nix development shell with Flutter tools
    such as `flutter analyze lib` and `flutter test`, then run
@@ -106,11 +104,6 @@ implementing an intentional compatibility break:
    compatibility shim unless the user specifically requests one.
 5. Add a `**Breaking:**` entry under `Unreleased` in `CHANGELOG.md` following
    `docs/CHANGELOG_GUIDELINES.md`, including affected users and migration steps.
-6. Record the behavior in `DOWNSTREAM_CHANGES.md` when it is a downstream
-   application, build, packaging, release, or documentation difference.
-
-Developer-only instruction changes remain exempt from the downstream ledger as
-described below.
 
 ## Changelog Maintenance
 
@@ -122,18 +115,16 @@ the change; do not generate entries mechanically from commit subjects.
 Keep the changelog concise and user-facing, with links or a short `Developer
 notes` section for implementation provenance. Every entry must begin with a
 bold two-to-seven-word navigation brief and remain at or below 300 characters.
-Within `Added`, `Changed`, and `Fixed`, collect upstream-derived entries under
-the corresponding nested upstream group. Order security and breaking notices
-first, user-facing workflow and UI/UX changes next, and operational or
-developer-facing changes such as logs, packaging, and toolchains last. Format
-breaking briefs with the prominent `⚠ BREAKING —` marker and retain an exact
-migration action.
+Order security and breaking notices first, user-facing workflow and UI/UX
+changes next, and operational or developer-facing changes such as logs,
+packaging, and toolchains last. Format breaking briefs with the prominent
+`⚠ BREAKING —` marker and retain an exact migration action.
 
 Every `Unreleased` and version section must retain the exact machine-readable
 bilingual highlight block defined by the guideline, including its quoted blank
-separator. Routine feature, fix, maintenance, and upstream-sync work may add
-factual entries under `Unreleased`, but must not create, replace, or revise that
-section's highlight.
+separator. Routine feature, fix, and maintenance work may add factual entries
+under `Unreleased`, but must not create, replace, or revise that section's
+highlight.
 
 Write a new release highlight only when the user explicitly requests a version
 bump. Treat the highlight as release content requiring separate review:
@@ -149,51 +140,5 @@ bump. Treat the highlight as release content requiring separate review:
    release section, commit the release preparation, and proceed with any
    separately authorized tag or publication workflow.
 
-Maintain `DOWNSTREAM_CHANGES.md` separately for exact fork-only behavior.
-Release headings must start with `## vMAJOR.MINOR.PATCH` so CI can extract them,
-and an upstream merge must not set or imply the downstream release version.
-
-## Fork Maintenance
-
-This repository is a **soft fork** of an upstream project. It periodically
-merges upstream tagged releases and carries a small number of intentional
-downstream changes. Upstream tags are synchronization points only; they do not
-determine this fork's release versions.
-
-### Maintenance files
-
-| File | Purpose |
-|------|---------|
-| `.upstream-version` | Tracks the upstream repo URL and the last merged upstream tag. Written by `/upstream-sync` on every sync. |
-| `DOWNSTREAM_CHANGES.md` | Ledger of all fork-only modifications. Read by `/upstream-sync` during conflict resolution to preserve downstream behavior. |
-
-### When making downstream changes
-
-Every time you make a fork-only modification — adding a feature, patching a bug,
-changing a default, overriding behavior — you **must** add or update an entry in
-`DOWNSTREAM_CHANGES.md`. This is not optional. Without it, `/upstream-sync` has
-no way to know which changes to preserve during upstream merges, and downstream
-modifications will be silently overwritten.
-
-Routine maintenance changes that do not alter downstream behavior are exempt.
-Developer-only coding-agent instructions and prompt templates, such as
-`AGENTS.md` workflow guidance and `.pi/prompts/`, are also exempt when they do
-not change the application, build/CI, packaging, release behavior, or
-user-facing documentation. In particular, do **not** add or update ledger
-entries solely for those developer-only files, dependency or fixed-output hash
-refreshes (such as `cargoHash`), or project/package version bumps. If an exempt
-change also introduces or modifies fork-specific product or delivery behavior,
-record that behavioral change normally.
-
-When `/upstream-sync` detects that an upstream release implements the same
-feature or fix as a downstream change, it will update the entry's status to
-`superseded` and note the upstream version.
-
-### Versioning
-
-Follow `docs/VERSIONING.md` for the version source of truth, version bump and
-synchronization commands, build-number rules, and release-tag requirements.
-Astral-ng uses its own release cycle and version sequence independently of
-upstream. An upstream tag recorded in `.upstream-version` identifies only the
-last merged upstream baseline and must not set, derive, or bump the downstream
-application or package version.
+Release headings must start with `## vMAJOR.MINOR.PATCH` so CI can extract
+release notes.
