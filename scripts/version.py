@@ -187,7 +187,13 @@ def emit(build: BuildVersion, output_format: str) -> None:
         ),
     }
     if output_format == "output":
-        print(f"artifact_retention_days={retention_days}")
+        step_outputs = {
+            key.lower(): value
+            for key, value in values.items()
+            if key != "APP_PACKAGE_ID"
+        }
+        step_outputs["artifact_retention_days"] = str(retention_days)
+        print("\n".join(f"{key}={value}" for key, value in step_outputs.items()))
         return
     if output_format == "env":
         print("\n".join(f"{key}={value}" for key, value in values.items()))

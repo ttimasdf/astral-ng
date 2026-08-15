@@ -22,11 +22,13 @@ python scripts/version.py resolve
 ```
 
 `resolve` defaults to a readable build identity block. Use `--format env` for
-build environment values, `--format output` for GitHub step outputs such as
-artifact retention, or `--format json` for tooling. CI assigns the resolve step
-an ID and reads `steps.resolve-version.outputs.artifact_retention_days` rather
-than treating retention as an implicit job environment variable. `sync`
-updates the Flutter mirror; `sync --check` fails on drift.
+optional shell tooling, `--format output` for GitHub step outputs, or
+`--format json` for structured tooling. CI reads resolved versions, names, and
+artifact retention directly from `steps.resolve-version.outputs.*`; it does not
+publish the complete result through `GITHUB_ENV`. Build steps map only
+`BUILD_CHANNEL` into their process environment because Gradle and CMake use it
+for native canary identity. Packaging steps receive only their own required
+values. `sync` updates the Flutter mirror; `sync --check` fails on drift.
 `bump major|minor|patch` increments the semantic version, increments
 `BUILD_NUMBER`, and synchronizes `pubspec.yaml`. Review and commit the resulting
 two files.

@@ -96,7 +96,7 @@ class VersionResolutionTest(unittest.TestCase):
             90,
         )
 
-    def test_environment_and_step_outputs_have_separate_responsibilities(self):
+    def test_step_outputs_cover_ci_without_redundant_package_id(self):
         with patch.dict(
             os.environ,
             {
@@ -115,26 +115,40 @@ class VersionResolutionTest(unittest.TestCase):
             build = version.resolve("canary")
             output = io.StringIO()
             with redirect_stdout(output):
-                version.emit(build, "env")
-            env_values = dict(
-                line.split("=", maxsplit=1)
-                for line in output.getvalue().splitlines()
-            )
-
-            output = io.StringIO()
-            with redirect_stdout(output):
                 version.emit(build, "output")
             step_values = dict(
                 line.split("=", maxsplit=1)
                 for line in output.getvalue().splitlines()
             )
 
-        self.assertEqual(env_values["BUILD_COMMIT"], "fedcba9")
-        self.assertEqual(env_values["BUILD_RUN_NUMBER"], "7")
-        self.assertEqual(env_values["SEMANTIC_VERSION"], "3.0.0-alpha.7+fedcba9")
-        self.assertEqual(env_values["ASSET_VERSION"], env_values["SEMANTIC_VERSION"])
-        self.assertNotIn("ARTIFACT_RETENTION_DAYS", env_values)
-        self.assertEqual(step_values, {"artifact_retention_days": "90"})
+        self.assertEqual(
+            set(step_values),
+            {
+                "version_base",
+                "build_channel",
+                "build_commit",
+                "build_run_number",
+                "semantic_version",
+                "flutter_build_name",
+                "flutter_build_number",
+                "package_version",
+                "asset_version",
+                "app_display_name",
+                "app_executable",
+                "linux_package_name",
+                "windows_app_id",
+                "artifact_retention_days",
+            },
+        )
+        self.assertEqual(step_values["build_commit"], "fedcba9")
+        self.assertEqual(step_values["build_run_number"], "7")
+        self.assertEqual(
+            step_values["semantic_version"], "3.0.0-alpha.7+fedcba9"
+        )
+        self.assertEqual(step_values["asset_version"], step_values["semantic_version"])
+        self.assertEqual(step_values["app_executable"], "astral-canary")
+        self.assertEqual(step_values["artifact_retention_days"], "90")
+        self.assertNotIn("app_package_id", step_values)
 
 
 if __name__ == "__main__":
