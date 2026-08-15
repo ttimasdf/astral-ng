@@ -1,8 +1,25 @@
 # Serverless update API
 
-Astral-ng checks for updates through the read-only Vercel Functions in `api/`.
-The functions expose normalized metadata only; they never proxy or install
-release artifacts.
+Astral-ng checks for updates through the standalone Vercel project in
+`update-server/`. The functions expose normalized metadata only; they never
+proxy or install release artifacts.
+
+## Project layout
+
+```text
+update-server/
+├── api/v1/            # Public Vercel Function entrypoints
+├── src/               # Shared GitHub/cache implementation and local server
+├── test/              # API contract tests
+├── package.json
+├── tsconfig.json
+└── vercel.json
+```
+
+Vercel reserves `api/` for function entrypoints. Keeping the substantial shared
+implementation in `src/` prevents it from becoming another public endpoint.
+Both directories are contained by `update-server/`, so the Flutter repository
+root is not itself a Node/Vercel project.
 
 ## Endpoints
 
@@ -21,9 +38,40 @@ run. The API does not return artifact download URLs or expose the GitHub token.
 Beta versions disappear after the earliest artifact in the complete build
 expires.
 
-## Environment
+## Local development
 
-Set these Vercel environment variables:
+Install and run commands from the project subdirectory:
+
+```sh
+cd update-server
+bun install --frozen-lockfile
+bun run typecheck
+bun test
+bun run dev
+```
+
+The local endpoint is `http://127.0.0.1:3100/api/v1`.
+
+## Vercel deployment
+
+Create a separate Vercel project for this repository and set its **Root
+Directory** to `update-server`. Vercel then sees `update-server/vercel.json`,
+installs `update-server/package.json`, and maps `update-server/api/` to `/api/`.
+The functions cannot access files outside that root, so all runtime code and
+dependencies stay inside the subproject.
+
+For a manual CLI deployment, either enter the directory or use Vercel's `--cwd`
+option:
+
+```sh
+vercel --cwd update-server
+vercel --cwd update-server --prod
+
+# Equivalent:
+(cd update-server && vercel --prod)
+```
+
+Set these Vercel environment variables for Production and Preview as needed:
 
 - `GITHUB_TOKEN`: fine-grained read-only token for the repository. It needs
   repository Contents read access and Actions read access. Do not expose this
@@ -34,9 +82,13 @@ Set these Vercel environment variables:
   `build-and-release.yml`.
 - `GITHUB_DEFAULT_BRANCH`: optional branch; defaults to `main`.
 
-The function is pinned to Vercel region `iad1` in `vercel.json`. Runtime Cache
-keeps GitHub source results and the normalized channel indexes in that region.
-The GitHub cache uses ETags and conditional requests.
+The functions are pinned to Vercel region `iad1` in
+`update-server/vercel.json`. Runtime Cache keeps GitHub source results and the
+normalized channel indexes in that region. The GitHub cache uses ETags and
+conditional requests.
+
+After the production deployment succeeds, attach the chosen custom domain and
+verify both routes before compiling that URL into a release build.
 
 ## Cache policy
 
@@ -45,13 +97,60 @@ stale-while-revalidate. Beta responses use a ten-minute TTL and no stale period;
 the TTL is clipped to the earliest artifact expiration in the response. Empty
 channels and errors are short-lived.
 
-The Flutter app uses the compile-time `UPDATE_API_BASE_URL` value:
+## Configuring the Flutter base URL
 
-```sh
-flutter build windows \
-  --dart-define=UPDATE_API_BASE_URL=https://your-project.vercel.app/api/v1
+`UPDATE_API_BASE_URL` is a **compile-time** Dart define, not an in-app setting.
+It must include the API prefix but not the final `/update` or `/versions` path:
+
+```text
+https://updates.example.com/api/v1
 ```
 
-The default source value is `https://astral.fan/api/v1`, the production custom
-domain for the Vercel project. Set the define to a preview deployment URL when
-testing the app against an unpublished API build.
+The source default is `https://astral.fan/api/v1`. There are three supported
+overrides.
+
+### GitHub Actions builds
+
+Set the repository or environment Actions variable `UPDATE_API_BASE_URL`:
+
+```sh
+gh variable set UPDATE_API_BASE_URL \
+  --body 'https://updates.example.com/api/v1'
+```
+
+The build workflow falls back to `https://astral.fan/api/v1` when the variable
+is absent and passes the resolved value to every Linux, Windows, and Android
+Flutter build.
+
+### Local Linux/desktop builds
+
+The Nix Flutter wrapper forwards either the environment variable or an explicit
+Dart define:
+
+```sh
+UPDATE_API_BASE_URL=http://127.0.0.1:3100/api/v1 \
+  nix develop -c flutter run -d linux
+
+nix develop -c flutter run -d linux \
+  --dart-define=UPDATE_API_BASE_URL=https://updates.example.com/api/v1
+```
+
+An explicit `--dart-define` wins over the wrapper environment variable.
+
+### Local Android builds
+
+Use the Android wrapper option or its environment variable. For the Android
+emulator, `10.0.2.2` reaches the development host:
+
+```sh
+nix develop -c flutter-android \
+  --astral-update-api http://10.0.2.2:3100/api/v1 \
+  run -d emulator-5554
+
+UPDATE_API_BASE_URL=https://updates.example.com/api/v1 \
+  nix develop -c flutter-android build apk --debug
+```
+
+Because `String.fromEnvironment` is compiled into the application, changing the
+URL requires rebuilding the app; setting an environment variable only when an
+already-built app starts has no effect.

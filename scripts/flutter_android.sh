@@ -11,6 +11,8 @@ Astral options (must precede the Flutter command):
   --astral-channel CHANNEL  Set production or canary build identity.
                             Defaults to canary.
   --astral-channel=CHANNEL  Equivalent inline form.
+  --astral-update-api URL   Compile an update API base URL into the app.
+  --astral-update-api=URL   Equivalent inline form.
   --astral-help             Show this help text.
 
 Examples:
@@ -18,6 +20,7 @@ Examples:
   flutter-android test
   flutter-android build apk --debug
   flutter-android --astral-channel production build apk --release
+  flutter-android --astral-update-api http://10.0.2.2:3100/api/v1 run -d <device>
 EOF
 }
 
@@ -27,6 +30,8 @@ fail() {
 }
 
 astral_channel="canary"
+astral_update_api="${UPDATE_API_BASE_URL:-}"
+has_flutter_update_api_define=false
 while (( $# > 0 )); do
   case "$1" in
     --astral-channel)
@@ -36,6 +41,15 @@ while (( $# > 0 )); do
       ;;
     --astral-channel=*)
       astral_channel="${1#*=}"
+      shift
+      ;;
+    --astral-update-api)
+      (( $# >= 2 )) || fail '--astral-update-api requires a URL'
+      astral_update_api="$2"
+      shift 2
+      ;;
+    --astral-update-api=*)
+      astral_update_api="${1#*=}"
       shift
       ;;
     --astral-help)
@@ -133,6 +147,25 @@ build_run_number="${BUILD_RUN_NUMBER:-${GITHUB_RUN_NUMBER:-0}}"
   fail "unsupported BUILD_RUN_NUMBER '$build_run_number'; expected a non-negative integer"
 
 flutter_args=("$@")
+expect_dart_define_value=false
+for argument in "${flutter_args[@]}"; do
+  if [[ "$expect_dart_define_value" == true ]]; then
+    if [[ "$argument" == UPDATE_API_BASE_URL=* ]]; then
+      has_flutter_update_api_define=true
+    fi
+    expect_dart_define_value=false
+    continue
+  fi
+  case "$argument" in
+    --dart-define)
+      expect_dart_define_value=true
+      ;;
+    --dart-define=UPDATE_API_BASE_URL=*)
+      has_flutter_update_api_define=true
+      ;;
+  esac
+done
+
 export BUILD_CHANNEL="$astral_channel"
 export BUILD_COMMIT="$build_commit"
 export BUILD_RUN_NUMBER="$build_run_number"
@@ -143,6 +176,9 @@ case "$flutter_command" in
       "--dart-define=BUILD_COMMIT=$build_commit"
       "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
     )
+    if [[ "$has_flutter_update_api_define" == false && -n "$astral_update_api" ]]; then
+      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$astral_update_api")
+    fi
     ;;
 esac
 

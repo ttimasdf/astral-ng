@@ -68,7 +68,7 @@ class VersionResolutionTest(unittest.TestCase):
             90,
         )
 
-    def test_direct_and_pull_request_builds_keep_short_artifact_retention(self):
+    def test_direct_and_pull_request_builds_keep_canary_artifact_retention(self):
         for event_name, git_ref, commit_subject in (
             ("push", "refs/heads/main", "build: refresh dependencies"),
             ("pull_request", "refs/pull/42/merge", "[feature] Ship change (#42)"),
@@ -82,7 +82,7 @@ class VersionResolutionTest(unittest.TestCase):
                         git_ref=git_ref,
                         commit_subject=commit_subject,
                     ),
-                    7,
+                    30,
                 )
 
     def test_production_artifacts_keep_release_retention(self):
@@ -93,10 +93,10 @@ class VersionResolutionTest(unittest.TestCase):
                 git_ref="refs/tags/v3.0.0",
                 commit_subject="Release 3.0.0",
             ),
-            30,
+            90,
         )
 
-    def test_environment_output_exposes_commit_semver_and_retention(self):
+    def test_environment_and_step_outputs_have_separate_responsibilities(self):
         with patch.dict(
             os.environ,
             {
@@ -116,15 +116,25 @@ class VersionResolutionTest(unittest.TestCase):
             output = io.StringIO()
             with redirect_stdout(output):
                 version.emit(build, "env")
+            env_values = dict(
+                line.split("=", maxsplit=1)
+                for line in output.getvalue().splitlines()
+            )
 
-        values = dict(
-            line.split("=", maxsplit=1) for line in output.getvalue().splitlines()
-        )
-        self.assertEqual(values["BUILD_COMMIT"], "fedcba9")
-        self.assertEqual(values["BUILD_RUN_NUMBER"], "7")
-        self.assertEqual(values["SEMANTIC_VERSION"], "3.0.0-alpha.7+fedcba9")
-        self.assertEqual(values["ASSET_VERSION"], values["SEMANTIC_VERSION"])
-        self.assertEqual(values["ARTIFACT_RETENTION_DAYS"], "90")
+            output = io.StringIO()
+            with redirect_stdout(output):
+                version.emit(build, "output")
+            step_values = dict(
+                line.split("=", maxsplit=1)
+                for line in output.getvalue().splitlines()
+            )
+
+        self.assertEqual(env_values["BUILD_COMMIT"], "fedcba9")
+        self.assertEqual(env_values["BUILD_RUN_NUMBER"], "7")
+        self.assertEqual(env_values["SEMANTIC_VERSION"], "3.0.0-alpha.7+fedcba9")
+        self.assertEqual(env_values["ASSET_VERSION"], env_values["SEMANTIC_VERSION"])
+        self.assertNotIn("ARTIFACT_RETENTION_DAYS", env_values)
+        self.assertEqual(step_values, {"artifact_retention_days": "90"})
 
 
 if __name__ == "__main__":

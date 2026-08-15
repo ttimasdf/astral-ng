@@ -10,5 +10,5 @@
     "types": ["bun", "node"],
     "allowImportingTsExtensions": true
   },
-  "include": ["api/**/*.ts", "server/**/*.ts"]
+  "include": ["api/**/*.ts", "src/**/*.ts", "test/**/*.ts"]
 }

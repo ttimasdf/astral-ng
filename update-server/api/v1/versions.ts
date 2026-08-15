@@ -1,4 +1,4 @@
-import { handleUpdateRequest } from '../../server/update-api.js';
+import { handleUpdateRequest } from '../../src/update-api.js';
 
 export default {
   fetch(request: Request): Promise<Response> {

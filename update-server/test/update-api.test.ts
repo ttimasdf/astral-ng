@@ -9,7 +9,7 @@ import {
   handleUpdateRequest,
   setRuntimeCacheForTests,
   type VersionSummary,
-} from './update-api.js';
+} from '../src/update-api.js';
 
 class MemoryCache {
   readonly values = new Map<string, unknown>();

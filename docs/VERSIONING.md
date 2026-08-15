@@ -22,10 +22,14 @@ python scripts/version.py resolve
 ```
 
 `resolve` defaults to a readable build identity block. Use `--format env` for
-CI or `--format json` for tooling. `sync` updates the Flutter mirror;
-`sync --check` fails on drift. `bump major|minor|patch` increments the semantic
-version, increments `BUILD_NUMBER`, and synchronizes `pubspec.yaml`. Review and
-commit the resulting two files.
+build environment values, `--format output` for GitHub step outputs such as
+artifact retention, or `--format json` for tooling. CI assigns the resolve step
+an ID and reads `steps.resolve-version.outputs.artifact_retention_days` rather
+than treating retention as an implicit job environment variable. `sync`
+updates the Flutter mirror; `sync --check` fails on drift.
+`bump major|minor|patch` increments the semantic version, increments
+`BUILD_NUMBER`, and synchronizes `pubspec.yaml`. Review and commit the resulting
+two files.
 
 ## Semantic versions
 
@@ -79,9 +83,9 @@ prerelease before `3.0.0`. Production package versions and the Nix package use
 ## Build channels
 
 All branch and pull-request CI builds are canaries. Canary artifacts are never
-attached to a GitHub Release. Successful `main` pushes whose commit subject ends
-in a merged-pull-request suffix such as `(#42)` retain their Actions artifacts
-for 90 days; direct pushes and pull-request builds retain them for 7 days. They
+attached to a GitHub Release. Normal canary artifacts are retained for 30 days.
+Production artifacts and successful `main` canaries whose commit subject ends
+in a merged-pull-request suffix such as `(#42)` are retained for 90 days. They
 use the **AstralNG Canary** identity,
 `astral-canary` executable and Linux package name, Android application ID
 `pw.rabit.astralng.canary`, an independent Windows installer ID, and the

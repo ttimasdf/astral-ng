@@ -1,11 +1,11 @@
 {
-  "name": "astral-ng-update-api",
+  "name": "astral-ng-update-server",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:api": "bun server/dev.ts",
-    "test:api": "bun test server",
-    "typecheck:api": "tsc --noEmit -p tsconfig.api.json"
+    "dev": "bun src/dev.ts",
+    "test": "bun test test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@vercel/functions": "3.9.3"

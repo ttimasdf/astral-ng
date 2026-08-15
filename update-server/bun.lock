@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "astral-ng-update-api",
+      "name": "astral-ng-update-server",
       "dependencies": {
         "@vercel/functions": "3.9.3",
       },

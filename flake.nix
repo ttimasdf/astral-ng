@@ -174,6 +174,15 @@
                 grep -Fx -- '--dart-define=BUILD_RUN_NUMBER=42' "$args_file"
                 grep -Fx -- 'canary' "$channel_file"
 
+                UPDATE_API_BASE_URL=https://updates.example/api/v1 \
+                  BUILD_COMMIT=abcdef0 \
+                  BUILD_RUN_NUMBER=42 \
+                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
+                  ASTRAL_TEST_ARGS_FILE="$args_file" \
+                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  bash ${./scripts/flutter_dev.sh} run -d linux
+                grep -Fx -- '--dart-define=UPDATE_API_BASE_URL=https://updates.example/api/v1' "$args_file"
+
                 BUILD_CHANNEL=canary \
                   BUILD_COMMIT=abcdef0 \
                   BUILD_RUN_NUMBER=42 \
@@ -184,6 +193,17 @@
                     --dart-define=BUILD_CHANNEL=production
                 test "$(grep -Fxc -- '--dart-define=BUILD_CHANNEL=production' "$args_file")" -eq 1
                 grep -Fx -- 'production' "$channel_file"
+
+                UPDATE_API_BASE_URL=https://environment.example/api/v1 \
+                  BUILD_COMMIT=abcdef0 \
+                  BUILD_RUN_NUMBER=42 \
+                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
+                  ASTRAL_TEST_ARGS_FILE="$args_file" \
+                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  bash ${./scripts/flutter_dev.sh} run \
+                    --dart-define=UPDATE_API_BASE_URL=https://explicit.example/api/v1
+                test "$(grep -Fxc -- '--dart-define=UPDATE_API_BASE_URL=https://explicit.example/api/v1' "$args_file")" -eq 1
+                test "$(grep -Fxc -- '--dart-define=UPDATE_API_BASE_URL=https://environment.example/api/v1' "$args_file")" -eq 0
 
                 touch "$out"
               '';
