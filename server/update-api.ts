@@ -7,6 +7,8 @@ const DEFAULT_WORKFLOW = 'build-and-release.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
 const BETA_INDEX_TTL_SECONDS = 600;
+const GITHUB_SOURCE_CACHE_TTL_SECONDS = 86_400;
+const MAX_BETA_ARTIFACT_AGE_SECONDS = 90 * 24 * 60 * 60;
 const EMPTY_CHANNEL_TTL_SECONDS = 60;
 const MAX_LIMIT = 30;
 const GITHUB_API = 'https://api.github.com';
@@ -85,6 +87,10 @@ type CachedGitHubValue<T> = {
   data: T;
 };
 
+type CachedImmutableChangelog = {
+  content: string | null;
+};
+
 type GitHubListResponse<T> = {
   total_count: number;
   workflow_runs?: T[];
@@ -157,19 +163,19 @@ function githubHeaders(etag?: string | null): Headers {
   return headers;
 }
 
-async function githubRequest<T>(
-  path: string,
-  cacheKey: string,
-  ttl: number,
-): Promise<T> {
+async function githubRequest<T>(path: string, cacheKey: string): Promise<T> {
   const cache = runtimeCache();
-  const cached = (await cache.get(cacheKey)) as CachedGitHubValue<T> | null;
+  const scopedCacheKey = `source:v1:${repository()}:${workflow()}:${branch()}:${cacheKey}`;
+  const cached = (await cache.get(scopedCacheKey)) as CachedGitHubValue<T> | null;
   const response = await fetch(`${GITHUB_API}${path}`, {
     headers: githubHeaders(cached?.etag),
     signal: AbortSignal.timeout(15_000),
   });
 
-  if (response.status === 304 && cached) return cached.data;
+  if (response.status === 304 && cached) {
+    await cache.set(scopedCacheKey, cached, { ttl: GITHUB_SOURCE_CACHE_TTL_SECONDS });
+    return cached.data;
+  }
   if (!response.ok) {
     const error = new GitHubError(response.status, path);
     throw error;
@@ -177,12 +183,12 @@ async function githubRequest<T>(
 
   const data = (await response.json()) as T;
   await cache.set(
-    cacheKey,
+    scopedCacheKey,
     {
       etag: response.headers.get('etag'),
       data,
     } satisfies CachedGitHubValue<T>,
-    { ttl },
+    { ttl: GITHUB_SOURCE_CACHE_TTL_SECONDS },
   );
   return data;
 }
@@ -198,7 +204,7 @@ class GitHubError extends Error {
 }
 
 export function parseLimit(value: string | null): number | null {
-  if (value === null || value === '') return 10;
+  if (value === null) return 10;
   if (!/^\d+$/.test(value)) return null;
   const limit = Number(value);
   return Number.isSafeInteger(limit) && limit >= 1 && limit <= MAX_LIMIT
@@ -378,44 +384,92 @@ function githubPageForRuns(): string {
   return `https://github.com/${repository()}/actions`;
 }
 
-async function stableVersions(max: number): Promise<VersionSummary[]> {
+async function immutableReleaseChangelog(
+  repo: string,
+  tag: string,
+): Promise<string | null> {
+  const cache = runtimeCache();
+  const immutableKey = `immutable:v1:${repository()}:stable:changelog:${tag}`;
+  const cached = (await cache.get(immutableKey)) as CachedImmutableChangelog | null;
+  if (cached) return cached.content;
+
+  let content: string | null = null;
+  try {
+    const response = await githubRequest<{ content?: string; encoding?: string }>(
+      `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(tag)}`,
+      `github:stable:changelog:v1:${tag}`,
+    );
+    if (response.content) {
+      content = decodeBase64(response.content, response.encoding);
+    }
+  } catch (error) {
+    if (!(error instanceof GitHubError) || error.status !== 404) throw error;
+  }
+
+  // Release tags are immutable. Cache both a tagged file and a missing legacy
+  // file so the fallback path never adds recurring GitHub traffic.
+  await cache.set(immutableKey, { content }, { ttl: 31_536_000 });
+  return content;
+}
+
+async function stableVersions(): Promise<VersionSummary[]> {
   const repo = repository();
   const releases = await githubRequest<GitHubRelease[]>(
     `/repos/${repo}/releases?per_page=100`,
     'github:stable:releases:v1',
-    86_400,
   );
-  const changelogResponse = await githubRequest<{ content?: string; encoding?: string }>(
-    `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(branch())}`,
-    'github:stable:changelog:v1',
-    86_400,
-  );
-  const changelog = changelogResponse.content
-    ? decodeBase64(changelogResponse.content, changelogResponse.encoding)
-    : '';
+  let changelog = '';
+  try {
+    const changelogResponse = await githubRequest<{
+      content?: string;
+      encoding?: string;
+    }>(
+      `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(branch())}`,
+      'github:stable:changelog:v1',
+    );
+    if (changelogResponse.content) {
+      changelog = decodeBase64(changelogResponse.content, changelogResponse.encoding);
+    }
+  } catch (error) {
+    if (!(error instanceof GitHubError) || error.status !== 404) throw error;
+  }
 
-  return sortVersions(
-    releases
-      .map((release): VersionSummary | null => {
-        const version = releaseVersion(release.tag_name);
-        if (release.draft || release.prerelease || !version || !release.published_at) return null;
-        return {
-          channel: 'stable',
-          version,
-          title: `Release v${version}`,
-          highlights: extractChangelogHighlights(changelog, version),
-          publishedAt: release.published_at,
-          expiresAt: null,
-          pageUrl: release.html_url,
-          source: {
-            type: 'github_release',
-            id: String(release.id),
-            ref: release.tag_name,
-          },
-        };
-      })
-      .filter((value): value is VersionSummary => value !== null),
-  ).slice(0, max);
+  const values: VersionSummary[] = [];
+  // Prefer the immutable tagged changelog. Older releases from before this
+  // changelog existed fall back to the current release-history index. Missing
+  // sections or malformed highlights are intentionally non-fatal.
+  for (const release of releases) {
+    if (values.length >= MAX_LIMIT) break;
+    const version = releaseVersion(release.tag_name);
+    if (release.draft || release.prerelease || !version || !release.published_at) {
+      continue;
+    }
+
+    const taggedChangelog =
+      values.length === 0
+        ? await immutableReleaseChangelog(repo, release.tag_name)
+        : null;
+    const highlights = extractChangelogHighlights(
+      taggedChangelog ?? changelog,
+      version,
+    );
+    values.push({
+      channel: 'stable',
+      version,
+      title: `Release v${version}`,
+      highlights,
+      publishedAt: release.published_at,
+      expiresAt: null,
+      pageUrl: release.html_url,
+      source: {
+        type: 'github_release',
+        id: String(release.id),
+        ref: release.tag_name,
+      },
+    });
+  }
+
+  return sortVersions(values);
 }
 
 function decodeBase64(value: string, encoding = 'base64'): string {
@@ -429,16 +483,20 @@ async function fetchAllArtifacts(repo: string, now: number): Promise<GitHubArtif
     const response = await githubRequest<GitHubListResponse<GitHubArtifact>>(
       `/repos/${repo}/actions/artifacts?per_page=100&page=${page}`,
       `github:beta:artifacts:v1:${page}`,
-      86_400,
     );
     const pageArtifacts = response.artifacts ?? [];
     artifacts.push(...pageArtifacts.filter((artifact) => usableArtifact(artifact, now)));
     if (pageArtifacts.length < 100) break;
-    const oldestExpiry = pageArtifacts
-      .map((artifact) => (artifact.expires_at ? Date.parse(artifact.expires_at) : 0))
-      .filter((value) => value > 0)
+    const oldestCreated = pageArtifacts
+      .map((artifact) => Date.parse(artifact.created_at))
+      .filter((value) => Number.isFinite(value))
       .sort((left, right) => left - right)[0];
-    if (oldestExpiry !== undefined && oldestExpiry <= now) break;
+    if (
+      oldestCreated !== undefined &&
+      oldestCreated <= now - MAX_BETA_ARTIFACT_AGE_SECONDS * 1000
+    ) {
+      break;
+    }
   }
   return artifacts;
 }
@@ -448,7 +506,6 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
   const runsResponse = await githubRequest<GitHubListResponse<GitHubWorkflowRun>>(
     `/repos/${repo}/actions/workflows/${encodeURIComponent(workflow())}/runs?branch=${encodeURIComponent(branch())}&event=push&status=success&exclude_pull_requests=true&per_page=100`,
     'github:beta:runs:v1',
-    86_400,
   );
   const runs = (runsResponse.workflow_runs ?? []).filter(
     (run) =>
@@ -504,12 +561,12 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
 }
 
 async function loadVersions(channel: Channel): Promise<VersionSummary[]> {
-  const key = `index:v1:${channel}`;
+  const key = `index:v1:${repository()}:${workflow()}:${branch()}:${channel}`;
   const cache = runtimeCache();
   const cached = (await cache.get(key)) as VersionSummary[] | null;
   if (cached) return cached.filter((item) => !item.expiresAt || Date.parse(item.expiresAt) > Date.now());
 
-  const values = channel === 'stable' ? await stableVersions(30) : await betaVersions(30);
+  const values = channel === 'stable' ? await stableVersions() : await betaVersions(30);
   await cache.set(key, values, {
     ttl: channel === 'stable' ? STABLE_INDEX_TTL_SECONDS : BETA_INDEX_TTL_SECONDS,
     tags: [`updates-${channel}`],

@@ -179,6 +179,53 @@ describe('HTTP contract', () => {
       'versions',
     );
     expect(invalidLimit.status).toBe(400);
+
+    const emptyLimit = await handleUpdateRequest(
+      new Request(
+        'https://updates.example/api/v1/versions?channel=stable&limit=',
+      ),
+      'versions',
+    );
+    expect(emptyLimit.status).toBe(400);
+  });
+
+  test('supports HEAD and rejects state-changing methods', async () => {
+    globalThis.fetch = mock(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/releases')) {
+        return githubJson([
+          {
+            id: 3,
+            tag_name: 'v3.0.0',
+            draft: false,
+            prerelease: false,
+            published_at: '2026-08-14T01:00:00Z',
+            html_url: 'https://github.com/example/releases/tag/v3.0.0',
+          },
+        ]);
+      }
+      return githubJson({
+        encoding: 'base64',
+        content: Buffer.from(changelogContent()).toString('base64'),
+      });
+    }) as unknown as typeof fetch;
+
+    const head = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=stable', {
+        method: 'HEAD',
+      }),
+      'latest',
+    );
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe('');
+
+    const post = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=stable', {
+        method: 'POST',
+      }),
+      'latest',
+    );
+    expect(post.status).toBe(405);
   });
 
   test('normalizes stable releases and ignores drafts and prereleases', async () => {

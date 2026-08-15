@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:api": "bun test api",
+    "dev:api": "bun server/dev.ts",
+    "test:api": "bun test server",
     "typecheck:api": "tsc --noEmit -p tsconfig.api.json"
   },
   "dependencies": {
