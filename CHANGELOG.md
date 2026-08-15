@@ -10,6 +10,12 @@ provenance.
 >
 > **版本亮点：** 暂无重要更新。
 
+### Developer notes
+
+- **Release pipeline split.** Shared platform build actions now serve normal
+  validation and tag-only releases; Android signing remains limited to the
+  protected production environment.
+
 ## [v3.0.0] - 2026-08-15
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
