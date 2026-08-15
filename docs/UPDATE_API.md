@@ -82,10 +82,10 @@ Set these Vercel environment variables for Production and Preview as needed:
   `build-and-release.yml`.
 - `GITHUB_DEFAULT_BRANCH`: optional branch; defaults to `main`.
 
-Function placement follows the Vercel project’s region settings (or Vercel’s
-default when the project does not override them). Runtime Cache is therefore
-region-local; the GitHub source cache uses ETags and conditional requests, while
-each execution region may maintain its own warm cache.
+Functions are pinned to Vercel’s Hong Kong region (`hkg1`) in
+`update-server/vercel.json`. Runtime Cache is region-local; the GitHub source
+cache uses ETags and conditional requests and stays close to the function cache
+in that region.
 
 After the production deployment succeeds, attach the chosen custom domain and
 verify both routes before compiling that URL into a release build.
