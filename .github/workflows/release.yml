@@ -17,7 +17,20 @@ env:
   UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://update.astral-ng.rabit.pw/api/v1' }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+
+      - name: Run tests
+        uses: ./.github/actions/test
+
   linux:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,6 +45,7 @@ jobs:
           package: 'true'
 
   windows:
+    needs: test
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -44,6 +58,7 @@ jobs:
         uses: ./.github/actions/build-windows
 
   android:
+    needs: test
     environment: production
     runs-on: ubuntu-24.04
     steps:

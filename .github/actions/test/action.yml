@@ -1,0 +1,27 @@
+name: Test
+
+description: Run repository validation and Flutter tests.
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve and validate version
+      run: |
+        python3 scripts/version.py sync --check
+        python3 test/scripts/version_test.py
+      shell: bash
+
+    - name: Setup pinned toolchains
+      uses: ./.github/actions/setup-toolchains
+
+    - name: Get dependencies
+      run: flutter pub get
+      shell: bash
+
+    - name: Analyze application code
+      run: flutter analyze lib
+      shell: bash
+
+    - name: Run Flutter tests
+      run: flutter test
+      shell: bash

@@ -146,8 +146,8 @@ Android setup cost.
 3. Regenerate dependency lock files only when the SDK upgrade requires it.
 4. Run `nix run .#sync-toolchains -- --check`, `nix build .#astral-ng`,
    application analysis, and the relevant local platform build.
-5. Open a pull request with the `full-ci` label to validate Linux, Windows, and
-   Android before merging.
+5. Open a pull request with the `platform-all` label to validate Linux, Windows,
+   and Android before merging.
 
 Keep toolchain upgrades isolated and reviewable instead of allowing unrelated CI
 or dependency changes to select a new SDK implicitly.

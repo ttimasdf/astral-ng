@@ -22,8 +22,23 @@ env:
   UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://update.astral-ng.rabit.pw/api/v1' }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+
+      - name: Run tests
+        uses: ./.github/actions/test
+
   linux:
-    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+      contains(github.event.pull_request.labels.*.name, 'platform-linux')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,13 +52,15 @@ jobs:
         with:
           package: >-
             ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-                (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci')) }}
+                (github.event_name == 'pull_request' &&
+                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-linux'))) }}
 
   windows:
     if: >-
-      (github.event.action != 'labeled' || github.event.label.name == 'full-ci') &&
-      (github.event_name != 'pull_request' ||
-       contains(github.event.pull_request.labels.*.name, 'full-ci'))
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+      contains(github.event.pull_request.labels.*.name, 'platform-windows')
     runs-on: windows-2022
     steps:
       - name: Checkout
@@ -54,12 +71,18 @@ jobs:
 
       - name: Build Windows
         uses: ./.github/actions/build-windows
+        with:
+          upload-artifacts: >-
+            ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+                (github.event_name == 'pull_request' &&
+                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-windows'))) }}
 
   android:
     if: >-
-      (github.event.action != 'labeled' || github.event.label.name == 'full-ci') &&
-      (github.event_name != 'pull_request' ||
-       contains(github.event.pull_request.labels.*.name, 'full-ci'))
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+      contains(github.event.pull_request.labels.*.name, 'platform-android')
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -73,4 +96,6 @@ jobs:
         with:
           upload-snapshot: >-
             ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-                (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci')) }}
+                (github.event_name == 'pull_request' &&
+                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-android'))) }}

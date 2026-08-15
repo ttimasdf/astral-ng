@@ -36,7 +36,7 @@ When instructed to implement a new feature, use the following workflow:
 8. Read `docs/CI.md`, push the feature branch, and create a pull request. The
    pull request title must begin with `[<slug>]` so the slug is retained in the
    squash commit message (for example,
-   `[tray-status-icons] Add tray status indicators`). Enable `full-ci`, watch
+   `[tray-status-icons] Add tray status indicators`). Enable `platform-all`, watch
    the required checks to completion, and then present the passing pull request
    for review.
 9. Merge a pull request only after the user explicitly approves the merge. Once
@@ -86,7 +86,7 @@ production reset.
 
 Treat remote CI as final cross-platform validation, not as the ordinary local
 iteration loop. After the user accepts the local demonstration and final local
-checks pass, read `docs/CI.md` for `full-ci` label behavior, expected runner
+checks pass, read `docs/CI.md` for `platform-*` label behavior, expected runner
 timing, and bounded waiting instructions.
 
 ## Breaking Changes and Compatibility

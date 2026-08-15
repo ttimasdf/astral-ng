@@ -142,9 +142,9 @@ provenance.
 - **Version source.** `VERSION` now controls production versions and build
   numbers; CI labels non-release artifacts as canaries and validates tags.
   ([#4])
-- **Tiered CI.** Pull requests run analysis and Linux by default; `full-ci` adds
-  Windows and Android, while main retains short-lived test artifacts.
-  ([#5], [#6])
+- **Tiered CI.** Pull requests run tests by default; `platform-*` labels opt
+  into Linux, Windows, Android, or all platform artifacts, while main retains
+  canary artifacts. ([#5], [#6])
 - **Flutter toolchain.** Updated Nix development and packaging to Flutter 3.44
   for Dart 3.12 compatibility. ([nix-flutter-3.44])
 - **Reproducible toolchains.** Locked nixpkgs now supplies local and CI tools,

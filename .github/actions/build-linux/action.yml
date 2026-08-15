@@ -46,10 +46,6 @@ runs:
       run: flutter pub get
       shell: bash
 
-    - name: Analyze application code
-      run: flutter analyze lib
-      shell: bash
-
     - name: Build Linux
       env:
         BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}

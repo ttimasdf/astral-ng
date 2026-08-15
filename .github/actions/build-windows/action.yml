@@ -2,6 +2,12 @@ name: Build Windows
 
 description: Build and package Windows artifacts.
 
+inputs:
+  upload-artifacts:
+    description: Upload Windows artifacts after the build.
+    required: false
+    default: 'true'
+
 runs:
   using: composite
   steps:
@@ -167,6 +173,7 @@ runs:
       shell: pwsh
 
     - name: Upload Windows ZIP
+      if: inputs['upload-artifacts'] == 'true'
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-windows-x64-${{ steps.resolve-version.outputs.asset_version }}.zip
@@ -176,6 +183,7 @@ runs:
         retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
     - name: Upload Windows installer
+      if: inputs['upload-artifacts'] == 'true'
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-windows-x64-setup-${{ steps.resolve-version.outputs.asset_version }}.exe
