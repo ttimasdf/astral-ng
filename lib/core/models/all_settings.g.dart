@@ -52,75 +52,65 @@ const AllSettingsSchema = CollectionSchema(
       name: r'connectionRetryLimit',
       type: IsarType.long,
     ),
-    r'latestAvailableVersion': PropertySchema(
-      id: 7,
-      name: r'latestAvailableVersion',
-      type: IsarType.string,
-    ),
     r'launchAtLogin': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'launchAtLogin',
       type: IsarType.bool,
     ),
     r'launchToTray': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'launchToTray',
       type: IsarType.bool,
     ),
     r'missionControlOverridesJson': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'missionControlOverridesJson',
       type: IsarType.string,
     ),
     r'peerDisplayMode': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'peerDisplayMode',
       type: IsarType.long,
     ),
     r'peerListeners': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'peerListeners',
       type: IsarType.stringList,
     ),
     r'peerName': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'peerName',
       type: IsarType.string,
     ),
     r'peerSortOption': PropertySchema(
-      id: 14,
+      id: 13,
       name: r'peerSortOption',
       type: IsarType.long,
     ),
     r'peerSortOrder': PropertySchema(
-      id: 15,
+      id: 14,
       name: r'peerSortOrder',
       type: IsarType.long,
     ),
     r'preferAstralAdapter': PropertySchema(
-      id: 16,
+      id: 15,
       name: r'preferAstralAdapter',
       type: IsarType.bool,
     ),
     r'receiveBetaUpdates': PropertySchema(
-      id: 17,
+      id: 16,
       name: r'receiveBetaUpdates',
       type: IsarType.bool,
     ),
     r'reduceTopologyAnimations': PropertySchema(
-      id: 18,
+      id: 17,
       name: r'reduceTopologyAnimations',
       type: IsarType.bool,
     ),
     r'selectedRoomId': PropertySchema(
-      id: 19,
+      id: 18,
       name: r'selectedRoomId',
       type: IsarType.long,
-    ),
-    r'updateDownloadSource': PropertySchema(
-      id: 20,
-      name: r'updateDownloadSource',
-      type: IsarType.string,
     ),
   },
 
@@ -152,12 +142,6 @@ int _allSettingsEstimateSize(
       bytesCount += value.length * 3;
     }
   }
-  {
-    final value = object.latestAvailableVersion;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.missionControlOverridesJson.length * 3;
   {
     final list = object.peerListeners;
@@ -177,7 +161,6 @@ int _allSettingsEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.updateDownloadSource.length * 3;
   return bytesCount;
 }
 
@@ -194,20 +177,18 @@ void _allSettingsSerialize(
   writer.writeBool(offsets[4], object.connectAfterLaunch);
   writer.writeBool(offsets[5], object.connectionNotificationEnabled);
   writer.writeLong(offsets[6], object.connectionRetryLimit);
-  writer.writeString(offsets[7], object.latestAvailableVersion);
-  writer.writeBool(offsets[8], object.launchAtLogin);
-  writer.writeBool(offsets[9], object.launchToTray);
-  writer.writeString(offsets[10], object.missionControlOverridesJson);
-  writer.writeLong(offsets[11], object.peerDisplayMode);
-  writer.writeStringList(offsets[12], object.peerListeners);
-  writer.writeString(offsets[13], object.peerName);
-  writer.writeLong(offsets[14], object.peerSortOption);
-  writer.writeLong(offsets[15], object.peerSortOrder);
-  writer.writeBool(offsets[16], object.preferAstralAdapter);
-  writer.writeBool(offsets[17], object.receiveBetaUpdates);
-  writer.writeBool(offsets[18], object.reduceTopologyAnimations);
-  writer.writeLong(offsets[19], object.selectedRoomId);
-  writer.writeString(offsets[20], object.updateDownloadSource);
+  writer.writeBool(offsets[7], object.launchAtLogin);
+  writer.writeBool(offsets[8], object.launchToTray);
+  writer.writeString(offsets[9], object.missionControlOverridesJson);
+  writer.writeLong(offsets[10], object.peerDisplayMode);
+  writer.writeStringList(offsets[11], object.peerListeners);
+  writer.writeString(offsets[12], object.peerName);
+  writer.writeLong(offsets[13], object.peerSortOption);
+  writer.writeLong(offsets[14], object.peerSortOrder);
+  writer.writeBool(offsets[15], object.preferAstralAdapter);
+  writer.writeBool(offsets[16], object.receiveBetaUpdates);
+  writer.writeBool(offsets[17], object.reduceTopologyAnimations);
+  writer.writeLong(offsets[18], object.selectedRoomId);
 }
 
 AllSettings _allSettingsDeserialize(
@@ -225,20 +206,18 @@ AllSettings _allSettingsDeserialize(
   object.connectionNotificationEnabled = reader.readBool(offsets[5]);
   object.connectionRetryLimit = reader.readLong(offsets[6]);
   object.id = id;
-  object.latestAvailableVersion = reader.readStringOrNull(offsets[7]);
-  object.launchAtLogin = reader.readBool(offsets[8]);
-  object.launchToTray = reader.readBool(offsets[9]);
-  object.missionControlOverridesJson = reader.readString(offsets[10]);
-  object.peerDisplayMode = reader.readLong(offsets[11]);
-  object.peerListeners = reader.readStringList(offsets[12]);
-  object.peerName = reader.readStringOrNull(offsets[13]);
-  object.peerSortOption = reader.readLong(offsets[14]);
-  object.peerSortOrder = reader.readLong(offsets[15]);
-  object.preferAstralAdapter = reader.readBool(offsets[16]);
-  object.receiveBetaUpdates = reader.readBool(offsets[17]);
-  object.reduceTopologyAnimations = reader.readBool(offsets[18]);
-  object.selectedRoomId = reader.readLongOrNull(offsets[19]);
-  object.updateDownloadSource = reader.readString(offsets[20]);
+  object.launchAtLogin = reader.readBool(offsets[7]);
+  object.launchToTray = reader.readBool(offsets[8]);
+  object.missionControlOverridesJson = reader.readString(offsets[9]);
+  object.peerDisplayMode = reader.readLong(offsets[10]);
+  object.peerListeners = reader.readStringList(offsets[11]);
+  object.peerName = reader.readStringOrNull(offsets[12]);
+  object.peerSortOption = reader.readLong(offsets[13]);
+  object.peerSortOrder = reader.readLong(offsets[14]);
+  object.preferAstralAdapter = reader.readBool(offsets[15]);
+  object.receiveBetaUpdates = reader.readBool(offsets[16]);
+  object.reduceTopologyAnimations = reader.readBool(offsets[17]);
+  object.selectedRoomId = reader.readLongOrNull(offsets[18]);
   return object;
 }
 
@@ -264,33 +243,29 @@ P _allSettingsDeserializeProp<P>(
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
       return (reader.readBool(offset)) as P;
     case 9:
-      return (reader.readBool(offset)) as P;
-    case 10:
       return (reader.readString(offset)) as P;
-    case 11:
+    case 10:
       return (reader.readLong(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readStringList(offset)) as P;
-    case 13:
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readLong(offset)) as P;
     case 14:
       return (reader.readLong(offset)) as P;
     case 15:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 16:
       return (reader.readBool(offset)) as P;
     case 17:
       return (reader.readBool(offset)) as P;
     case 18:
-      return (reader.readBool(offset)) as P;
-    case 19:
       return (reader.readLongOrNull(offset)) as P;
-    case 20:
-      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -759,168 +734,6 @@ extension AllSettingsQueryFilter
           includeLower: includeLower,
           upper: upper,
           includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'latestAvailableVersion'),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'latestAvailableVersion'),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionEqualTo(String? value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'latestAvailableVersion',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'latestAvailableVersion',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'latestAvailableVersion',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'latestAvailableVersion', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  latestAvailableVersionIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          property: r'latestAvailableVersion',
-          value: '',
         ),
       );
     });
@@ -1747,150 +1560,6 @@ extension AllSettingsQueryFilter
       );
     });
   }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceEqualTo(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'updateDownloadSource',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'updateDownloadSource',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'updateDownloadSource',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'updateDownloadSource', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  updateDownloadSourceIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          property: r'updateDownloadSource',
-          value: '',
-        ),
-      );
-    });
-  }
 }
 
 extension AllSettingsQueryObject
@@ -1980,20 +1649,6 @@ extension AllSettingsQuerySortBy
   sortByConnectionRetryLimitDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'connectionRetryLimit', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByLatestAvailableVersion() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'latestAvailableVersion', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByLatestAvailableVersionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'latestAvailableVersion', Sort.desc);
     });
   }
 
@@ -2142,20 +1797,6 @@ extension AllSettingsQuerySortBy
       return query.addSortBy(r'selectedRoomId', Sort.desc);
     });
   }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByUpdateDownloadSource() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updateDownloadSource', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByUpdateDownloadSourceDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updateDownloadSource', Sort.desc);
-    });
-  }
 }
 
 extension AllSettingsQuerySortThenBy
@@ -2251,20 +1892,6 @@ extension AllSettingsQuerySortThenBy
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByLatestAvailableVersion() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'latestAvailableVersion', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByLatestAvailableVersionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'latestAvailableVersion', Sort.desc);
     });
   }
 
@@ -2413,20 +2040,6 @@ extension AllSettingsQuerySortThenBy
       return query.addSortBy(r'selectedRoomId', Sort.desc);
     });
   }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByUpdateDownloadSource() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updateDownloadSource', Sort.asc);
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByUpdateDownloadSourceDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updateDownloadSource', Sort.desc);
-    });
-  }
 }
 
 extension AllSettingsQueryWhereDistinct
@@ -2476,16 +2089,6 @@ extension AllSettingsQueryWhereDistinct
   distinctByConnectionRetryLimit() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'connectionRetryLimit');
-    });
-  }
-
-  QueryBuilder<AllSettings, AllSettings, QDistinct>
-  distinctByLatestAvailableVersion({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(
-        r'latestAvailableVersion',
-        caseSensitive: caseSensitive,
-      );
     });
   }
 
@@ -2570,16 +2173,6 @@ extension AllSettingsQueryWhereDistinct
       return query.addDistinctBy(r'selectedRoomId');
     });
   }
-
-  QueryBuilder<AllSettings, AllSettings, QDistinct>
-  distinctByUpdateDownloadSource({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(
-        r'updateDownloadSource',
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
 }
 
 extension AllSettingsQueryProperty
@@ -2634,13 +2227,6 @@ extension AllSettingsQueryProperty
   connectionRetryLimitProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'connectionRetryLimit');
-    });
-  }
-
-  QueryBuilder<AllSettings, String?, QQueryOperations>
-  latestAvailableVersionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'latestAvailableVersion');
     });
   }
 
@@ -2718,13 +2304,6 @@ extension AllSettingsQueryProperty
   QueryBuilder<AllSettings, int?, QQueryOperations> selectedRoomIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'selectedRoomId');
-    });
-  }
-
-  QueryBuilder<AllSettings, String, QQueryOperations>
-  updateDownloadSourceProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'updateDownloadSource');
     });
   }
 }

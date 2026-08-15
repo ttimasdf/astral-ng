@@ -22,10 +22,16 @@ python scripts/version.py resolve
 ```
 
 `resolve` defaults to a readable build identity block. Use `--format env` for
-CI or `--format json` for tooling. `sync` updates the Flutter mirror;
-`sync --check` fails on drift. `bump major|minor|patch` increments the semantic
-version, increments `BUILD_NUMBER`, and synchronizes `pubspec.yaml`. Review and
-commit the resulting two files.
+optional shell tooling, `--format output` for GitHub step outputs, or
+`--format json` for structured tooling. CI reads resolved versions, names, and
+artifact retention directly from `steps.resolve-version.outputs.*`; it does not
+publish the complete result through `GITHUB_ENV`. Build steps map only
+`BUILD_CHANNEL` into their process environment because Gradle and CMake use it
+for native canary identity. Packaging steps receive only their own required
+values. `sync` updates the Flutter mirror; `sync --check` fails on drift.
+`bump major|minor|patch` increments the semantic version, increments
+`BUILD_NUMBER`, and synchronizes `pubspec.yaml`. Review and commit the resulting
+two files.
 
 ## Semantic versions
 
@@ -79,7 +85,10 @@ prerelease before `3.0.0`. Production package versions and the Nix package use
 ## Build channels
 
 All branch and pull-request CI builds are canaries. Canary artifacts are never
-attached to a GitHub Release. They use the **AstralNG Canary** identity,
+attached to a GitHub Release. Normal canary artifacts are retained for 30 days.
+Production artifacts and successful `main` canaries whose commit subject ends
+in a merged-pull-request suffix such as `(#42)` are retained for 90 days. They
+use the **AstralNG Canary** identity,
 `astral-canary` executable and Linux package name, Android application ID
 `pw.rabit.astralng.canary`, an independent Windows installer ID, and the
 grayscale-and-gold canary icon. Production tags retain the `AstralNG`, `astral`,

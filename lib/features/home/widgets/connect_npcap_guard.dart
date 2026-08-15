@@ -6,8 +6,7 @@ import 'package:astral/core/ui/app_snack_bars.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const String npcapTutorialUrl =
-    'https://astral.fan/quick-start/download-install/';
+const String npcapTutorialUrl = 'https://npcap.com/#download';
 
 bool containsFaketcp(Room room, List<ServerMod> enabledServers) {
   final roomHasFaketcp = room.servers.any(
@@ -80,7 +79,7 @@ Future<bool?> showNpcapRequiredDialog(BuildContext context) {
           content: const Text(
             '检测到当前连接包含 FakeTCP 服务器。\n'
             'Windows 需要先安装 Npcap 驱动后才能使用 FakeTCP。\n\n'
-            '是否前往 astral.fan 查看安装教程？',
+            '是否前往 Npcap 官方网站查看安装教程？',
           ),
           actions: [
             TextButton(
@@ -100,6 +99,6 @@ Future<void> openNpcapTutorial(BuildContext context) async {
   final uri = Uri.parse(npcapTutorialUrl);
   final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
   if (!ok && context.mounted) {
-    AppSnackBars.error(context, '打开失败', '无法打开教程页面，请手动访问 astral.fan');
+    AppSnackBars.error(context, '打开失败', '无法打开教程页面，请手动访问 Npcap 官方网站');
   }
 }

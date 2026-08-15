@@ -1,0 +1,4 @@
+# Local-only files inside this standalone Vercel project.
+node_modules
+src/dev.ts
+test

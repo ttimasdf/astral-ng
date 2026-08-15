@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   gtk
   isar_community_flutter_libs
-  open_file_linux
   screen_retriever_linux
   tray_manager
   url_launcher_linux

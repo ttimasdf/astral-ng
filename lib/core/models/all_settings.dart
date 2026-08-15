@@ -1,5 +1,4 @@
 import 'package:isar_community/isar.dart';
-import 'package:astral/shared/utils/github_proxy_selector.dart';
 part 'all_settings.g.dart';
 
 @collection
@@ -43,9 +42,6 @@ class AllSettings {
   /// 自动检查更新
   bool automaticUpdateChecks = true;
 
-  /// 更新包下载源
-  String updateDownloadSource = GitHubProxySelector.autoMode;
-
   /// 节点排序选项 (0: 默认, 1: 延迟, 2: 用户名)
   int peerSortOption = 0;
 
@@ -54,9 +50,6 @@ class AllSettings {
 
   /// 节点显示模式 (0: 全部, 1: 用户, 2: 服务器)
   int peerDisplayMode = 0;
-
-  /// 最近检查到的可用版本
-  String? latestAvailableVersion;
 
   /// 显示 Android 后台连接通知
   bool connectionNotificationEnabled = true;

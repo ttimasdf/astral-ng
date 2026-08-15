@@ -57,7 +57,46 @@ class VersionResolutionTest(unittest.TestCase):
         self.assertEqual(build.package_version, "3.0.0")
         self.assertEqual(build.build_number, 10288)
 
-    def test_environment_output_exposes_commit_and_semver(self):
+    def test_merged_pull_request_main_push_gets_long_artifact_retention(self):
+        self.assertEqual(
+            version.artifact_retention_days(
+                channel="canary",
+                event_name="push",
+                git_ref="refs/heads/main",
+                commit_subject="[feature] Ship change (#42)",
+            ),
+            90,
+        )
+
+    def test_direct_and_pull_request_builds_keep_canary_artifact_retention(self):
+        for event_name, git_ref, commit_subject in (
+            ("push", "refs/heads/main", "build: refresh dependencies"),
+            ("pull_request", "refs/pull/42/merge", "[feature] Ship change (#42)"),
+            ("push", "refs/heads/feature/demo", "[feature] Ship change (#42)"),
+        ):
+            with self.subTest(event_name=event_name, git_ref=git_ref):
+                self.assertEqual(
+                    version.artifact_retention_days(
+                        channel="canary",
+                        event_name=event_name,
+                        git_ref=git_ref,
+                        commit_subject=commit_subject,
+                    ),
+                    30,
+                )
+
+    def test_production_artifacts_keep_release_retention(self):
+        self.assertEqual(
+            version.artifact_retention_days(
+                channel="production",
+                event_name="push",
+                git_ref="refs/tags/v3.0.0",
+                commit_subject="Release 3.0.0",
+            ),
+            90,
+        )
+
+    def test_step_outputs_cover_ci_without_redundant_package_id(self):
         with patch.dict(
             os.environ,
             {
@@ -65,21 +104,51 @@ class VersionResolutionTest(unittest.TestCase):
                 "GITHUB_REF_NAME": "main",
                 "GITHUB_RUN_NUMBER": "7",
                 "GITHUB_SHA": "fedcba9876543210",
+                "GITHUB_EVENT_NAME": "push",
             },
             clear=True,
+        ), patch.object(
+            version,
+            "git_value",
+            return_value="[feature] Ship change (#7)",
         ):
             build = version.resolve("canary")
             output = io.StringIO()
             with redirect_stdout(output):
-                version.emit(build, "env")
+                version.emit(build, "output")
+            step_values = dict(
+                line.split("=", maxsplit=1)
+                for line in output.getvalue().splitlines()
+            )
 
-        values = dict(
-            line.split("=", maxsplit=1) for line in output.getvalue().splitlines()
+        self.assertEqual(
+            set(step_values),
+            {
+                "version_base",
+                "build_channel",
+                "build_commit",
+                "build_run_number",
+                "semantic_version",
+                "flutter_build_name",
+                "flutter_build_number",
+                "package_version",
+                "asset_version",
+                "app_display_name",
+                "app_executable",
+                "linux_package_name",
+                "windows_app_id",
+                "artifact_retention_days",
+            },
         )
-        self.assertEqual(values["BUILD_COMMIT"], "fedcba9")
-        self.assertEqual(values["BUILD_RUN_NUMBER"], "7")
-        self.assertEqual(values["SEMANTIC_VERSION"], "3.0.0-alpha.7+fedcba9")
-        self.assertEqual(values["ASSET_VERSION"], values["SEMANTIC_VERSION"])
+        self.assertEqual(step_values["build_commit"], "fedcba9")
+        self.assertEqual(step_values["build_run_number"], "7")
+        self.assertEqual(
+            step_values["semantic_version"], "3.0.0-alpha.7+fedcba9"
+        )
+        self.assertEqual(step_values["asset_version"], step_values["semantic_version"])
+        self.assertEqual(step_values["app_executable"], "astral-canary")
+        self.assertEqual(step_values["artifact_retention_days"], "90")
+        self.assertNotIn("app_package_id", step_values)
 
 
 if __name__ == "__main__":

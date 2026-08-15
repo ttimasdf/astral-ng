@@ -1,23 +1,36 @@
-class HistoryVersion {
-  final String version;
-  final String url;
-  final String date;
+import 'package:astral/core/models/update_version.dart';
 
-  HistoryVersion({
-    required this.version,
-    required this.url,
-    required this.date,
+class HistoryVersion {
+  final String title;
+  final String? highlightEnglish;
+  final String? highlightChinese;
+  final DateTime publishedAt;
+  final Uri pageUrl;
+
+  const HistoryVersion({
+    required this.title,
+    required this.highlightEnglish,
+    required this.highlightChinese,
+    required this.publishedAt,
+    required this.pageUrl,
   });
 
-  factory HistoryVersion.fromJson(Map<String, dynamic> json) {
+  factory HistoryVersion.fromUpdateVersion(UpdateVersion update) {
     return HistoryVersion(
-      version: json['version'] as String,
-      url: json['url'] as String,
-      date: json['date'] as String,
+      title: update.title,
+      highlightEnglish: update.highlights?.english,
+      highlightChinese: update.highlights?.chinese,
+      publishedAt: update.publishedAt,
+      pageUrl: update.pageUrl,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'version': version, 'url': url, 'date': date};
+  String? highlightForLanguage(String languageCode) {
+    if (languageCode.toLowerCase().startsWith('zh')) {
+      final localized = highlightChinese?.trim();
+      if (localized != null && localized.isNotEmpty) return localized;
+    }
+    final fallback = highlightEnglish?.trim();
+    return fallback == null || fallback.isEmpty ? null : fallback;
   }
 }

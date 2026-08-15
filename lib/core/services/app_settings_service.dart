@@ -60,9 +60,6 @@ class AppSettingsService {
     updateState.setReceiveBetaUpdates(settings.receiveBetaUpdates);
     updateState.setAutomaticUpdateChecks(settings.automaticUpdateChecks);
 
-    updateState.setUpdateDownloadSource(settings.updateDownloadSource);
-    updateState.setLatestVersion(settings.latestAvailableVersion);
-
     appSettingsState.setConnectionNotificationEnabled(
       settings.connectionNotificationEnabled,
     );
@@ -151,16 +148,6 @@ class AppSettingsService {
   Future<void> setAutomaticUpdateChecks(bool value) async {
     updateState.setAutomaticUpdateChecks(value);
     await _repo.update((s) => s.automaticUpdateChecks = value);
-  }
-
-  Future<void> setUpdateDownloadSource(String value) async {
-    updateState.setUpdateDownloadSource(value);
-    await _repo.update((s) => s.updateDownloadSource = value);
-  }
-
-  Future<void> updateLatestVersion(String version) async {
-    updateState.setLatestVersion(version);
-    await _repo.update((s) => s.latestAvailableVersion = version);
   }
 
   Future<void> setConnectionNotificationEnabled(bool enabled) async {

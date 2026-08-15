@@ -19,6 +19,10 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Optional repository/environment override for the compiled update API base URL.
+  UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://update.astral-ng.rabit.pw/api/v1' }}
+
 jobs:
   linux:
     if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
@@ -31,11 +35,12 @@ jobs:
           persist-credentials: false
 
       - name: Resolve build version
+        id: resolve-version
         run: |
           python3 scripts/version.py sync --check
           python3 test/scripts/version_test.py
           python3 scripts/version.py resolve
-          python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
+          python3 scripts/version.py resolve --format output >> "$GITHUB_OUTPUT"
 
       - name: Setup pinned toolchains
         uses: ./.github/actions/setup-toolchains
@@ -64,13 +69,16 @@ jobs:
         run: flutter analyze lib
 
       - name: Build Linux
+        env:
+          BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
         run: >-
           flutter build linux --release
-          --build-name "$FLUTTER_BUILD_NAME"
-          --build-number "$FLUTTER_BUILD_NUMBER"
-          --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL"
-          --dart-define "BUILD_COMMIT=$BUILD_COMMIT"
-          --dart-define "BUILD_RUN_NUMBER=$BUILD_RUN_NUMBER"
+          --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}"
+          --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}"
+          --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}"
+          --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}"
+          --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}"
+          --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"
 
       - name: Install Linux packaging dependencies
         if: >-
@@ -88,6 +96,13 @@ jobs:
            (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))) ||
           (github.event_name == 'pull_request' &&
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
+        env:
+          BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
+          APP_EXECUTABLE: ${{ steps.resolve-version.outputs.app_executable }}
+          APP_DISPLAY_NAME: ${{ steps.resolve-version.outputs.app_display_name }}
+          ASSET_VERSION: ${{ steps.resolve-version.outputs.asset_version }}
+          LINUX_PACKAGE_NAME: ${{ steps.resolve-version.outputs.linux_package_name }}
+          PACKAGE_VERSION: ${{ steps.resolve-version.outputs.package_version }}
         run: |
           set -e
           mkdir -p release
@@ -146,10 +161,11 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
+          name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.tar.gz
+          path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.tar.gz
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Upload Linux DEB
         if: >-
@@ -159,10 +175,11 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.deb
+          name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.deb
+          path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.deb
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Upload Linux RPM
         if: >-
@@ -172,10 +189,11 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.rpm
+          name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.rpm
+          path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.rpm
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
   windows:
     if: >-
@@ -191,10 +209,11 @@ jobs:
           persist-credentials: false
 
       - name: Resolve build version
+        id: resolve-version
         run: |
           python scripts/version.py sync --check
           python scripts/version.py resolve
-          python scripts/version.py resolve --format env >> $env:GITHUB_ENV
+          python scripts/version.py resolve --format output >> $env:GITHUB_OUTPUT
 
       - name: Setup pinned toolchains
         uses: ./.github/actions/setup-toolchains
@@ -208,10 +227,21 @@ jobs:
         run: choco install innosetup -y
 
       - name: Install Protobuf compiler
-        run: |
-          choco install protoc -y
-          protoc --version
         shell: pwsh
+        run: |
+          $attempts = 3
+          for ($attempt = 1; $attempt -le $attempts; $attempt++) {
+            choco install protoc -y --no-progress
+            if ($LASTEXITCODE -eq 0) {
+              protoc --version
+              exit $LASTEXITCODE
+            }
+            if ($attempt -lt $attempts) {
+              Write-Warning "Chocolatey protoc install failed (attempt $attempt/$attempts); retrying in 30 seconds."
+              Start-Sleep -Seconds 30
+            }
+          }
+          throw "Unable to install protoc from Chocolatey after $attempts attempts."
 
       - name: Install Npcap SDK
         run: |
@@ -248,18 +278,21 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows
+        env:
+          BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
         run: >-
           flutter build windows --release
-          --build-name "$env:FLUTTER_BUILD_NAME"
-          --build-number "$env:FLUTTER_BUILD_NUMBER"
-          --dart-define "BUILD_CHANNEL=$env:BUILD_CHANNEL"
-          --dart-define "BUILD_COMMIT=$env:BUILD_COMMIT"
-          --dart-define "BUILD_RUN_NUMBER=$env:BUILD_RUN_NUMBER"
+          --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}"
+          --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}"
+          --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}"
+          --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}"
+          --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}"
+          --dart-define "UPDATE_API_BASE_URL=$env:UPDATE_API_BASE_URL"
 
       - name: Rename packaged canary executable
-        if: env.APP_EXECUTABLE != 'astral'
+        if: steps.resolve-version.outputs.app_executable != 'astral'
         run: |
-          Rename-Item -Path "build\windows\x64\runner\Release\astral.exe" -NewName "$env:APP_EXECUTABLE.exe"
+          Rename-Item -Path "build\windows\x64\runner\Release\astral.exe" -NewName "${{ steps.resolve-version.outputs.app_executable }}.exe"
 
       - name: Copy DLLs
         run: |
@@ -268,9 +301,14 @@ jobs:
       - name: Package zip
         run: |
           New-Item -ItemType Directory -Path "release" -Force
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\$($env:APP_EXECUTABLE)-windows-x64-$($env:ASSET_VERSION).zip" -Force
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "release\${{ steps.resolve-version.outputs.app_executable }}-windows-x64-${{ steps.resolve-version.outputs.asset_version }}.zip" -Force
 
       - name: Create Inno Setup script
+        env:
+          SEMANTIC_VERSION: ${{ steps.resolve-version.outputs.semantic_version }}
+          APP_DISPLAY_NAME: ${{ steps.resolve-version.outputs.app_display_name }}
+          APP_EXECUTABLE: ${{ steps.resolve-version.outputs.app_executable }}
+          WINDOWS_APP_ID: ${{ steps.resolve-version.outputs.windows_app_id }}
         run: |
           $version = $env:SEMANTIC_VERSION
           @"
@@ -320,23 +358,25 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path "release" -Force
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
-          Move-Item -Path "Output\$($env:APP_EXECUTABLE)-windows-x64-setup.exe" -Destination "release\$($env:APP_EXECUTABLE)-windows-x64-setup-$($env:ASSET_VERSION).exe" -Force
+          Move-Item -Path "Output\${{ steps.resolve-version.outputs.app_executable }}-windows-x64-setup.exe" -Destination "release\${{ steps.resolve-version.outputs.app_executable }}-windows-x64-setup-${{ steps.resolve-version.outputs.asset_version }}.exe" -Force
 
       - name: Upload Windows ZIP
         uses: actions/upload-artifact@v7
         with:
-          path: release/${{ env.APP_EXECUTABLE }}-windows-x64-${{ env.ASSET_VERSION }}.zip
+          name: ${{ steps.resolve-version.outputs.app_executable }}-windows-x64-${{ steps.resolve-version.outputs.asset_version }}.zip
+          path: release/${{ steps.resolve-version.outputs.app_executable }}-windows-x64-${{ steps.resolve-version.outputs.asset_version }}.zip
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v7
         with:
-          path: release/${{ env.APP_EXECUTABLE }}-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
+          name: ${{ steps.resolve-version.outputs.app_executable }}-windows-x64-setup-${{ steps.resolve-version.outputs.asset_version }}.exe
+          path: release/${{ steps.resolve-version.outputs.app_executable }}-windows-x64-setup-${{ steps.resolve-version.outputs.asset_version }}.exe
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
   android:
     if: >-
@@ -352,10 +392,11 @@ jobs:
           persist-credentials: false
 
       - name: Resolve build version
+        id: resolve-version
         run: |
           python3 scripts/version.py sync --check
           python3 scripts/version.py resolve
-          python3 scripts/version.py resolve --format env >> "$GITHUB_ENV"
+          python3 scripts/version.py resolve --format output >> "$GITHUB_OUTPUT"
 
       - name: Setup pinned toolchains
         uses: ./.github/actions/setup-toolchains
@@ -382,9 +423,19 @@ jobs:
 
       - name: Build snapshot APK
         if: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
+        env:
+          BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
         run: |
-          flutter build apk --debug --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL" --dart-define "BUILD_COMMIT=$BUILD_COMMIT" --dart-define "BUILD_RUN_NUMBER=$BUILD_RUN_NUMBER"
-          mv build/app/outputs/flutter-apk/app-debug.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-debug-$ASSET_VERSION.apk"
+          flutter build apk --debug \
+            --target-platform android-arm64,android-arm \
+            --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}" \
+            --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}" \
+            --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}" \
+            --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}" \
+            --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}" \
+            --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"
+          mv build/app/outputs/flutter-apk/app-debug.apk \
+            "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-debug-${{ steps.resolve-version.outputs.asset_version }}.apk"
 
       - name: Upload snapshot APK
         if: >-
@@ -393,10 +444,11 @@ jobs:
            contains(github.event.pull_request.labels.*.name, 'full-ci'))
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-debug-${{ env.ASSET_VERSION }}.apk
+          name: ${{ steps.resolve-version.outputs.app_executable }}-android-debug-${{ steps.resolve-version.outputs.asset_version }}.apk
+          path: build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-debug-${{ steps.resolve-version.outputs.asset_version }}.apk
           archive: false
           if-no-files-found: error
-          retention-days: 7
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Setup Android release signing
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -411,40 +463,63 @@ jobs:
 
       - name: Build signed release APKs
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
         run: |
-          flutter build apk --release --target-platform android-arm64,android-arm --split-per-abi --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL" --dart-define "BUILD_COMMIT=$BUILD_COMMIT" --dart-define "BUILD_RUN_NUMBER=$BUILD_RUN_NUMBER"
-          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-arm64-$ASSET_VERSION.apk"
-          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-armv7-$ASSET_VERSION.apk"
+          flutter build apk --release \
+            --target-platform android-arm64,android-arm \
+            --split-per-abi \
+            --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}" \
+            --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}" \
+            --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}" \
+            --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}" \
+            --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}" \
+            --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+            "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-arm64-${{ steps.resolve-version.outputs.asset_version }}.apk"
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+            "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-armv7-${{ steps.resolve-version.outputs.asset_version }}.apk"
 
-          flutter build apk --release --target-platform android-arm64,android-arm --build-name "$FLUTTER_BUILD_NAME" --build-number "$FLUTTER_BUILD_NUMBER" --dart-define "BUILD_CHANNEL=$BUILD_CHANNEL" --dart-define "BUILD_COMMIT=$BUILD_COMMIT" --dart-define "BUILD_RUN_NUMBER=$BUILD_RUN_NUMBER"
-          mv build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/$APP_EXECUTABLE-android-universal-$ASSET_VERSION.apk"
+          flutter build apk --release \
+            --target-platform android-arm64,android-arm \
+            --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}" \
+            --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}" \
+            --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}" \
+            --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}" \
+            --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}" \
+            --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"
+          mv build/app/outputs/flutter-apk/app-release.apk \
+            "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-universal-${{ steps.resolve-version.outputs.asset_version }}.apk"
 
       - name: Upload arm64 release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-arm64-${{ env.ASSET_VERSION }}.apk
+          name: ${{ steps.resolve-version.outputs.app_executable }}-android-arm64-${{ steps.resolve-version.outputs.asset_version }}.apk
+          path: build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-arm64-${{ steps.resolve-version.outputs.asset_version }}.apk
           archive: false
           if-no-files-found: error
-          retention-days: 30
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Upload armv7 release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-armv7-${{ env.ASSET_VERSION }}.apk
+          name: ${{ steps.resolve-version.outputs.app_executable }}-android-armv7-${{ steps.resolve-version.outputs.asset_version }}.apk
+          path: build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-armv7-${{ steps.resolve-version.outputs.asset_version }}.apk
           archive: false
           if-no-files-found: error
-          retention-days: 30
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
       - name: Upload universal release APK
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v7
         with:
-          path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-universal-${{ env.ASSET_VERSION }}.apk
+          name: ${{ steps.resolve-version.outputs.app_executable }}-android-universal-${{ steps.resolve-version.outputs.asset_version }}.apk
+          path: build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-universal-${{ steps.resolve-version.outputs.asset_version }}.apk
           archive: false
           if-no-files-found: error
-          retention-days: 30
+          retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
   create-release:
     needs: [linux, windows, android]
@@ -459,10 +534,11 @@ jobs:
           persist-credentials: false
 
       - name: Resolve production version
+        id: resolve-version
         run: |
           python3 scripts/version.py sync --check
           python3 scripts/version.py resolve --channel production
-          python3 scripts/version.py resolve --channel production --format env >> "$GITHUB_ENV"
+          python3 scripts/version.py resolve --channel production --format output >> "$GITHUB_OUTPUT"
 
       - name: Extract changelog for version
         id: extract-changelog
@@ -471,7 +547,7 @@ jobs:
             echo "ERROR: CHANGELOG.md not found"
             exit 1
           fi
-          CHANGELOG=$(awk -v ver="v$VERSION_BASE" '
+          CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.version_base }}" '
             /^## / { in_section = 0 }
             $0 ~ "^## " ver { in_section = 1; next }
             in_section { print }
@@ -503,7 +579,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ env.SEMANTIC_VERSION }}
+          name: Release ${{ steps.resolve-version.outputs.semantic_version }}
           tag_name: ${{ github.ref_name }}
           body: ${{ steps.extract-changelog.outputs.changelog }}
           draft: false

@@ -2,8 +2,7 @@
 
 This file records notable changes to Astral-ng. User-facing entries describe
 observable outcomes; concise developer notes and links provide implementation
-provenance. Astral-ng release versions are independent of the upstream Astral
-baseline.
+provenance.
 
 ## Unreleased
 
@@ -73,6 +72,16 @@ baseline.
   before deletion on Android and iOS. ([#11])
 - **Desktop relay controls.** Replaced the switch and overflow menu with direct
   toggle and delete actions; clicking a row opens editing. ([#11])
+- **Update notifications.** Update checks now use repository-managed stable and
+  beta metadata, then open the trusted GitHub page instead of downloading or
+  installing artifacts inside the app. ([#17])
+- **Dedicated update service.** Builds use the dedicated update server by
+  default, while `UPDATE_API_BASE_URL` remains an optional compile-time
+  override. ([#17])
+- **Npcap guidance.** Windows FakeTCP setup now links to the official Npcap
+  download page. ([#17])
+- **Artifact retention.** Canary artifacts remain available for 30 days;
+  production and merged-PR main builds remain available for 90 days. ([#17])
 - **CI artifact downloads.** Snapshot and release artifacts now download
   directly instead of arriving inside an additional ZIP wrapper. ([#5])
 - **Room credential modes.** Renamed credential choices to **Simple** and
@@ -116,8 +125,6 @@ baseline.
 
 ### Developer notes
 
-- **Upstream baseline.** Merged Astral through `v2.9.9` while preserving the
-  fork's independent version and downstream behavior. ([upstream-v2.9.9])
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build
@@ -132,6 +139,8 @@ baseline.
   including the Android SDK and NDK. ([#9])
 - **Android build helper.** Added `flutter-android` for canary defaults and
   isolated NDK builds on NixOS.
+- **Update API project.** Added a standalone `update-server/` Vercel project and
+  compile-time `UPDATE_API_BASE_URL` overrides for local and CI builds. ([#17])
 - **EasyTier diagnostics.** Added the pinned CLI to the development shell for
   local no-TUN and end-to-end network investigations.
 
@@ -222,6 +231,7 @@ changes. ([upstream-v2.7.3])
 [#13]: https://github.com/ttimasdf/astral-ng/pull/13
 [#14]: https://github.com/ttimasdf/astral-ng/pull/14
 [#15]: https://github.com/ttimasdf/astral-ng/pull/15
+[#17]: https://github.com/ttimasdf/astral-ng/pull/17
 [nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

@@ -4,6 +4,10 @@
 # Nix build output
 /result
 
+# Serverless update project
+node_modules/
+.vercel/
+
 # Python diagnostic tooling
 __pycache__/
 *.py[cod]
