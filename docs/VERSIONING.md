@@ -79,7 +79,10 @@ prerelease before `3.0.0`. Production package versions and the Nix package use
 ## Build channels
 
 All branch and pull-request CI builds are canaries. Canary artifacts are never
-attached to a GitHub Release. They use the **AstralNG Canary** identity,
+attached to a GitHub Release. Successful `main` pushes whose commit subject ends
+in a merged-pull-request suffix such as `(#42)` retain their Actions artifacts
+for 90 days; direct pushes and pull-request builds retain them for 7 days.
+They use the **AstralNG Canary** identity,
 `astral-canary` executable and Linux package name, Android application ID
 `pw.rabit.astralng.canary`, an independent Windows installer ID, and the
 grayscale-and-gold canary icon. Production tags retain the `AstralNG`, `astral`,

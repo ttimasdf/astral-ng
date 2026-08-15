@@ -19,6 +19,10 @@ PUBSPEC_PATTERN = re.compile(r"^version: .*$", re.MULTILINE)
 CANARY_BUILD_OFFSET = 1_000_000_000
 ANDROID_VERSION_CODE_LIMIT = 2_147_483_647
 SHORT_COMMIT_LENGTH = 7
+MERGED_PULL_REQUEST_PATTERN = re.compile(r" \(#[1-9]\d*\)$")
+CANARY_RETENTION_DAYS = 7
+MERGED_PULL_REQUEST_RETENTION_DAYS = 90
+PRODUCTION_RETENTION_DAYS = 30
 
 
 @dataclass(frozen=True)
@@ -138,8 +142,28 @@ def resolve(channel: str) -> BuildVersion:
     fail("Channel must be auto, production, or canary")
 
 
+def artifact_retention_days(
+    *, channel: str, event_name: str, git_ref: str, commit_subject: str
+) -> int:
+    if channel == "production":
+        return PRODUCTION_RETENTION_DAYS
+    if (
+        event_name == "push"
+        and git_ref == "refs/heads/main"
+        and MERGED_PULL_REQUEST_PATTERN.search(commit_subject)
+    ):
+        return MERGED_PULL_REQUEST_RETENTION_DAYS
+    return CANARY_RETENTION_DAYS
+
+
 def emit(build: BuildVersion, output_format: str) -> None:
     is_canary = build.channel == "canary"
+    retention_days = artifact_retention_days(
+        channel=build.channel,
+        event_name=os.getenv("GITHUB_EVENT_NAME", ""),
+        git_ref=os.getenv("GITHUB_REF", ""),
+        commit_subject=git_value("log", "-1", "--format=%s", fallback=""),
+    )
     values = {
         "VERSION_BASE": build.source.version,
         "BUILD_CHANNEL": build.channel,
@@ -161,6 +185,7 @@ def emit(build: BuildVersion, output_format: str) -> None:
             if is_canary
             else "{9A41EC10-FBE6-4B63-8B18-A466907374B5}"
         ),
+        "ARTIFACT_RETENTION_DAYS": str(retention_days),
     }
     if output_format == "env":
         print("\n".join(f"{key}={value}" for key, value in values.items()))

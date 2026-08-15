@@ -149,7 +149,7 @@ jobs:
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.tar.gz
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
       - name: Upload Linux DEB
         if: >-
@@ -162,7 +162,7 @@ jobs:
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.deb
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
       - name: Upload Linux RPM
         if: >-
@@ -175,7 +175,7 @@ jobs:
           path: release/${{ env.APP_EXECUTABLE }}-linux-x64-${{ env.ASSET_VERSION }}.rpm
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
   windows:
     if: >-
@@ -328,7 +328,7 @@ jobs:
           path: release/${{ env.APP_EXECUTABLE }}-windows-x64-${{ env.ASSET_VERSION }}.zip
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v7
@@ -336,7 +336,7 @@ jobs:
           path: release/${{ env.APP_EXECUTABLE }}-windows-x64-setup-${{ env.ASSET_VERSION }}.exe
           archive: false
           if-no-files-found: error
-          retention-days: ${{ startsWith(github.ref, 'refs/tags/v') && 30 || 7 }}
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
   android:
     if: >-
@@ -396,7 +396,7 @@ jobs:
           path: build/app/outputs/flutter-apk/${{ env.APP_EXECUTABLE }}-android-debug-${{ env.ASSET_VERSION }}.apk
           archive: false
           if-no-files-found: error
-          retention-days: 7
+          retention-days: ${{ fromJSON(env.ARTIFACT_RETENTION_DAYS) }}
 
       - name: Setup Android release signing
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
