@@ -106,26 +106,27 @@ It must include the API prefix but not the final `/update` or `/versions` path:
 https://updates.example.com/api/v1
 ```
 
-The source default is `https://astral.fan/api/v1`. There are three supported
-overrides.
+The default API base is
+`https://update.astral-ng.rabit.pw/api/v1`. `UPDATE_API_BASE_URL` is an optional
+compile-time override for a local, preview, or alternate deployment.
 
 ### GitHub Actions builds
 
-Set the repository or environment Actions variable `UPDATE_API_BASE_URL`:
+Optionally set the repository or environment Actions variable
+`UPDATE_API_BASE_URL`:
 
 ```sh
 gh variable set UPDATE_API_BASE_URL \
   --body 'https://updates.example.com/api/v1'
 ```
 
-The build workflow falls back to `https://astral.fan/api/v1` when the variable
-is absent and passes the resolved value to every Linux, Windows, and Android
-Flutter build.
+The build workflow uses the default when the variable is absent and passes an
+override to every Linux, Windows, and Android Flutter build when configured.
 
 ### Local Linux/desktop builds
 
-The Nix Flutter wrapper forwards either the environment variable or an explicit
-Dart define:
+The Nix Flutter wrapper forwards either the environment variable or an
+explicit Dart define when supplied:
 
 ```sh
 UPDATE_API_BASE_URL=http://127.0.0.1:3100/api/v1 \

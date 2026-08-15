@@ -75,6 +75,11 @@ provenance.
 - **Update notifications.** Update checks now use repository-managed stable and
   beta metadata, then open the trusted GitHub page instead of downloading or
   installing artifacts inside the app. ([#17])
+- **Dedicated update service.** Builds use the dedicated update server by
+  default, while `UPDATE_API_BASE_URL` remains an optional compile-time
+  override. ([#17])
+- **Npcap guidance.** Windows FakeTCP setup now links to the official Npcap
+  download page. ([#17])
 - **Artifact retention.** Canary artifacts remain available for 30 days;
   production and merged-PR main builds remain available for 90 days. ([#17])
 - **CI artifact downloads.** Snapshot and release artifacts now download

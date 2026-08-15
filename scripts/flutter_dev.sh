@@ -8,6 +8,7 @@ fail() {
 : "${ASTRAL_FLUTTER_BIN:?the Astral-ng flutter wrapper requires the Nix development shell}"
 
 channel="${BUILD_CHANNEL:-canary}"
+update_api_base_url="${UPDATE_API_BASE_URL:-}"
 explicit_channel=false
 explicit_update_api_base_url=false
 expect_dart_define_value=false
@@ -72,8 +73,8 @@ case "$flutter_command" in
       "--dart-define=BUILD_COMMIT=$build_commit"
       "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
     )
-    if [[ "$explicit_update_api_base_url" == false && -n "${UPDATE_API_BASE_URL:-}" ]]; then
-      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL")
+    if [[ "$explicit_update_api_base_url" == false && -n "$update_api_base_url" ]]; then
+      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$update_api_base_url")
     fi
     ;;
 esac

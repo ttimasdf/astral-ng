@@ -6,7 +6,7 @@ import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/version_util.dart';
 import 'package:http/http.dart' as http;
 
-const _defaultUpdateApiBaseUrl = 'https://astral.fan/api/v1';
+const _defaultUpdateApiBaseUrl = 'https://update.astral-ng.rabit.pw/api/v1';
 const updateApiBaseUrl = String.fromEnvironment(
   'UPDATE_API_BASE_URL',
   defaultValue: _defaultUpdateApiBaseUrl,
