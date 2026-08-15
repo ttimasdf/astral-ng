@@ -4,6 +4,9 @@
 # Nix build output
 /result
 
+# Serverless API dependencies
+node_modules/
+
 # Python diagnostic tooling
 __pycache__/
 *.py[cod]
