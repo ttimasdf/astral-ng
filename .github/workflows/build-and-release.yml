@@ -211,10 +211,21 @@ jobs:
         run: choco install innosetup -y
 
       - name: Install Protobuf compiler
-        run: |
-          choco install protoc -y
-          protoc --version
         shell: pwsh
+        run: |
+          $attempts = 3
+          for ($attempt = 1; $attempt -le $attempts; $attempt++) {
+            choco install protoc -y --no-progress
+            if ($LASTEXITCODE -eq 0) {
+              protoc --version
+              exit $LASTEXITCODE
+            }
+            if ($attempt -lt $attempts) {
+              Write-Warning "Chocolatey protoc install failed (attempt $attempt/$attempts); retrying in 30 seconds."
+              Start-Sleep -Seconds 30
+            }
+          }
+          throw "Unable to install protoc from Chocolatey after $attempts attempts."
 
       - name: Install Npcap SDK
         run: |
