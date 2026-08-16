@@ -68,14 +68,27 @@ jobs:
           lfs: true
           persist-credentials: false
 
+      - name: Setup Android release signing
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}"
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+          } >> android/key.properties
+        shell: bash
+
       - name: Build signed Android release
         uses: ./.github/actions/build-android
         with:
-          signed: 'true'
-          keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
-          key-alias: ${{ secrets.KEY_ALIAS }}
-          store-password: ${{ secrets.STORE_PASSWORD }}
-          key-password: ${{ secrets.KEY_PASSWORD }}
+          build-mode: release
+          apk-layout: both
+
+      - name: Remove Android signing files
+        if: always()
+        run: rm -f android/app/upload-keystore.jks android/key.properties
+        shell: bash
 
   create-release:
     needs: [linux, windows, android]

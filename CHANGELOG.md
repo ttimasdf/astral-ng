@@ -12,9 +12,9 @@ provenance.
 
 ### Developer notes
 
-- **Release pipeline split.** Shared platform build actions now serve normal
-  validation and tag-only releases; Android signing remains limited to the
-  protected production environment.
+- **Release pipeline split.** Shared platform actions use explicit Android
+  debug/release modes and unified/split APK layouts; signing remains limited to
+  the protected production environment.
 
 ## [v3.0.0] - 2026-08-15
 

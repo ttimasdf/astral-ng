@@ -1,32 +1,20 @@
 name: Build Android
 
-description: Build Android snapshot or signed release artifacts.
+description: Build and upload Android debug or release APK artifacts.
 
 inputs:
-  signed:
-    description: Build signed production APKs.
+  build-mode:
+    description: Flutter build mode, either debug or release.
     required: false
-    default: 'false'
+    default: debug
+  apk-layout:
+    description: Release APK layout, either unified, split, or both.
+    required: false
+    default: unified
   upload-snapshot:
     description: Upload the unsigned debug snapshot APK.
     required: false
     default: 'false'
-  keystore-base64:
-    description: Base64-encoded Android upload keystore.
-    required: false
-    default: ''
-  key-alias:
-    description: Android upload key alias.
-    required: false
-    default: ''
-  store-password:
-    description: Android keystore password.
-    required: false
-    default: ''
-  key-password:
-    description: Android key password.
-    required: false
-    default: ''
 
 runs:
   using: composite
@@ -64,8 +52,15 @@ runs:
       run: flutter pub get
       shell: bash
 
-    - name: Build snapshot APK
-      if: inputs.signed != 'true'
+    - name: Verify Android release signing
+      if: inputs['build-mode'] == 'release'
+      run: |
+        test -s android/app/upload-keystore.jks
+        test -s android/key.properties
+      shell: bash
+
+    - name: Build debug APK
+      if: inputs['build-mode'] == 'debug'
       env:
         BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
       run: |
@@ -81,8 +76,8 @@ runs:
           "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-debug-${{ steps.resolve-version.outputs.asset_version }}.apk"
       shell: bash
 
-    - name: Upload snapshot APK
-      if: inputs['upload-snapshot'] == 'true'
+    - name: Upload debug APK
+      if: inputs['build-mode'] == 'debug' && inputs['upload-snapshot'] == 'true'
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-android-debug-${{ steps.resolve-version.outputs.asset_version }}.apk
@@ -91,20 +86,10 @@ runs:
         if-no-files-found: error
         retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
-    - name: Setup Android release signing
-      if: inputs.signed == 'true'
-      run: |
-        echo "${{ inputs['keystore-base64'] }}" | base64 --decode > android/app/upload-keystore.jks
-        {
-          echo "storeFile=upload-keystore.jks"
-          echo "keyAlias=${{ inputs['key-alias'] }}"
-          echo "storePassword=${{ inputs['store-password'] }}"
-          echo "keyPassword=${{ inputs['key-password'] }}"
-        } >> android/key.properties
-      shell: bash
-
-    - name: Build signed release APKs
-      if: inputs.signed == 'true'
+    - name: Build split release APKs
+      if: >-
+        inputs['build-mode'] == 'release' &&
+        (inputs['apk-layout'] == 'split' || inputs['apk-layout'] == 'both')
       env:
         BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
       run: |
@@ -121,7 +106,15 @@ runs:
           "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-arm64-${{ steps.resolve-version.outputs.asset_version }}.apk"
         mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
           "build/app/outputs/flutter-apk/${{ steps.resolve-version.outputs.app_executable }}-android-armv7-${{ steps.resolve-version.outputs.asset_version }}.apk"
+      shell: bash
 
+    - name: Build unified release APK
+      if: >-
+        inputs['build-mode'] == 'release' &&
+        (inputs['apk-layout'] == 'unified' || inputs['apk-layout'] == 'both')
+      env:
+        BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
+      run: |
         flutter build apk --release \
           --target-platform android-arm64,android-arm \
           --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}" \
@@ -135,7 +128,9 @@ runs:
       shell: bash
 
     - name: Upload arm64 release APK
-      if: inputs.signed == 'true'
+      if: >-
+        inputs['build-mode'] == 'release' &&
+        (inputs['apk-layout'] == 'split' || inputs['apk-layout'] == 'both')
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-android-arm64-${{ steps.resolve-version.outputs.asset_version }}.apk
@@ -145,7 +140,9 @@ runs:
         retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
     - name: Upload armv7 release APK
-      if: inputs.signed == 'true'
+      if: >-
+        inputs['build-mode'] == 'release' &&
+        (inputs['apk-layout'] == 'split' || inputs['apk-layout'] == 'both')
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-android-armv7-${{ steps.resolve-version.outputs.asset_version }}.apk
@@ -155,7 +152,9 @@ runs:
         retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
 
     - name: Upload universal release APK
-      if: inputs.signed == 'true'
+      if: >-
+        inputs['build-mode'] == 'release' &&
+        (inputs['apk-layout'] == 'unified' || inputs['apk-layout'] == 'both')
       uses: actions/upload-artifact@v7
       with:
         name: ${{ steps.resolve-version.outputs.app_executable }}-android-universal-${{ steps.resolve-version.outputs.asset_version }}.apk
