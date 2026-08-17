@@ -11,6 +11,7 @@ import 'package:astral/core/states/app_settings_state.dart';
 import 'package:astral/core/repositories/app_settings_repository.dart';
 import 'package:astral/core/database/dao/all_settings_dao.dart';
 import 'package:astral/core/platform/startup_url_scheme.dart';
+import 'package:astral/core/services/update_channel_store.dart';
 
 /// 应用设置服务：协调 State 与持久化
 class AppSettingsService {
@@ -57,8 +58,15 @@ class AppSettingsService {
       connectAfterLaunch: settings.connectAfterLaunch,
     );
 
-    updateState.setReceiveBetaUpdates(settings.receiveBetaUpdates);
+    final updateChannel =
+        await UpdateChannelStore.read() ??
+        UpdateChannel.fromStorage(
+          null,
+          legacyReceiveBetaUpdates: settings.receiveBetaUpdates,
+        );
+    updateState.setChannel(updateChannel);
     updateState.setAutomaticUpdateChecks(settings.automaticUpdateChecks);
+    await UpdateChannelStore.write(updateChannel);
 
     appSettingsState.setConnectionNotificationEnabled(
       settings.connectionNotificationEnabled,
@@ -140,9 +148,16 @@ class AppSettingsService {
     await _repo.update((s) => s.connectAfterLaunch = value);
   }
 
-  Future<void> setReceiveBetaUpdates(bool value) async {
-    updateState.setReceiveBetaUpdates(value);
-    await _repo.update((s) => s.receiveBetaUpdates = value);
+  Future<void> setUpdateChannel(UpdateChannel channel) async {
+    final enablesPreviewChecks = channel != UpdateChannel.stable;
+    updateState.selectChannel(channel);
+    await UpdateChannelStore.write(channel);
+    await _repo.update((settings) {
+      settings.receiveBetaUpdates = enablesPreviewChecks;
+      if (enablesPreviewChecks) {
+        settings.automaticUpdateChecks = true;
+      }
+    });
   }
 
   Future<void> setAutomaticUpdateChecks(bool value) async {

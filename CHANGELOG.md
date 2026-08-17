@@ -15,6 +15,10 @@ provenance.
 - **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
   replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
   alpha.
+- **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
+  Choosing Beta or Alpha enables automatic checks initially while leaving the
+  switch under user control.
+
 ### Developer notes
 
 - **Staged preview versions.** Pull-request artifacts use alpha versions,

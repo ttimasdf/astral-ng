@@ -22,6 +22,7 @@ class UpdateHighlights {
 
 class UpdateVersion {
   final String channel;
+  final String stage;
   final String version;
   final String title;
   final UpdateHighlights? highlights;
@@ -31,6 +32,7 @@ class UpdateVersion {
 
   const UpdateVersion({
     required this.channel,
+    required this.stage,
     required this.version,
     required this.title,
     required this.highlights,
@@ -43,6 +45,7 @@ class UpdateVersion {
     final highlightsJson = json['highlights'];
     return UpdateVersion(
       channel: _requiredString(json, 'channel'),
+      stage: _optionalString(json, 'stage') ?? _inferredStage(json),
       version: _requiredString(json, 'version'),
       title: _requiredString(json, 'title'),
       highlights:
@@ -56,6 +59,13 @@ class UpdateVersion {
       pageUrl: _trustedGitHubPage(_requiredString(json, 'pageUrl')),
     );
   }
+}
+
+String _inferredStage(Map<String, dynamic> json) {
+  final channel = _requiredString(json, 'channel');
+  if (channel == 'stable' || channel == 'alpha') return channel;
+  final version = _requiredString(json, 'version');
+  return RegExp(r'-(alpha|beta|rc)\.').firstMatch(version)?.group(1) ?? channel;
 }
 
 Uri _trustedGitHubPage(String value) {

@@ -54,10 +54,7 @@ class _HistoryVersionsPageState
     });
 
     try {
-      final channel =
-          ServiceManager().updateState.receiveBetaUpdates.value
-              ? 'beta'
-              : 'stable';
+      final channel = ServiceManager().updateState.channel.value.name;
       final baseUri = Uri.parse(updateApiBaseUrl);
       final uri = baseUri.replace(
         path: '${baseUri.path.replaceFirst(RegExp(r'/$'), '')}/versions',

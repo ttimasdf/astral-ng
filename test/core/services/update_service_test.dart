@@ -45,6 +45,28 @@ void main() {
     expect(result?.update?.pageUrl.host, 'github.com');
   });
 
+  test('accepts the selected alpha channel', () async {
+    Uri? requestedUri;
+    final client = _FakeClient((request) async {
+      requestedUri = request.url;
+      return http.Response(
+        '{"schemaVersion":1,"data":${_updateJson('alpha')}}',
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final result =
+        await UpdateChecker(
+          client: client,
+          channelProvider: () => 'alpha',
+          currentVersionProvider: () => '2.0.0',
+        ).check();
+
+    expect(requestedUri?.queryParameters['channel'], 'alpha');
+    expect(result?.update?.channel, 'alpha');
+  });
+
   test('does not trust an arbitrary page URL', () async {
     final client = _FakeClient((request) async {
       return http.Response(
@@ -84,6 +106,7 @@ void main() {
 String _updateJson(String channel, {String? pageUrl}) {
   return '{'
       '"channel":"$channel",'
+      '"stage":"${channel == 'stable' ? 'stable' : channel}",'
       '"version":"3.0.0",'
       '"title":"Release v3.0.0",'
       '"highlights":{"en":"A safer update."},'
