@@ -20,7 +20,7 @@ SPEC.loader.exec_module(version)
 
 
 class VersionResolutionTest(unittest.TestCase):
-    def test_canary_uses_ordered_semver_and_seven_character_commit(self):
+    def test_pull_request_uses_alpha_semver_and_seven_character_commit(self):
         with patch.dict(
             os.environ,
             {
@@ -34,10 +34,30 @@ class VersionResolutionTest(unittest.TestCase):
             build = version.resolve("canary")
 
         self.assertEqual(build.commit, "abcdef0")
+        self.assertEqual(build.stage, "alpha")
         self.assertEqual(build.semantic_version, "3.0.0-alpha.42+abcdef0")
         self.assertEqual(build.asset_version, "3.0.0-alpha.42+abcdef0")
         self.assertEqual(build.package_version, "3.0.0~alpha.42+abcdef0")
         self.assertEqual(build.build_number, 1_000_000_042)
+
+    def test_main_push_uses_beta_semver_and_canary_identity(self):
+        with patch.dict(
+            os.environ,
+            {
+                "GITHUB_REF": "refs/heads/main",
+                "GITHUB_REF_NAME": "main",
+                "GITHUB_RUN_NUMBER": "43",
+                "GITHUB_SHA": "1234567890abcdef",
+            },
+            clear=True,
+        ):
+            build = version.resolve("canary")
+
+        self.assertEqual(build.channel, "canary")
+        self.assertEqual(build.stage, "beta")
+        self.assertEqual(build.semantic_version, "3.0.0-beta.43+1234567")
+        self.assertEqual(build.package_version, "3.0.0~beta.43+1234567")
+        self.assertTrue(build.is_prerelease)
 
     def test_production_uses_release_semver_without_build_metadata(self):
         with patch.dict(
@@ -52,10 +72,47 @@ class VersionResolutionTest(unittest.TestCase):
         ):
             build = version.resolve("production")
 
+        self.assertEqual(build.stage, "stable")
         self.assertEqual(build.semantic_version, "3.0.0")
         self.assertEqual(build.asset_version, "3.0.0")
         self.assertEqual(build.package_version, "3.0.0")
         self.assertEqual(build.build_number, 10288)
+        self.assertFalse(build.is_prerelease)
+
+    def test_rc_tag_uses_signed_production_identity_and_prerelease_semver(self):
+        with patch.dict(
+            os.environ,
+            {
+                "GITHUB_ACTIONS": "true",
+                "GITHUB_REF": "refs/tags/v3.0.0-rc.2",
+                "GITHUB_REF_NAME": "v3.0.0-rc.2",
+                "GITHUB_RUN_NUMBER": "91",
+                "GITHUB_SHA": "1234567890abcdef",
+            },
+            clear=True,
+        ):
+            build = version.resolve("production")
+
+        self.assertEqual(build.channel, "production")
+        self.assertEqual(build.stage, "rc")
+        self.assertEqual(build.semantic_version, "3.0.0-rc.2")
+        self.assertEqual(build.package_version, "3.0.0~rc.2")
+        self.assertEqual(build.build_number, 10288)
+        self.assertTrue(build.is_prerelease)
+
+    def test_production_rejects_noncanonical_prerelease_tags(self):
+        for tag in ("v3.0.0-rc", "v3.0.0-rc.0", "v3.0.0-beta.1", "v3.1.0-rc.1"):
+            with self.subTest(tag=tag), patch.dict(
+                os.environ,
+                {
+                    "GITHUB_ACTIONS": "true",
+                    "GITHUB_REF": f"refs/tags/{tag}",
+                    "GITHUB_REF_NAME": tag,
+                },
+                clear=True,
+            ):
+                with self.assertRaises(ValueError):
+                    version.resolve("production")
 
     def test_merged_pull_request_main_push_gets_long_artifact_retention(self):
         self.assertEqual(
@@ -96,6 +153,12 @@ class VersionResolutionTest(unittest.TestCase):
             90,
         )
 
+    def test_build_bump_advances_signed_build_number_without_changing_semver(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            version.bump("build", dry_run=True)
+        self.assertIn("3.0.0+10288 -> 3.0.0+10289", output.getvalue())
+
     def test_step_outputs_cover_ci_without_redundant_package_id(self):
         with patch.dict(
             os.environ,
@@ -126,6 +189,7 @@ class VersionResolutionTest(unittest.TestCase):
             {
                 "version_base",
                 "build_channel",
+                "build_stage",
                 "build_commit",
                 "build_run_number",
                 "semantic_version",
@@ -133,6 +197,7 @@ class VersionResolutionTest(unittest.TestCase):
                 "flutter_build_number",
                 "package_version",
                 "asset_version",
+                "is_prerelease",
                 "app_display_name",
                 "app_executable",
                 "linux_package_name",
@@ -142,9 +207,11 @@ class VersionResolutionTest(unittest.TestCase):
         )
         self.assertEqual(step_values["build_commit"], "fedcba9")
         self.assertEqual(step_values["build_run_number"], "7")
+        self.assertEqual(step_values["build_stage"], "beta")
         self.assertEqual(
-            step_values["semantic_version"], "3.0.0-alpha.7+fedcba9"
+            step_values["semantic_version"], "3.0.0-beta.7+fedcba9"
         )
+        self.assertEqual(step_values["is_prerelease"], "true")
         self.assertEqual(step_values["asset_version"], step_values["semantic_version"])
         self.assertEqual(step_values["app_executable"], "astral-canary")
         self.assertEqual(step_values["artifact_retention_days"], "90")

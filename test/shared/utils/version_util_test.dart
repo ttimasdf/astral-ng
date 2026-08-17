@@ -10,6 +10,21 @@ void main() {
       );
     });
 
+    test('orders alpha, beta, RC, and final stages', () {
+      expect(
+        VersionUtil.hasNewVersion(
+          '3.1.0-alpha.99+abcdef0',
+          '3.1.0-beta.1+1234567',
+        ),
+        isTrue,
+      );
+      expect(
+        VersionUtil.hasNewVersion('3.1.0-beta.99+abcdef0', '3.1.0-rc.1'),
+        isTrue,
+      );
+      expect(VersionUtil.hasNewVersion('3.1.0-rc.1', '3.1.0'), isTrue);
+    });
+
     test('orders numeric prerelease identifiers numerically', () {
       expect(
         VersionUtil.hasNewVersion(

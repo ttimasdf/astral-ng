@@ -1,10 +1,15 @@
-/// Compile-time branding selected by CI with
-/// `--dart-define=BUILD_CHANNEL=canary|production`.
+/// Compile-time branding and release stage selected by CI.
 abstract final class BuildBrand {
   static const channel = String.fromEnvironment(
     'BUILD_CHANNEL',
     defaultValue: 'production',
   );
+
+  static const stage = String.fromEnvironment(
+    'BUILD_STAGE',
+    defaultValue: channel == 'canary' ? 'alpha' : 'stable',
+  );
+  static const version = String.fromEnvironment('BUILD_VERSION');
 
   static const commit = String.fromEnvironment(
     'BUILD_COMMIT',

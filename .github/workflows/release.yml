@@ -59,7 +59,7 @@ jobs:
 
   android:
     needs: test
-    environment: production
+    environment: Production
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -115,9 +115,13 @@ jobs:
             echo "ERROR: CHANGELOG.md not found"
             exit 1
           fi
-          CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.version_base }}" '
+          CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.semantic_version }}" '
             /^## / { in_section = 0 }
-            $0 ~ "^## \\[?" ver "\\]?" { in_section = 1; next }
+            $0 == "## " ver || index($0, "## " ver " ") == 1 ||
+              $0 == "## [" ver "]" || index($0, "## [" ver "] ") == 1 {
+              in_section = 1
+              next
+            }
             in_section { lines[++count] = $0 }
             END {
               first = 1
@@ -204,6 +208,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body: ${{ steps.extract-changelog.outputs.changelog }}
           draft: false
+          prerelease: ${{ steps.resolve-version.outputs.is_prerelease }}
           files: |
             release-assets/*
         env:

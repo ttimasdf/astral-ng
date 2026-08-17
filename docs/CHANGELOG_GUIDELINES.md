@@ -53,12 +53,13 @@ chronological order:
 ...
 ```
 
-Release automation extracts notes by matching a heading that starts with
-`## v<version>` or `## [v<version>]`. Every release heading must therefore use
-exactly:
+Release automation extracts notes by matching the full version in a heading
+that starts with `## v<version>` or `## [v<version>]`. Final and release
+candidate headings must therefore use exactly:
 
 ```text
 ## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD
+## [vMAJOR.MINOR.PATCH-rc.N] - YYYY-MM-DD
 ```
 
 Add the corresponding GitHub release URL as a reference-style footnote, for
@@ -90,8 +91,9 @@ machine-readable field with this exact grammar:
 ^> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$
 ```
 
-The parser must first select the requested `## Unreleased` or
-`## [vMAJOR.MINOR.PATCH]` section, then require exactly one block match. Capture
+The parser must first select the requested `## Unreleased`,
+`## [vMAJOR.MINOR.PATCH]`, or `## [vMAJOR.MINOR.PATCH-rc.N]` section, then
+require exactly one block match. Capture
 group 1 is English and capture group 2 is Chinese; both are suitable for a
 future release manifest after normal JSON string escaping:
 
@@ -284,8 +286,8 @@ Before merging a changelog update, verify that:
 - removals, compatibility losses, and migration steps are not hidden under
   `Changed`;
 - links resolve to the intended repository and item;
-- release headings match `## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD` and include
-  the corresponding release URL reference;
+- release headings match `## [vMAJOR.MINOR.PATCH[-rc.N]] - YYYY-MM-DD` and
+  include the corresponding release URL reference;
 - every release section has exactly one valid bilingual highlight pair, with
   each value at most 160 characters;
 - internal maintenance noise has been omitted.

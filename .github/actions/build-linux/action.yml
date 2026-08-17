@@ -54,6 +54,8 @@ runs:
         --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}"
         --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}"
         --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}"
+        --dart-define "BUILD_STAGE=${{ steps.resolve-version.outputs.build_stage }}"
+        --dart-define "BUILD_VERSION=${{ steps.resolve-version.outputs.semantic_version }}"
         --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}"
         --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}"
         --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"

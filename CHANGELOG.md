@@ -10,8 +10,16 @@ provenance.
 >
 > **版本亮点：** 暂无重要更新。
 
+### Changed
+
+- **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
+  replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
+  alpha.
 ### Developer notes
 
+- **Staged preview versions.** Pull-request artifacts use alpha versions,
+  `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
+  prereleases with distinct update-history metadata.
 - **Release pipeline split.** Shared platform actions use explicit Android
   debug/release modes and unified/split APK layouts; signing remains limited to
   the protected production environment.
