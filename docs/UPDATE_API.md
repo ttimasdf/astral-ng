@@ -24,19 +24,29 @@ root is not itself a Node/Vercel project.
 ## Endpoints
 
 ```text
-GET /api/v1/update?channel=stable|beta
-GET /api/v1/versions?channel=stable|beta&limit=1..30
+GET /api/v1/update?channel=stable|beta|alpha
+GET /api/v1/versions?channel=stable|beta|alpha&limit=1..30
 ```
 
 `limit` defaults to `10`. The service rejects unknown, duplicate, or malformed
-query parameters. `stable` is sourced from non-draft, non-prerelease GitHub
-Releases. `beta` is sourced from successful `build.yml` push runs on `main`
-with a complete set of unexpired canary artifacts.
+query parameters. `stable` contains final GitHub Releases. `beta` combines
+successful `main` builds with signed `vMAJOR.MINOR.PATCH-rc.N` GitHub
+prereleases. `alpha` contains successful labeled pull-request builds with a
+complete set of unexpired platform artifacts.
 
-Stable pages link to the GitHub Release. Beta pages link to the GitHub Actions
-run. The API does not return artifact download URLs or expose the GitHub token.
-Beta versions disappear after the earliest artifact in the complete build
-expires.
+Every result includes `stage: stable|rc|beta|alpha`. Alpha titles use the pull
+request title and Actions run number; beta titles use `Beta build #N`. Their
+highlights use the first commit-message line. RC and stable highlights come from
+the release changelog block. Pages link to the relevant GitHub Actions run or
+GitHub Release; the API never returns artifact download URLs or exposes its
+GitHub token. Alpha and beta action versions disappear when their earliest
+required artifact expires.
+
+The application’s Update Settings page persists an explicit Stable/Beta/Alpha
+selection and uses it for both update checks and version history. Selecting a
+preview channel enables automatic checks initially, but the automatic-check
+switch remains independently controllable afterward. Existing installations
+with the legacy Beta boolean migrate to Beta or Stable on first load.
 
 ## Local development
 
@@ -60,6 +70,11 @@ installs `update-server/package.json`, and maps `update-server/api/` to `/api/`.
 The functions cannot access files outside that root, so all runtime code and
 dependencies stay inside the subproject.
 
+Automatic Vercel Git deployments are disabled. Trusted same-repository pull
+requests with a `platform-*` label deploy a Preview through the protected
+GitHub `Preview` environment; platform artifacts compile that deployment's
+exact `/api/v1` URL. See `docs/CI.md` for credentials and approval rules.
+
 For a manual CLI deployment, either enter the directory or use Vercel's `--cwd`
 option:
 
@@ -74,8 +89,8 @@ vercel --cwd update-server --prod
 Set these Vercel environment variables for Production and Preview as needed:
 
 - `GITHUB_TOKEN`: fine-grained read-only token for the repository. It needs
-  repository Contents read access and Actions read access. Do not expose this
-  value to the client.
+  repository Contents, Actions, and Pull requests read access. Do not expose
+  this value to the client.
 - `GITHUB_REPOSITORY`: optional `OWNER/REPOSITORY`; defaults to
   `ttimasdf/astral-ng`.
 - `GITHUB_WORKFLOW`: optional workflow filename; defaults to `build.yml`.
@@ -92,9 +107,9 @@ verify both routes before compiling that URL into a release build.
 ## Cache policy
 
 Stable responses use a five-minute Vercel CDN TTL with one hour of
-stale-while-revalidate. Beta responses use a ten-minute TTL and no stale period;
-the TTL is clipped to the earliest artifact expiration in the response. Empty
-channels and errors are short-lived.
+stale-while-revalidate. Alpha and beta responses use a ten-minute TTL and no
+stale period; their TTL is clipped to the earliest artifact expiration in the
+response. Empty channels and errors are short-lived.
 
 ## Configuring the Flutter base URL
 

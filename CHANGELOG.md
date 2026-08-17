@@ -24,6 +24,8 @@ provenance.
 - **Staged preview versions.** Pull-request artifacts use alpha versions,
   `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
   prereleases with distinct update-history metadata.
+- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
+  after Preview approval and compile its URL into platform artifacts.
 - **Release pipeline split.** Shared platform actions use explicit Android
   debug/release modes and unified/split APK layouts; signing remains limited to
   the protected production environment.

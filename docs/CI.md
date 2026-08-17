@@ -26,9 +26,43 @@ labels when platform validation is no longer needed:
 gh pr edit <number> --remove-label platform-all
 ```
 
-Pushes to `main` continue to build and retain canary artifacts for the update
-API. Manual dispatch runs platform builds without uploading artifacts. Release
-tags use the separate `release.yml` workflow.
+Labeled pull requests upload alpha canary artifacts; pushes to `main` upload
+beta canary artifacts for the update API. Manual dispatch runs platform builds
+without uploading artifacts. Signed RC and final tags use `release.yml`.
+
+## PR update API previews
+
+The Vercel project has automatic Git deployments disabled. A labeled,
+trusted same-repository pull request runs the `preview-update-api` job in the
+protected `Preview` environment. The job deploys `update-server/` with the
+Vercel CLI, verifies the preview endpoint, and passes the exact preview URL to
+the labeled Linux, Windows, and Android builds through `UPDATE_API_BASE_URL`.
+Fork pull requests and unlabeled pull requests use the production API URL.
+
+Configure the Vercel project-scoped credentials as environment-scoped GitHub
+values. Obtain `orgId` and `projectId` from `update-server/.vercel/project.json`
+after running `vercel link --cwd update-server` locally, then create a
+project-scoped Vercel token using the Vercel dashboard or:
+
+```bash
+vercel tokens add "AstralNG GitHub Preview" --project <project-id>
+```
+
+Store the token only as the `Preview` environment secret, and store the
+identifiers as `Preview` environment variables:
+
+```bash
+gh secret set VERCEL_TOKEN --env Preview
+printf '%s' '<org-id>' | gh variable set VERCEL_ORG_ID --env Preview
+printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Preview
+```
+
+The Vercel token owner must have project Developer access, and the token should
+be scoped to this project. The Vercel project’s Preview Deployment Protection
+must allow public requests because compiled clients call the preview API
+without credentials. Keep GitHub Actions and Vercel runtime credentials
+separate: the Vercel Preview environment needs its own read-only `GITHUB_TOKEN`
+for the update API’s GitHub queries.
 
 ## Release credential boundary
 
@@ -37,18 +71,27 @@ requests, `main`, and manual dispatches, and has read-only repository
 permissions. Its platform jobs call the shared composite actions under
 `.github/actions/build-*`; it does not reference signing secrets.
 
-Release work lives in `.github/workflows/release.yml`, which triggers only for
-`v*` tag pushes and calls the same shared platform actions. The Android signing
-job is attached to the protected GitHub Environment named `production`; put
-these values in that environment, not in repository-level Actions secrets:
+Release work lives in `.github/workflows/release.yml`, which accepts canonical
+`vMAJOR.MINOR.PATCH-rc.N` and `vMAJOR.MINOR.PATCH` tag pushes and calls the same
+shared platform actions. RC tags publish GitHub prereleases; final tags publish
+stable releases. Increment and commit `BUILD_NUMBER` before every signed tag so
+installed RC builds can upgrade to later candidates and the final release.
 
-- `KEYSTORE_BASE64`
-- `KEY_ALIAS`
-- `STORE_PASSWORD`
-- `KEY_PASSWORD`
+The Android signing job is attached to the protected GitHub Environment named
+`Production`. Both `Preview` and `Production` require approval from `ttimasdf`;
+administrator bypass is disabled. `Preview` permits branches because the
+workflow applies the trusted-author and `platform-*` label gates. `Production`
+accepts only release tags (`v*`). Configure signing secrets in `Production`,
+not `Preview` or repository-level Actions secrets:
 
-Configure required reviewers for the `production` environment and restrict its
-deployment branch/tag policy to release tags (`v*`). Also protect `v*` tags in
+```bash
+gh secret set KEYSTORE_BASE64 --env Production < upload-keystore.base64
+printf '%s' '<alias>' | gh secret set KEY_ALIAS --env Production
+printf '%s' '<store-password>' | gh secret set STORE_PASSWORD --env Production
+printf '%s' '<key-password>' | gh secret set KEY_PASSWORD --env Production
+```
+
+Also protect `v*` tags in
 the repository ruleset so only authorized release maintainers can create or
 move a tag. The release publication job alone receives `contents: write`; all
 other jobs use read-only contents permissions.
