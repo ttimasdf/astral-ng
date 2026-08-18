@@ -5,13 +5,16 @@ creating a pull request.
 
 ## Pull request CI
 
-Every pull request runs the shared `test` job. Platform build jobs are opt-in
-through labels applied to the pull request:
+Every pull request runs the shared `test` job. Platform build jobs are selected
+by changed paths, with labels available as explicit overrides:
 
-- `platform-linux`: Linux build and artifacts
-- `platform-windows`: Windows build and artifacts
-- `platform-android`: Android build and artifacts
-- `platform-all`: all three platform builds and artifacts
+- Linux changes (`linux/**`, Linux packaging, or its build action) run Linux.
+- Windows changes (`windows/**`, Windows packaging, DLLs, or its build action)
+  run Windows.
+- Android changes (`android/**` or its build action) run Android.
+- Shared application, dependency, toolchain, or CI-action changes run all three.
+- `platform-linux`, `platform-windows`, `platform-android`, and `platform-all`
+  force the corresponding build(s), regardless of changed paths.
 
 Use the pull request's **Labels** control in the GitHub sidebar, or run:
 
@@ -19,8 +22,7 @@ Use the pull request's **Labels** control in the GitHub sidebar, or run:
 gh pr edit <number> --add-label platform-all
 ```
 
-For a single platform, add the corresponding `platform-*` label instead. Remove
-labels when platform validation is no longer needed:
+Remove labels when the explicit override is no longer needed:
 
 ```bash
 gh pr edit <number> --remove-label platform-all
@@ -32,12 +34,13 @@ without uploading artifacts. Signed RC and final tags use `release.yml`.
 
 ## PR update API previews
 
-The Vercel project has automatic Git deployments disabled. A labeled,
-trusted same-repository pull request runs the `preview-update-api` job in the
-protected `Preview` environment. The job deploys `update-server/` with the
-Vercel CLI, verifies the preview endpoint, and passes the exact preview URL to
-the labeled Linux, Windows, and Android builds through `UPDATE_API_BASE_URL`.
-Fork pull requests and unlabeled pull requests use the production API URL.
+The Vercel project has automatic Git deployments disabled. A labeled, trusted
+same-repository pull request runs the `preview-update-api` job in the protected
+`Preview` environment only when it changes `update-server/**`. The job deploys
+the server with the Vercel CLI, verifies the preview endpoint, and passes the
+exact preview URL to the labeled Linux, Windows, and Android builds through
+`UPDATE_API_BASE_URL`. Other pull requests skip that job and compile the
+configured base URL (the production API by default).
 
 Configure the Vercel project-scoped credentials as environment-scoped GitHub
 values. Obtain `orgId` and `projectId` from `update-server/.vercel/project.json`
@@ -58,7 +61,8 @@ printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Preview
 ```
 
 The Vercel token owner must have project Developer access, and the token should
-be scoped to this project. The Vercel project’s Preview Deployment Protection
+be scoped to this project. GitHub Actions sets `VERCEL_TELEMETRY_DISABLED=1` for
+Vercel CLI invocations. The Vercel project’s Preview Deployment Protection
 must allow public requests because compiled clients call the preview API
 without credentials. Keep GitHub Actions and Vercel runtime credentials
 separate: the Vercel Preview environment needs its own read-only `GITHUB_TOKEN`
@@ -79,9 +83,10 @@ installed RC builds can upgrade to later candidates and the final release.
 
 The Android signing job is attached to the protected GitHub Environment named
 `Production`. Both `Preview` and `Production` require approval from `ttimasdf`;
-administrator bypass is disabled. `Preview` permits branches because the
-workflow applies the trusted-author and `platform-*` label gates. `Production`
-accepts only release tags (`v*`). Configure signing secrets in `Production`,
+administrator bypass is disabled. `Preview` permits ordinary branch refs and
+GitHub's `refs/pull/*/merge` refs because the workflow applies the
+trusted-author and `platform-*` label gates. `Production` accepts only release
+tags (`v*`). Configure signing secrets in `Production`,
 not `Preview` or repository-level Actions secrets:
 
 ```bash
