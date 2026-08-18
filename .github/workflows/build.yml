@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   # Optional repository/environment override for the compiled update API base URL.
@@ -34,8 +35,63 @@ jobs:
       - name: Run tests
         uses: ./.github/actions/test
 
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      update_server: ${{ steps.filter.outputs.update_server }}
+      linux: ${{ steps.filter.outputs.linux }}
+      windows: ${{ steps.filter.outputs.windows }}
+      android: ${{ steps.filter.outputs.android }}
+      all: ${{ steps.filter.outputs.all }}
+    steps:
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            update_server:
+              - 'update-server/**'
+            linux:
+              - 'linux/**'
+              - '.github/actions/build-linux/**'
+              - 'scripts/package_appimage.sh'
+            windows:
+              - 'windows/**'
+              - '.github/actions/build-windows/**'
+              - 'dlls/**'
+              - 'installer/**'
+            android:
+              - 'android/**'
+              - '.github/actions/build-android/**'
+            all:
+              - 'lib/**'
+              - 'assets/**'
+              - 'fonts/**'
+              - 'rust/**'
+              - 'rust_builder/**'
+              - 'vpn_service_plugin/**'
+              - 'web/**'
+              - '.github/actions/test/**'
+              - '.github/actions/setup-toolchains/**'
+              - '.github/workflows/**'
+              - 'scripts/version.py'
+              - 'scripts/sync_toolchains.py'
+              - 'scripts/generate_icons.py'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'analysis_options.yaml'
+              - 'flake.nix'
+              - 'flake.lock'
+              - 'toolchains.env'
+              - 'VERSION'
+              - 'BUILD_NUMBER'
+
   preview-update-api:
+    needs: changes
     if: >-
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.update_server == 'true' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (github.event.pull_request.author_association == 'OWNER' ||
@@ -55,6 +111,7 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TELEMETRY_DISABLED: '1'
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
@@ -110,12 +167,14 @@ jobs:
           echo "base-url=$base_url" >> "$GITHUB_OUTPUT"
 
   linux:
-    needs: preview-update-api
+    needs: [changes, preview-update-api]
     if: >-
       always() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
+       needs.changes.outputs.all == 'true' ||
+       needs.changes.outputs.linux == 'true' ||
        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
        contains(github.event.pull_request.labels.*.name, 'platform-linux'))
     runs-on: ubuntu-latest
@@ -137,16 +196,20 @@ jobs:
           package: >-
             ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
                 (github.event_name == 'pull_request' &&
-                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                 (needs.changes.outputs.all == 'true' ||
+                  needs.changes.outputs.linux == 'true' ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-all') ||
                   contains(github.event.pull_request.labels.*.name, 'platform-linux'))) }}
 
   windows:
-    needs: preview-update-api
+    needs: [changes, preview-update-api]
     if: >-
       always() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
+       needs.changes.outputs.all == 'true' ||
+       needs.changes.outputs.windows == 'true' ||
        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
        contains(github.event.pull_request.labels.*.name, 'platform-windows'))
     runs-on: windows-2022
@@ -168,16 +231,20 @@ jobs:
           upload-artifacts: >-
             ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
                 (github.event_name == 'pull_request' &&
-                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                 (needs.changes.outputs.all == 'true' ||
+                  needs.changes.outputs.windows == 'true' ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-all') ||
                   contains(github.event.pull_request.labels.*.name, 'platform-windows'))) }}
 
   android:
-    needs: preview-update-api
+    needs: [changes, preview-update-api]
     if: >-
       always() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
+       needs.changes.outputs.all == 'true' ||
+       needs.changes.outputs.android == 'true' ||
        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
        contains(github.event.pull_request.labels.*.name, 'platform-android'))
     runs-on: ubuntu-24.04
@@ -201,5 +268,7 @@ jobs:
           upload-snapshot: >-
             ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
                 (github.event_name == 'pull_request' &&
-                 (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+                 (needs.changes.outputs.all == 'true' ||
+                  needs.changes.outputs.android == 'true' ||
+                  contains(github.event.pull_request.labels.*.name, 'platform-all') ||
                   contains(github.event.pull_request.labels.*.name, 'platform-android'))) }}
