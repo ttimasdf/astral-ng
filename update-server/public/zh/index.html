@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,9 +7,9 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta
       name="description"
-      content="Astral-NG is an open-source, cross-platform P2P networking and VPN application built on EasyTier."
+      content="Astral-NG 是一款基于 EasyTier 构建的开源跨平台 P2P 组网与 VPN 应用。"
     >
-    <title>Astral-NG — Your network, wherever you are.</title>
+    <title>Astral-NG — 你的网络，随处相连。</title>
     <link rel="icon" type="image/png" href="/astral-mark.png">
     <style>
       :root {
@@ -330,6 +330,20 @@
         50% { transform: translateY(-10px) rotate(1deg); }
       }
 
+      html[lang="zh-CN"] body {
+        font-family: "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      html[lang="zh-CN"] h1 {
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+
+      html[lang="zh-CN"] .lede {
+        line-height: 2.05;
+        letter-spacing: 0.02em;
+      }
+
       @media (max-width: 820px) {
         .page {
           width: min(100% - 32px, 640px);
@@ -417,26 +431,26 @@
         <div class="brand">
           <img src="/astral-mark.png" alt="">
           <span class="brand-name">Astral-NG</span>
-          <span class="brand-meta">P2P network</span>
+          <span class="brand-meta">P2P 组网</span>
         </div>
-        <div class="status" aria-label="Network ready">
+        <div class="status" aria-label="网络就绪">
           <span class="status-dot"></span>
-          <span class="status-label">Network ready</span>
-          <a class="language" href="/zh/" lang="zh-Hans">中文</a>
+          <span class="status-label">网络就绪</span>
+          <a class="language" href="/" lang="en">EN</a>
         </div>
       </header>
 
       <main>
         <section class="copy">
-          <p class="eyebrow">Open-source · Cross-platform</p>
-          <h1>Your network,<br><em>wherever you are.</em></h1>
+          <p class="eyebrow">开源 · 跨平台</p>
+          <h1>你的网络，<br><em>随处相连。</em></h1>
           <p class="lede">
-            Astral-NG makes remote devices feel local—a focused P2P networking
-            and VPN client for Windows, Linux, and Android, built on EasyTier.
+            Astral-NG 让远程设备如同近在身边——一款基于 EasyTier、面向
+            Windows、Linux 与 Android 的 P2P 组网与 VPN 客户端。
           </p>
           <div class="actions">
             <a class="button primary" href="https://github.com/ttimasdf/astral-ng">
-              View on GitHub
+              查看 GitHub
             </a>
           </div>
         </section>
@@ -445,12 +459,12 @@
           <div class="orbit"></div>
           <div class="orbit secondary"></div>
           <img class="mark" src="/astral-mark.png" alt="">
-          <span class="coordinate">MESH / DIRECT / SECURE</span>
+          <span class="coordinate">组网 / 直连 / 安全</span>
         </div>
       </main>
 
       <footer>
-        <span>Built on EasyTier</span>
+        <span>基于 EasyTier</span>
         <span>Windows · Linux · Android</span>
         <span>GPL-3.0</span>
       </footer>

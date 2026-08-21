@@ -18,8 +18,8 @@ provenance.
 - **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
   Choosing Beta or Alpha enables automatic checks initially while leaving the
   switch under user control.
-- **Update service home.** New builds use `astral-ng.rabit.pw`; the service root
-  now introduces Astral-NG and links to its source and stable API.
+- **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
+  now introduces Astral-NG in English and Chinese with a source link.
 
 ### Developer notes
 
