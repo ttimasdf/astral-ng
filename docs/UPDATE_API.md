@@ -121,7 +121,7 @@ https://updates.example.com/api/v1
 ```
 
 The default API base is
-`https://update.astral-ng.rabit.pw/api/v1`. `UPDATE_API_BASE_URL` is an optional
+`https://astral-ng.rabit.pw/api/v1`. `UPDATE_API_BASE_URL` is an optional
 compile-time override for a local, preview, or alternate deployment.
 
 ### GitHub Actions builds
