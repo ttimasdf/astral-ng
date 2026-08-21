@@ -36,11 +36,12 @@ without uploading artifacts. Signed RC and final tags use `release.yml`.
 
 The Vercel project has automatic Git deployments disabled. A labeled, trusted
 same-repository pull request runs the `preview-update-api` job in the protected
-`Preview` environment only when it changes `update-server/**`. The job deploys
-the server with the Vercel CLI, verifies the preview endpoint, and passes the
-exact preview URL to the labeled Linux, Windows, and Android builds through
-`UPDATE_API_BASE_URL`. Other pull requests skip that job and compile the
-configured base URL (the production API by default).
+`Preview` environment only when it changes `update-server/**`. The job fetches
+project settings through Vercel's project-scoped REST API, builds from the
+repository root, deploys the prebuilt server with the Vercel CLI, and verifies
+the preview endpoint. It passes the exact preview URL to labeled platform builds
+through `UPDATE_API_BASE_URL`. Other pull requests use the configured base URL
+(the production API by default).
 
 Configure the Vercel project-scoped credentials as environment-scoped GitHub
 values. Obtain `orgId` and `projectId` from `update-server/.vercel/project.json`
@@ -61,12 +62,15 @@ printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Preview
 ```
 
 The Vercel token owner must have project Developer access, and the token should
-be scoped to this project. GitHub Actions sets `VERCEL_TELEMETRY_DISABLED=1` for
-Vercel CLI invocations. The Vercel project’s Preview Deployment Protection
-must allow public requests because compiled clients call the preview API
-without credentials. Keep GitHub Actions and Vercel runtime credentials
-separate: the Vercel Preview environment needs its own read-only `GITHUB_TOKEN`
-for the update API’s GitHub queries.
+be scoped to this project. The workflow intentionally bypasses `vercel pull`,
+which currently fails with project-scoped tokens, and obtains only that
+project's settings and Preview environment before `vercel build`. It sets
+`VERCEL_TELEMETRY_DISABLED=1` for Vercel CLI invocations.
+
+Preview Deployment Protection must remain disabled because compiled clients
+call the deployment without credentials. Keep GitHub Actions and Vercel runtime
+credentials separate: the Vercel Preview environment needs its own read-only
+`GITHUB_TOKEN` for the update API’s GitHub queries.
 
 ## Release credential boundary
 

@@ -265,6 +265,12 @@ function validateSearchParams(
   return { channel, limit: route === 'latest' ? 1 : limit! };
 }
 
+function isValidationError(
+  value: { channel: Channel; limit: number } | Response,
+): value is Response {
+  return value instanceof Response;
+}
+
 function isGitHubPageUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -821,7 +827,7 @@ export async function handleUpdateRequest(
   }
 
   const validated = validateSearchParams(request, route);
-  if (validated instanceof Response) return validated;
+  if (isValidationError(validated)) return validated;
 
   try {
     const values = await loadVersions(validated.channel);

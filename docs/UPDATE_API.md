@@ -64,9 +64,10 @@ The local endpoint is `http://127.0.0.1:3100/api/v1`.
 
 ## Vercel deployment
 
-Create a separate Vercel project for this repository and set its **Root
-Directory** to `update-server`. Vercel then sees `update-server/vercel.json`,
-installs `update-server/package.json`, and maps `update-server/api/` to `/api/`.
+Create a separate Vercel project for this repository, set its **Root Directory**
+to `update-server`, and use the **Other** framework preset. The checked-in
+`update-server/vercel.json` also disables framework auto-detection. Vercel then
+installs `update-server/package.json` and maps `update-server/api/` to `/api/`.
 The functions cannot access files outside that root, so all runtime code and
 dependencies stay inside the subproject.
 
@@ -75,15 +76,14 @@ requests with a `platform-*` label deploy a Preview through the protected
 GitHub `Preview` environment; platform artifacts compile that deployment's
 exact `/api/v1` URL. See `docs/CI.md` for credentials and approval rules.
 
-For a manual CLI deployment, either enter the directory or use Vercel's `--cwd`
-option:
+Run manual CLI deployments from the repository root because the Vercel project
+already applies `update-server` as its Root Directory. Do not also pass
+`--cwd update-server`, which would resolve the project as
+`update-server/update-server`:
 
 ```sh
-vercel --cwd update-server
-vercel --cwd update-server --prod
-
-# Equivalent:
-(cd update-server && vercel --prod)
+vercel --project astral-ng-update-server
+vercel --project astral-ng-update-server --prod
 ```
 
 Set these Vercel environment variables for Production and Preview as needed:
