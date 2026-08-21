@@ -20,24 +20,32 @@ SPEC.loader.exec_module(version)
 
 
 class VersionResolutionTest(unittest.TestCase):
-    def test_pull_request_uses_alpha_semver_and_seven_character_commit(self):
-        with patch.dict(
-            os.environ,
-            {
-                "GITHUB_REF": "refs/pull/12/merge",
-                "GITHUB_REF_NAME": "12/merge",
-                "GITHUB_RUN_NUMBER": "42",
-                "GITHUB_SHA": "abcdef0123456789",
-            },
-            clear=True,
-        ):
-            build = version.resolve("canary")
+    def test_pull_request_uses_head_commit_instead_of_merge_commit(self):
+        event_path = ROOT / "test-event.json"
+        event_path.write_text(
+            '{"pull_request":{"head":{"sha":"1234567890abcdef"}}}'
+        )
+        try:
+            with patch.dict(
+                os.environ,
+                {
+                    "GITHUB_REF": "refs/pull/12/merge",
+                    "GITHUB_REF_NAME": "12/merge",
+                    "GITHUB_RUN_NUMBER": "42",
+                    "GITHUB_SHA": "abcdef0123456789",
+                    "GITHUB_EVENT_PATH": str(event_path),
+                },
+                clear=True,
+            ):
+                build = version.resolve("canary")
+        finally:
+            event_path.unlink()
 
-        self.assertEqual(build.commit, "abcdef0")
+        self.assertEqual(build.commit, "1234567")
         self.assertEqual(build.stage, "alpha")
-        self.assertEqual(build.semantic_version, "3.0.0-alpha.42+abcdef0")
-        self.assertEqual(build.asset_version, "3.0.0-alpha.42+abcdef0")
-        self.assertEqual(build.package_version, "3.0.0~alpha.42+abcdef0")
+        self.assertEqual(build.semantic_version, "3.0.0-alpha.42+1234567")
+        self.assertEqual(build.asset_version, "3.0.0-alpha.42+1234567")
+        self.assertEqual(build.package_version, "3.0.0~alpha.42+1234567")
         self.assertEqual(build.build_number, 1_000_000_042)
 
     def test_main_push_uses_beta_semver_and_canary_identity(self):

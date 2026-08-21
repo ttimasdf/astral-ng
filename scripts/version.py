@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -82,6 +83,24 @@ def git_value(*args: str, fallback: str) -> str:
         return fallback
 
 
+def pull_request_head_commit() -> str:
+    event_path = os.getenv("GITHUB_EVENT_PATH", "")
+    if not event_path:
+        return ""
+    try:
+        event = json.loads(Path(event_path).read_text())
+    except (OSError, json.JSONDecodeError):
+        return ""
+    pull_request = event.get("pull_request")
+    if not isinstance(pull_request, dict):
+        return ""
+    head = pull_request.get("head")
+    if not isinstance(head, dict):
+        return ""
+    sha = head.get("sha")
+    return sha if isinstance(sha, str) else ""
+
+
 def read_source() -> SourceVersion:
     values: dict[str, str] = {}
     for line in VERSION_FILE.read_text().splitlines():
@@ -111,7 +130,8 @@ def resolve(channel: str) -> BuildVersion:
     if channel == "auto":
         channel = "production" if github_ref.startswith("refs/tags/") else "canary"
 
-    commit = os.getenv("GITHUB_SHA", "")[:SHORT_COMMIT_LENGTH] or git_value(
+    commit_source = pull_request_head_commit() if github_ref.startswith("refs/pull/") else ""
+    commit = (commit_source or os.getenv("GITHUB_SHA", ""))[:SHORT_COMMIT_LENGTH] or git_value(
         "rev-parse", f"--short={SHORT_COMMIT_LENGTH}", "HEAD", fallback="local"
     )
     git_ref = github_ref_name or git_value(

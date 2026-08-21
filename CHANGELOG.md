@@ -20,6 +20,8 @@ provenance.
   switch under user control.
 - **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
   now introduces Astral-NG in English and Chinese with a source link.
+- **Alpha artifact matching.** PR builds now identify the source commit instead of
+  GitHub's synthetic merge commit, so successful Alpha artifacts appear in updates.
 
 ### Developer notes
 
