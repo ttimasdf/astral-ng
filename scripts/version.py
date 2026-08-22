@@ -77,7 +77,10 @@ def fail(message: str) -> None:
 def git_value(*args: str, fallback: str) -> str:
     try:
         return subprocess.check_output(
-            ["git", "-C", str(ROOT), *args], text=True, stderr=subprocess.DEVNULL
+            ["git", "-C", str(ROOT), *args],
+            text=True,
+            encoding="utf-8",
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return fallback
@@ -88,7 +91,7 @@ def pull_request_head_commit() -> str:
     if not event_path:
         return ""
     try:
-        event = json.loads(Path(event_path).read_text())
+        event = json.loads(Path(event_path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return ""
     pull_request = event.get("pull_request")
@@ -103,7 +106,7 @@ def pull_request_head_commit() -> str:
 
 def read_source() -> SourceVersion:
     values: dict[str, str] = {}
-    for line in VERSION_FILE.read_text().splitlines():
+    for line in VERSION_FILE.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             key, separator, value = line.partition("=")
@@ -282,7 +285,7 @@ def expected_pubspec(source: SourceVersion) -> str:
 def sync(check_only: bool) -> None:
     source = read_source()
     expected = expected_pubspec(source)
-    content = PUBSPEC_FILE.read_text()
+    content = PUBSPEC_FILE.read_text(encoding="utf-8")
     actual_match = PUBSPEC_PATTERN.search(content)
     actual = actual_match.group(0) if actual_match else "<missing>"
     if actual == expected:
@@ -290,7 +293,9 @@ def sync(check_only: bool) -> None:
         return
     if check_only:
         fail(f"pubspec.yaml version drift: expected '{expected}', got '{actual}'")
-    PUBSPEC_FILE.write_text(PUBSPEC_PATTERN.sub(expected, content, count=1))
+    PUBSPEC_FILE.write_text(
+        PUBSPEC_PATTERN.sub(expected, content, count=1), encoding="utf-8"
+    )
     print(f"Updated pubspec.yaml: {actual} -> {expected}")
 
 
@@ -312,7 +317,8 @@ def bump(part: str, dry_run: bool) -> None:
         return
     VERSION_FILE.write_text(
         "# Astral-ng release identity. This is the only human-edited application version.\n"
-        f"VERSION={next_source.version}\nBUILD_NUMBER={next_source.build_number}\n"
+        f"VERSION={next_source.version}\nBUILD_NUMBER={next_source.build_number}\n",
+        encoding="utf-8",
     )
     sync(check_only=False)
 

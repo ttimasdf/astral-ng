@@ -23,7 +23,8 @@ class VersionResolutionTest(unittest.TestCase):
     def test_pull_request_uses_head_commit_instead_of_merge_commit(self):
         event_path = ROOT / "test-event.json"
         event_path.write_text(
-            '{"pull_request":{"head":{"sha":"1234567890abcdef"}}}'
+            '{"pull_request":{"title":"修复 Windows 编译 🚀",'
+            '"head":{"sha":"1234567890abcdef"}}}'
         )
         try:
             with patch.dict(
