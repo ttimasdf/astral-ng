@@ -48,10 +48,6 @@ function changelogContent(): string {
 
 ## Unreleased
 
-> **Highlight:** Unreleased highlight.
->
-> **版本亮点：** 未发布亮点。
-
 ## v3.0.0 - 2026-08-14
 
 > **Highlight:** Stable highlight.

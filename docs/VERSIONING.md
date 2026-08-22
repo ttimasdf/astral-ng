@@ -90,6 +90,10 @@ merged-PR pushes to `main` retain beta artifacts for 90 days.
 
 RC tags use production identity and signing but publish GitHub prereleases.
 Final tags publish stable releases. Signed artifacts are retained for 90 days.
+The changelog keeps one evolving section for the base version: the first RC
+creates it, later RCs and the final release rename that section and merge new
+`Unreleased` entries into it. Earlier RC tags and GitHub prereleases remain
+immutable.
 
 Nix development shells default Flutter build, run, drive, and test commands to
 canary. The wrappers derive the seven-character commit from `HEAD` and use local

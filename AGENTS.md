@@ -120,19 +120,23 @@ changes next, and operational or developer-facing changes such as logs,
 packaging, and toolchains last. Format breaking briefs with the prominent
 `⚠ BREAKING —` marker and retain an exact migration action.
 
-Every `Unreleased` and version section must retain the exact machine-readable
-bilingual highlight block defined by the guideline, including its quoted blank
-separator. Routine feature, fix, and maintenance work may add factual entries
-under `Unreleased`, but must not create, replace, or revise that section's
-highlight.
+`Unreleased` contains entries only and must not have a highlight block. Every
+versioned release section must retain the exact machine-readable bilingual
+highlight block defined by the guideline, including its quoted blank separator.
+Routine feature, fix, and maintenance work adds factual entries under
+`Unreleased`; the highlight is added only when creating the first release
+section for a new base version.
 
-Write a new release highlight only when the user explicitly requests a version
-bump. Treat the highlight as release content requiring separate review:
+Write a new release highlight only for the first release candidate or stable
+release of a new base version, and only after the user explicitly requests that
+release. Treat new highlight wording as release content requiring separate
+review:
 
 1. Inspect the accumulated `Unreleased` entries and draft an exact bilingual
    highlight block that follows `docs/CHANGELOG_GUIDELINES.md`.
-2. Apply the proposed block to `CHANGELOG.md` as an uncommitted draft and show
-   the user the target version and both highlight lines.
+2. Create the new versioned release section and apply the proposed block there
+   as an uncommitted draft, then show the user the target version and both
+   highlight lines.
 3. Ask the user to confirm or revise that exact draft. A general feature,
    release, or bump request is not confirmation of agent-authored highlight
    wording.
@@ -140,5 +144,14 @@ bump. Treat the highlight as release content requiring separate review:
    release section, commit the release preparation, and proceed with any
    separately authorized tag or publication workflow.
 
-Release headings must start with `## vMAJOR.MINOR.PATCH` so CI can extract
-release notes.
+Keep one evolving changelog section for a base version from its first RC through
+its stable release. For a later RC or stable promotion, rename that section's
+heading and date in place, retain its approved highlight unless the user asks to
+revise it, merge new `Unreleased` entries into the existing categories, and
+reset `Unreleased` to an empty heading with no highlight. Do not create parallel
+changelog sections for each RC. Git
+tags and GitHub Releases remain immutable historical records; never move or
+replace an earlier RC tag.
+
+Release headings must match `## [vMAJOR.MINOR.PATCH[-rc.N]] - YYYY-MM-DD` so CI
+can extract release notes.

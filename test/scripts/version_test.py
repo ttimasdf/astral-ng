@@ -85,7 +85,7 @@ class VersionResolutionTest(unittest.TestCase):
         self.assertEqual(build.semantic_version, "3.0.0")
         self.assertEqual(build.asset_version, "3.0.0")
         self.assertEqual(build.package_version, "3.0.0")
-        self.assertEqual(build.build_number, 10288)
+        self.assertEqual(build.build_number, version.read_source().build_number)
         self.assertFalse(build.is_prerelease)
 
     def test_rc_tag_uses_signed_production_identity_and_prerelease_semver(self):
@@ -106,7 +106,7 @@ class VersionResolutionTest(unittest.TestCase):
         self.assertEqual(build.stage, "rc")
         self.assertEqual(build.semantic_version, "3.0.0-rc.2")
         self.assertEqual(build.package_version, "3.0.0~rc.2")
-        self.assertEqual(build.build_number, 10288)
+        self.assertEqual(build.build_number, version.read_source().build_number)
         self.assertTrue(build.is_prerelease)
 
     def test_production_rejects_noncanonical_prerelease_tags(self):
@@ -166,7 +166,12 @@ class VersionResolutionTest(unittest.TestCase):
         output = io.StringIO()
         with redirect_stdout(output):
             version.bump("build", dry_run=True)
-        self.assertIn("3.0.0+10288 -> 3.0.0+10289", output.getvalue())
+        source = version.read_source()
+        self.assertIn(
+            f"{source.version}+{source.build_number} -> "
+            f"{source.version}+{source.build_number + 1}",
+            output.getvalue(),
+        )
 
     def test_step_outputs_cover_ci_without_redundant_package_id(self):
         with patch.dict(
