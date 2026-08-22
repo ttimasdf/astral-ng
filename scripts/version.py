@@ -236,7 +236,7 @@ def emit(build: BuildVersion, output_format: str) -> None:
             else "{9A41EC10-FBE6-4B63-8B18-A466907374B5}"
         ),
     }
-    if output_format == "output":
+    if output_format == "github-actions-output":
         step_outputs = {
             key.lower(): value
             for key, value in values.items()
@@ -333,11 +333,11 @@ def main() -> int:
     )
     resolve_parser.add_argument(
         "--format",
-        choices=("summary", "env", "output", "json"),
+        choices=("summary", "env", "github-actions-output", "json"),
         default="summary",
         help=(
-            "summary for humans, env for build variables, output for GitHub "
-            "step outputs, or json for tooling"
+            "summary for humans, env for build variables, github-actions-output "
+            "for GitHub step outputs, or json for tooling"
         ),
     )
 

@@ -23,8 +23,8 @@ python scripts/version.py resolve
 ```
 
 `resolve` defaults to a readable build identity block. Use `--format env` for
-optional shell tooling, `--format output` for GitHub step outputs, or
-`--format json` for structured tooling. CI reads resolved versions, names, and
+optional shell tooling, `--format github-actions-output` for GitHub step outputs,
+or `--format json` for structured tooling. CI reads resolved versions, names, and
 artifact retention directly from `steps.resolve-version.outputs.*`; it does not
 publish the complete result through `GITHUB_ENV`. Build steps map only
 `BUILD_CHANNEL` into their process environment because Gradle and CMake use it

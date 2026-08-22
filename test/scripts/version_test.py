@@ -187,7 +187,7 @@ class VersionResolutionTest(unittest.TestCase):
             build = version.resolve("canary")
             output = io.StringIO()
             with redirect_stdout(output):
-                version.emit(build, "output")
+                version.emit(build, "github-actions-output")
             step_values = dict(
                 line.split("=", maxsplit=1)
                 for line in output.getvalue().splitlines()
