@@ -43,10 +43,14 @@ When instructed to implement a new feature, use the following workflow:
    authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
    and cleanup workflow.
 
-## Commit Signing
+## Commit and Tag Signing
 
 Create commits in linked worktrees without signing (`git commit --no-gpg-sign`).
-Create commits on `main` with signing enabled (`git commit --gpg-sign`).
+Create commits on `main` with signing enabled (`git commit --gpg-sign`). Create
+all RC and stable release tags as cryptographically signed tags (`git tag
+--sign`) using `ttimasdf`'s signing identity, following the same signing policy
+as `main`. Verify the tag signature before pushing it; never publish an unsigned
+or lightweight release tag.
 
 ## Local Android Builds
 
