@@ -21,11 +21,7 @@ runs:
   steps:
     - name: Resolve build version
       id: resolve-version
-      run: |
-        python3 scripts/version.py sync --check
-        python3 scripts/version.py resolve
-        python3 scripts/version.py resolve --format output >> "$GITHUB_OUTPUT"
-      shell: bash
+      uses: ./.github/actions/resolve-version
 
     - name: Setup pinned toolchains
       uses: ./.github/actions/setup-toolchains

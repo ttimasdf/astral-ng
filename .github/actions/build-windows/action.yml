@@ -13,11 +13,7 @@ runs:
   steps:
     - name: Resolve build version
       id: resolve-version
-      run: |
-        python scripts/version.py sync --check
-        python scripts/version.py resolve
-        python scripts/version.py resolve --format output >> $env:GITHUB_OUTPUT
-      shell: pwsh
+      uses: ./.github/actions/resolve-version
 
     - name: Setup pinned toolchains
       uses: ./.github/actions/setup-toolchains

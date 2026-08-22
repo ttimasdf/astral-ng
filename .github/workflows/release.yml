@@ -103,10 +103,9 @@ jobs:
 
       - name: Resolve production version
         id: resolve-version
-        run: |
-          python3 scripts/version.py sync --check
-          python3 scripts/version.py resolve --channel production
-          python3 scripts/version.py resolve --channel production --format output >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/resolve-version
+        with:
+          channel: production
 
       - name: Extract changelog for version
         id: extract-changelog
