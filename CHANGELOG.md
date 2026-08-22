@@ -6,35 +6,7 @@ provenance.
 
 ## Unreleased
 
-> **Highlight:** No notable changes yet.
->
-> **版本亮点：** 暂无重要更新。
-
-### Changed
-
-- **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
-  replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
-  alpha.
-- **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
-  Choosing Beta or Alpha enables automatic checks initially while leaving the
-  switch under user control.
-- **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
-  now introduces Astral-NG in English and Chinese with a source link.
-- **Alpha artifact matching.** PR builds now identify the source commit instead of
-  GitHub's synthetic merge commit, so successful Alpha artifacts appear in updates.
-
-### Developer notes
-
-- **Staged preview versions.** Pull-request artifacts use alpha versions,
-  `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
-  prereleases with distinct update-history metadata.
-- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
-  after Preview approval and compile its URL into platform artifacts.
-- **Release pipeline split.** Shared platform actions use explicit Android
-  debug/release modes and unified/split APK layouts; signing remains limited to
-  the protected production environment.
-
-## [v3.0.0] - 2026-08-15
+## [v3.0.0-rc.1] - 2026-08-22
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
@@ -64,6 +36,9 @@ provenance.
 
 ### Changed
 
+- **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
+  replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
+  alpha.
 - **⚠ BREAKING — Android settings.** Android users must back up room and relay
   credentials, uninstall the previous APK, install 3.0.0, and restore their
   configuration after the settings schema reset. ([#12])
@@ -73,6 +48,14 @@ provenance.
 - **⚠ BREAKING — Artifact names.** Download automation must replace legacy
   `v3.0.0-canary.*` and `v3.0.0` suffixes with canonical SemVer names such as
   `3.0.0-alpha.CI_RUN+SHORTREF` and `3.0.0`. ([#4])
+- **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
+  Choosing Beta or Alpha enables automatic checks initially while leaving the
+  switch under user control.
+- **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
+  now introduces Astral-NG in English and Chinese with a source link.
+- **Alpha artifact matching.** PR builds now identify the source commit instead
+  of GitHub's synthetic merge commit, so successful Alpha artifacts appear in
+  updates.
 - **Responsive settings.** Redesigned desktop and mobile navigation, status
   descriptions, and Network & Connection controls with clearer segmented
   choices and dependency guidance. ([#12])
@@ -155,6 +138,14 @@ provenance.
 
 ### Developer notes
 
+- **Staged preview versions.** Pull-request artifacts use alpha versions,
+  `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
+  prereleases with distinct update-history metadata.
+- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
+  after Preview approval and compile its URL into platform artifacts.
+- **Release pipeline split.** Shared platform actions use explicit Android
+  debug/release modes and unified/split APK layouts; signing remains limited to
+  the protected production environment.
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build
@@ -277,5 +268,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
+[v3.0.0-rc.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0-rc.1
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
