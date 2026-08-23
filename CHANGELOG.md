@@ -6,11 +6,7 @@ provenance.
 
 ## Unreleased
 
-### Fixed
-
-- **Alpha update discovery.** PR builds now remain discoverable when GitHub omits pull-request metadata from workflow-list responses.
-
-## [v3.0.0-rc.2] - 2026-08-23
+## [v3.0.0] - 2026-08-23
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
@@ -135,6 +131,8 @@ provenance.
     ([upstream-#237])
 - **Android VPN diagnostics.** Startup now preserves the original failure and
   correlation details when VPN interface creation returns null. ([#15])
+- **Alpha update discovery.** PR builds now remain discoverable when GitHub
+  omits pull-request metadata from workflow-list responses.
 
 ### Removed
 
@@ -276,5 +274,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0-rc.2]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0-rc.2
+[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
