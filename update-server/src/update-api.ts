@@ -627,6 +627,22 @@ async function fetchWorkflowRuns(
   return runs;
 }
 
+async function fetchWorkflowRun(
+  repo: string,
+  id: number,
+): Promise<GitHubWorkflowRun | null> {
+  try {
+    return await githubRequest<GitHubWorkflowRun>(
+      `/repos/${repo}/actions/runs/${id}`,
+      `github:alpha:run:v1:${id}`,
+      BETA_INDEX_TTL_SECONDS,
+    );
+  } catch (error) {
+    if (error instanceof GitHubError && error.status === 404) return null;
+    throw error;
+  }
+}
+
 async function fetchPullRequest(
   repo: string,
   number: number,
@@ -675,7 +691,11 @@ async function actionVersions(
 
     let title = `Beta build #${run.run_number}`;
     if (stage === 'alpha') {
-      const pullNumber = run.pull_requests?.[0]?.number;
+      let pullNumber = run.pull_requests?.[0]?.number;
+      if (!pullNumber) {
+        const detailedRun = await fetchWorkflowRun(repo, run.id);
+        pullNumber = detailedRun?.pull_requests?.[0]?.number;
+      }
       if (!pullNumber) continue;
       const pullRequest = await fetchPullRequest(repo, pullNumber);
       if (!pullRequest) continue;

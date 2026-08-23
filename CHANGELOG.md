@@ -6,6 +6,10 @@ provenance.
 
 ## Unreleased
 
+### Fixed
+
+- **Alpha update discovery.** PR builds now remain discoverable when GitHub omits pull-request metadata from workflow-list responses.
+
 ## [v3.0.0-rc.2] - 2026-08-23
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.

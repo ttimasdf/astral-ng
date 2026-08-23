@@ -319,12 +319,27 @@ describe('HTTP contract', () => {
               head_branch: 'feature/version-stages',
               head_sha: 'abcdef0123456789',
               head_commit: { message: 'Refine staged releases\n\nDetails' },
-              pull_requests: [{ number: 16 }],
               html_url: 'https://github.com/example/actions/runs/201',
               created_at: '2026-08-14T00:00:00Z',
               updated_at: '2026-08-14T00:20:00Z',
             },
           ],
+        });
+      }
+      if (url.pathname.endsWith('/actions/runs/201')) {
+        return githubJson({
+          id: 201,
+          run_number: 70,
+          run_attempt: 1,
+          status: 'completed',
+          conclusion: 'success',
+          event: 'pull_request',
+          head_branch: 'feature/version-stages',
+          head_sha: 'abcdef0123456789',
+          pull_requests: [{ number: 16 }],
+          html_url: 'https://github.com/example/actions/runs/201',
+          created_at: '2026-08-14T00:00:00Z',
+          updated_at: '2026-08-14T00:20:00Z',
         });
       }
       if (url.pathname.endsWith('/actions/artifacts')) {
