@@ -88,20 +88,20 @@ immutable tag and verifies both its deployment URL and the public production
 API. Increment and commit `BUILD_NUMBER` before every signed tag so installed
 RC builds can upgrade to later candidates and the final release.
 
-The Android signing and production update API jobs are attached to the
-protected GitHub Environment named `Production`. Both `Preview` and
-`Production` require approval from `ttimasdf`; administrator bypass is disabled.
-`Preview` permits ordinary branch refs and
-GitHub's `refs/pull/*/merge` refs because the workflow applies the
-trusted-author and `platform-*` label gates. `Production` accepts only release
-tags (`v*`). Configure signing secrets in `Production`,
-not `Preview` or repository-level Actions secrets:
+The Android signing job is attached to the protected `Production Signing`
+GitHub Environment, while production update API deployment remains attached to
+`Production`. Administrator bypass is disabled for `Preview`, `Production`, and
+`Production Signing`. `Preview` permits ordinary branch refs and GitHub's
+`refs/pull/*/merge` refs because the workflow applies the trusted-author and
+`platform-*` label gates. `Production` and `Production Signing` accept only
+release tags (`v*`). Configure signing secrets in `Production Signing`, not
+`Preview`, `Production`, or repository-level Actions secrets:
 
 ```bash
-gh secret set KEYSTORE_BASE64 --env Production < upload-keystore.base64
-printf '%s' '<alias>' | gh secret set KEY_ALIAS --env Production
-printf '%s' '<store-password>' | gh secret set STORE_PASSWORD --env Production
-printf '%s' '<key-password>' | gh secret set KEY_PASSWORD --env Production
+gh secret set ANDROID_KEYSTORE_BASE64 --env 'Production Signing' < upload-keystore.base64
+printf '%s' '<alias>' | gh secret set ANDROID_KEY_ALIAS --env 'Production Signing'
+printf '%s' '<store-password>' | gh secret set ANDROID_STORE_PASSWORD --env 'Production Signing'
+printf '%s' '<key-password>' | gh secret set ANDROID_KEY_PASSWORD --env 'Production Signing'
 ```
 
 Also protect `v*` tags in

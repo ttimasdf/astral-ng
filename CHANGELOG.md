@@ -6,11 +6,7 @@ provenance.
 
 ## Unreleased
 
-### Changed
-
-- **Production update API.** Release tags now deploy the update server through the protected Production environment after GitHub Release publication.
-
-## [v3.0.0-rc.1] - 2026-08-22
+## [v3.0.0-rc.2] - 2026-08-23
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
@@ -95,6 +91,8 @@ provenance.
 - **Dedicated update service.** Builds use the dedicated update server by
   default, while `UPDATE_API_BASE_URL` remains an optional compile-time
   override. ([#17])
+- **Production update API.** Release tags now deploy the update server through
+  the protected Production environment after GitHub Release publication.
 - **Npcap guidance.** Windows FakeTCP setup now links to the official Npcap
   download page. ([#17])
 - **Artifact retention.** Canary artifacts remain available for 30 days;
@@ -148,8 +146,10 @@ provenance.
 - **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
   after Preview approval and compile its URL into platform artifacts.
 - **Release pipeline split.** Shared platform actions use explicit Android
-  debug/release modes and unified/split APK layouts; signing remains limited to
-  the protected production environment.
+  debug/release modes and unified/split APK layouts.
+- **Release credential isolation.** Android signing secrets are scoped to the
+  protected `Production Signing` environment; update deployment remains in
+  `Production`.
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build
@@ -272,5 +272,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0-rc.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0-rc.1
+[v3.0.0-rc.2]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0-rc.2
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
