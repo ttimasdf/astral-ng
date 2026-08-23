@@ -1,0 +1,74 @@
+name: Resolve version
+
+description: Resolve the application version and expose GitHub Actions outputs.
+
+inputs:
+  channel:
+    description: Version channel passed to version.py (auto, production, or canary).
+    required: false
+    default: auto
+
+outputs:
+  version_base:
+    description: Base application version.
+    value: ${{ steps.resolve.outputs.version_base }}
+  build_channel:
+    description: Build channel.
+    value: ${{ steps.resolve.outputs.build_channel }}
+  build_stage:
+    description: Build stage.
+    value: ${{ steps.resolve.outputs.build_stage }}
+  build_commit:
+    description: Short source commit.
+    value: ${{ steps.resolve.outputs.build_commit }}
+  build_run_number:
+    description: GitHub Actions run number.
+    value: ${{ steps.resolve.outputs.build_run_number }}
+  semantic_version:
+    description: Semantic application version.
+    value: ${{ steps.resolve.outputs.semantic_version }}
+  flutter_build_name:
+    description: Flutter build name.
+    value: ${{ steps.resolve.outputs.flutter_build_name }}
+  flutter_build_number:
+    description: Flutter build number.
+    value: ${{ steps.resolve.outputs.flutter_build_number }}
+  package_version:
+    description: Native package version.
+    value: ${{ steps.resolve.outputs.package_version }}
+  asset_version:
+    description: Artifact version suffix.
+    value: ${{ steps.resolve.outputs.asset_version }}
+  is_prerelease:
+    description: Whether the build is a prerelease.
+    value: ${{ steps.resolve.outputs.is_prerelease }}
+  app_display_name:
+    description: Display name for the application.
+    value: ${{ steps.resolve.outputs.app_display_name }}
+  app_executable:
+    description: Application executable name.
+    value: ${{ steps.resolve.outputs.app_executable }}
+  linux_package_name:
+    description: Linux package name.
+    value: ${{ steps.resolve.outputs.linux_package_name }}
+  windows_app_id:
+    description: Windows application ID.
+    value: ${{ steps.resolve.outputs.windows_app_id }}
+  artifact_retention_days:
+    description: Artifact retention period in days.
+    value: ${{ steps.resolve.outputs.artifact_retention_days }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve version
+      id: resolve
+      run: |
+        python_command=python3
+        command -v "$python_command" >/dev/null 2>&1 || python_command=python
+        "$python_command" scripts/version.py sync --check
+        "$python_command" scripts/version.py resolve --channel "${{ inputs.channel }}"
+        "$python_command" scripts/version.py resolve \
+          --channel "${{ inputs.channel }}" \
+          --format github-actions-output >> "$GITHUB_OUTPUT"
+      shell: bash

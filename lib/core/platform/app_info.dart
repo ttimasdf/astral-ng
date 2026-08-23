@@ -18,6 +18,12 @@ class AppInfoUtil {
   static String getFriendlyVersion() {
     final version = getVersion();
     if (version.isEmpty) return '';
+    if (BuildBrand.version.isNotEmpty) {
+      if (!BuildBrand.isCanary) return BuildBrand.version;
+      final stage =
+          BuildBrand.stage[0].toUpperCase() + BuildBrand.stage.substring(1);
+      return '$version $stage ${_normalizeCommit(BuildBrand.commit)}';
+    }
     return formatFriendlyVersion(
       version: version,
       commit: BuildBrand.commit,
@@ -28,6 +34,7 @@ class AppInfoUtil {
   static String getAboutVersion() {
     final version = getVersion();
     if (version.isEmpty) return '';
+    if (BuildBrand.version.isNotEmpty) return BuildBrand.version;
     return formatAboutVersion(
       version: version,
       commit: BuildBrand.commit,
@@ -38,6 +45,7 @@ class AppInfoUtil {
   static String getSemanticVersion() {
     final version = getVersion();
     if (version.isEmpty) return '';
+    if (BuildBrand.version.isNotEmpty) return BuildBrand.version;
     return formatSemanticVersion(
       version: version,
       commit: BuildBrand.commit,

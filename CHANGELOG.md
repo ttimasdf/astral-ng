@@ -6,11 +6,11 @@ provenance.
 
 ## Unreleased
 
-> **Highlight:** No notable changes yet.
->
-> **版本亮点：** 暂无重要更新。
+### Fixed
 
-## [v3.0.0] - 2026-08-15
+- **Alpha update discovery.** PR builds now remain discoverable when GitHub omits pull-request metadata from workflow-list responses.
+
+## [v3.0.0-rc.2] - 2026-08-23
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
@@ -40,6 +40,9 @@ provenance.
 
 ### Changed
 
+- **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
+  replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
+  alpha.
 - **⚠ BREAKING — Android settings.** Android users must back up room and relay
   credentials, uninstall the previous APK, install 3.0.0, and restore their
   configuration after the settings schema reset. ([#12])
@@ -49,6 +52,14 @@ provenance.
 - **⚠ BREAKING — Artifact names.** Download automation must replace legacy
   `v3.0.0-canary.*` and `v3.0.0` suffixes with canonical SemVer names such as
   `3.0.0-alpha.CI_RUN+SHORTREF` and `3.0.0`. ([#4])
+- **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
+  Choosing Beta or Alpha enables automatic checks initially while leaving the
+  switch under user control.
+- **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
+  now introduces Astral-NG in English and Chinese with a source link.
+- **Alpha artifact matching.** PR builds now identify the source commit instead
+  of GitHub's synthetic merge commit, so successful Alpha artifacts appear in
+  updates.
 - **Responsive settings.** Redesigned desktop and mobile navigation, status
   descriptions, and Network & Connection controls with clearer segmented
   choices and dependency guidance. ([#12])
@@ -84,6 +95,8 @@ provenance.
 - **Dedicated update service.** Builds use the dedicated update server by
   default, while `UPDATE_API_BASE_URL` remains an optional compile-time
   override. ([#17])
+- **Production update API.** Release tags now deploy the update server through
+  the protected Production environment after GitHub Release publication.
 - **Npcap guidance.** Windows FakeTCP setup now links to the official Npcap
   download page. ([#17])
 - **Artifact retention.** Canary artifacts remain available for 30 days;
@@ -131,14 +144,24 @@ provenance.
 
 ### Developer notes
 
+- **Staged preview versions.** Pull-request artifacts use alpha versions,
+  `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
+  prereleases with distinct update-history metadata.
+- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
+  after Preview approval and compile its URL into platform artifacts.
+- **Release pipeline split.** Shared platform actions use explicit Android
+  debug/release modes and unified/split APK layouts.
+- **Release credential isolation.** Android signing secrets are scoped to the
+  protected `Production Signing` environment; update deployment remains in
+  `Production`.
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build
   numbers; CI labels non-release artifacts as canaries and validates tags.
   ([#4])
-- **Tiered CI.** Pull requests run analysis and Linux by default; `full-ci` adds
-  Windows and Android, while main retains short-lived test artifacts.
-  ([#5], [#6])
+- **Tiered CI.** Pull requests run tests by default; `platform-*` labels opt
+  into Linux, Windows, Android, or all platform artifacts, while main retains
+  canary artifacts. ([#5], [#6])
 - **Flutter toolchain.** Updated Nix development and packaging to Flutter 3.44
   for Dart 3.12 compatibility. ([nix-flutter-3.44])
 - **Reproducible toolchains.** Locked nixpkgs now supplies local and CI tools,
@@ -253,5 +276,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
+[v3.0.0-rc.2]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0-rc.2
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9

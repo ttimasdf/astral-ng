@@ -28,7 +28,7 @@ const originalFetch = globalThis.fetch;
 beforeEach(() => {
   setRuntimeCacheForTests(new MemoryCache());
   process.env.GITHUB_REPOSITORY = 'ttimasdf/astral-ng';
-  process.env.GITHUB_WORKFLOW = 'build-and-release.yml';
+  process.env.GITHUB_WORKFLOW = 'build.yml';
   process.env.GITHUB_DEFAULT_BRANCH = 'main';
   process.env.GITHUB_TOKEN = 'test-token';
 });
@@ -47,10 +47,6 @@ function changelogContent(): string {
   return `# Changelog
 
 ## Unreleased
-
-> **Highlight:** Unreleased highlight.
->
-> **版本亮点：** 未发布亮点。
 
 ## v3.0.0 - 2026-08-14
 
@@ -136,8 +132,9 @@ describe('normalized metadata parsing', () => {
     const now = Date.parse('2026-08-14T00:00:00Z');
     const version = {
       channel: 'beta',
-      version: '3.0.0-alpha.66+abcdef0',
-      title: 'Beta v3.0.0-alpha.66+abcdef0',
+      stage: 'beta',
+      version: '3.0.0-beta.66+abcdef0',
+      title: 'Beta build #66',
       highlights: { en: 'Highlight' },
       publishedAt: '2026-08-14T00:00:00Z',
       expiresAt: '2026-08-14T00:04:00Z',
@@ -294,6 +291,7 @@ describe('HTTP contract', () => {
     );
     expect(body.data).toMatchObject({
       channel: 'stable',
+      stage: 'stable',
       version: '3.0.0',
       title: 'Release v3.0.0',
       highlights: { en: 'Stable highlight.', zh: '稳定版亮点。' },
@@ -302,10 +300,127 @@ describe('HTTP contract', () => {
     });
   });
 
-  test('uses only required artifacts to determine beta expiry', async () => {
-    const version = '3.0.0-alpha.67+abcdef0';
+  test('returns PR alpha builds with the PR title and Actions build number', async () => {
+    const version = '3.0.0-alpha.70+abcdef0';
     globalThis.fetch = mock(async (input: string | URL | Request) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.includes('/actions/workflows/')) {
+        expect(url.searchParams.get('event')).toBe('pull_request');
+        return githubJson({
+          total_count: 1,
+          workflow_runs: [
+            {
+              id: 201,
+              run_number: 70,
+              run_attempt: 1,
+              status: 'completed',
+              conclusion: 'success',
+              event: 'pull_request',
+              head_branch: 'feature/version-stages',
+              head_sha: 'abcdef0123456789',
+              head_commit: { message: 'Refine staged releases\n\nDetails' },
+              html_url: 'https://github.com/example/actions/runs/201',
+              created_at: '2026-08-14T00:00:00Z',
+              updated_at: '2026-08-14T00:20:00Z',
+            },
+          ],
+        });
+      }
+      if (url.pathname.endsWith('/actions/runs/201')) {
+        return githubJson({
+          id: 201,
+          run_number: 70,
+          run_attempt: 1,
+          status: 'completed',
+          conclusion: 'success',
+          event: 'pull_request',
+          head_branch: 'feature/version-stages',
+          head_sha: 'abcdef0123456789',
+          pull_requests: [{ number: 16 }],
+          html_url: 'https://github.com/example/actions/runs/201',
+          created_at: '2026-08-14T00:00:00Z',
+          updated_at: '2026-08-14T00:20:00Z',
+        });
+      }
+      if (url.pathname.endsWith('/actions/artifacts')) {
+        return githubJson({
+          total_count: 6,
+          artifacts: completeArtifacts(201, version),
+        });
+      }
+      if (url.pathname.endsWith('/pulls/16')) {
+        return githubJson({
+          number: 16,
+          title: 'Design staged release channels',
+          html_url: 'https://github.com/example/pull/16',
+        });
+      }
+      return new Response('not found', { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const response = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=alpha'),
+      'latest',
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data).toMatchObject({
+      channel: 'alpha',
+      stage: 'alpha',
+      version,
+      title: 'Design staged release channels · Build #70',
+      highlights: { en: 'Refine staged releases' },
+      source: { type: 'github_actions', id: '201', runNumber: 70 },
+    });
+  });
+
+  test('returns signed release candidates in the beta channel', async () => {
+    globalThis.fetch = mock(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/releases')) {
+        return githubJson([
+          {
+            id: 301,
+            tag_name: 'v3.1.0-rc.1',
+            draft: false,
+            prerelease: true,
+            published_at: '2026-08-14T02:00:00Z',
+            html_url: 'https://github.com/example/releases/tag/v3.1.0-rc.1',
+            body: '> **Highlight:** Candidate highlight.\n>\n> **版本亮点：** 候选版本亮点。',
+          },
+        ]);
+      }
+      if (url.pathname.includes('/actions/workflows/')) {
+        return githubJson({ total_count: 0, workflow_runs: [] });
+      }
+      if (url.pathname.endsWith('/actions/artifacts')) {
+        return githubJson({ total_count: 0, artifacts: [] });
+      }
+      return new Response('not found', { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const response = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=beta'),
+      'latest',
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data).toMatchObject({
+      channel: 'beta',
+      stage: 'rc',
+      version: '3.1.0-rc.1',
+      title: 'Release candidate v3.1.0-rc.1',
+      highlights: { en: 'Candidate highlight.', zh: '候选版本亮点。' },
+      expiresAt: null,
+      source: { type: 'github_release', id: '301', ref: 'v3.1.0-rc.1' },
+    });
+  });
+
+  test('uses only required artifacts to determine beta expiry', async () => {
+    const version = '3.0.0-beta.67+abcdef0';
+    globalThis.fetch = mock(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/releases')) return githubJson([]);
       if (url.pathname.includes('/actions/workflows/')) {
         expect(url.searchParams.get('page')).toBe('1');
         return githubJson({
@@ -356,12 +471,13 @@ describe('HTTP contract', () => {
   });
 
   test('returns complete active beta builds, removes expired builds, and shares its index cache', async () => {
-    const version = '3.0.0-alpha.66+abcdef0';
-    const expiredVersion = '3.0.0-alpha.65+1234567';
+    const version = '3.0.0-beta.66+abcdef0';
+    const expiredVersion = '3.0.0-beta.65+1234567';
     let githubRequests = 0;
     globalThis.fetch = mock(async (input: string | URL | Request) => {
       githubRequests += 1;
       const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/releases')) return githubJson([]);
       if (url.pathname.includes('/actions/workflows/')) {
         expect(url.searchParams.get('page')).toBe('1');
         return githubJson({
@@ -439,7 +555,8 @@ describe('HTTP contract', () => {
     expect(latest.status).toBe(200);
     expect(latestBody.data).toMatchObject({
       version,
-      title: `Beta v${version}`,
+      stage: 'beta',
+      title: 'Beta build #66',
       highlights: { en: 'Improve update checks (#42)' },
       source: {
         type: 'github_actions',
@@ -460,6 +577,6 @@ describe('HTTP contract', () => {
     );
     const listBody = await list.json();
     expect(listBody.data).toHaveLength(1);
-    expect(githubRequests).toBe(2);
+    expect(githubRequests).toBe(3);
   });
 });

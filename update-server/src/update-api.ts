@@ -3,7 +3,7 @@ import { getCache } from '@vercel/functions';
 const API_VERSION = '2022-11-28';
 const SCHEMA_VERSION = 1;
 const DEFAULT_REPOSITORY = 'ttimasdf/astral-ng';
-const DEFAULT_WORKFLOW = 'build-and-release.yml';
+const DEFAULT_WORKFLOW = 'build.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
 const BETA_INDEX_TTL_SECONDS = 600;
@@ -13,7 +13,8 @@ const MAX_LIMIT = 30;
 const MAX_GITHUB_PAGES = 10;
 const GITHUB_API = 'https://api.github.com';
 
-export type Channel = 'stable' | 'beta';
+export type Channel = 'stable' | 'beta' | 'alpha';
+export type ReleaseStage = 'stable' | 'rc' | 'beta' | 'alpha';
 
 type Highlights = {
   en: string;
@@ -22,6 +23,7 @@ type Highlights = {
 
 export type VersionSummary = {
   channel: Channel;
+  stage: ReleaseStage;
   version: string;
   title: string;
   highlights: Highlights | null;
@@ -50,6 +52,7 @@ type GitHubRelease = {
   prerelease: boolean;
   published_at: string | null;
   html_url: string;
+  body?: string | null;
 };
 
 type GitHubWorkflowRun = {
@@ -64,9 +67,16 @@ type GitHubWorkflowRun = {
   head_commit?: {
     message?: string | null;
   } | null;
+  pull_requests?: Array<{ number: number }>;
   html_url: string | null;
   created_at: string;
   updated_at: string;
+};
+
+type GitHubPullRequest = {
+  number: number;
+  title: string;
+  html_url: string;
 };
 
 type GitHubArtifact = {
@@ -217,7 +227,9 @@ export function parseLimit(value: string | null): number | null {
 }
 
 function parseChannel(value: string | null): Channel | null {
-  return value === 'stable' || value === 'beta' ? value : null;
+  return value === 'stable' || value === 'beta' || value === 'alpha'
+    ? value
+    : null;
 }
 
 function validateSearchParams(
@@ -236,7 +248,7 @@ function validateSearchParams(
   if (!channel) {
     return errorResponse(
       'invalid_channel',
-      'The channel must be either stable or beta.',
+      'The channel must be stable, beta, or alpha.',
       400,
     );
   }
@@ -251,6 +263,12 @@ function validateSearchParams(
   }
 
   return { channel, limit: route === 'latest' ? 1 : limit! };
+}
+
+function isValidationError(
+  value: { channel: Channel; limit: number } | Response,
+): value is Response {
+  return value instanceof Response;
 }
 
 function isGitHubPageUrl(value: string): boolean {
@@ -318,9 +336,21 @@ function sortVersions(values: VersionSummary[]): VersionSummary[] {
   });
 }
 
-function releaseVersion(tag: string): string | null {
+function stableReleaseVersion(tag: string): string | null {
   if (!/^v\d+\.\d+\.\d+$/.test(tag)) return null;
   return tag.slice(1);
+}
+
+function rcReleaseVersion(tag: string): string | null {
+  if (!/^v\d+\.\d+\.\d+-rc\.[1-9]\d*$/.test(tag)) return null;
+  return tag.slice(1);
+}
+
+function extractHighlightBlock(markdown: string): Highlights | null {
+  const match = /> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$/m.exec(
+    markdown,
+  );
+  return match ? { en: match[1], zh: match[2] } : null;
 }
 
 function extractChangelogHighlights(markdown: string, version: string): Highlights | null {
@@ -332,10 +362,7 @@ function extractChangelogHighlights(markdown: string, version: string): Highligh
   const content = nextHeading
     ? section.slice(0, headingMatch[0].length + nextHeading.index)
     : section;
-  const match = /> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$/m.exec(
-    content,
-  );
-  return match ? { en: match[1], zh: match[2] } : null;
+  return extractHighlightBlock(content);
 }
 
 function escapeRegExp(value: string): string {
@@ -347,7 +374,7 @@ function commitSubject(message: string | null | undefined): string {
 }
 
 const CANARY_ARTIFACT_PATTERN =
-  /^astral-canary-.+-(\d+\.\d+\.\d+-alpha\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
+  /^astral-canary-.+-(\d+\.\d+\.\d+-(?:alpha|beta)\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
 
 function artifactVersion(name: string): string | null {
   const match = CANARY_ARTIFACT_PATTERN.exec(name);
@@ -418,13 +445,17 @@ async function immutableReleaseChangelog(
   return content;
 }
 
-async function stableVersions(): Promise<VersionSummary[]> {
-  const repo = repository();
-  const releases = await githubRequest<GitHubRelease[]>(
+async function githubReleases(repo: string): Promise<GitHubRelease[]> {
+  return githubRequest<GitHubRelease[]>(
     `/repos/${repo}/releases?per_page=100`,
-    'github:stable:releases:v1',
+    'github:releases:v2',
     STABLE_INDEX_TTL_SECONDS,
   );
+}
+
+async function stableVersions(): Promise<VersionSummary[]> {
+  const repo = repository();
+  const releases = await githubReleases(repo);
   let changelog = '';
   try {
     const changelogResponse = await githubRequest<{
@@ -449,7 +480,7 @@ async function stableVersions(): Promise<VersionSummary[]> {
   // highlights are intentionally non-fatal.
   for (const release of releases) {
     if (values.length >= MAX_LIMIT) break;
-    const version = releaseVersion(release.tag_name);
+    const version = stableReleaseVersion(release.tag_name);
     if (
       release.draft ||
       release.prerelease ||
@@ -470,6 +501,7 @@ async function stableVersions(): Promise<VersionSummary[]> {
     );
     values.push({
       channel: 'stable',
+      stage: 'stable',
       version,
       title: `Release v${version}`,
       highlights,
@@ -487,6 +519,40 @@ async function stableVersions(): Promise<VersionSummary[]> {
   return sortVersions(values);
 }
 
+async function rcVersions(): Promise<VersionSummary[]> {
+  const repo = repository();
+  const releases = await githubReleases(repo);
+  const values: VersionSummary[] = [];
+  for (const release of releases) {
+    const version = rcReleaseVersion(release.tag_name);
+    if (
+      release.draft ||
+      !release.prerelease ||
+      !version ||
+      !release.published_at ||
+      !isGitHubPageUrl(release.html_url)
+    ) {
+      continue;
+    }
+    values.push({
+      channel: 'beta',
+      stage: 'rc',
+      version,
+      title: `Release candidate v${version}`,
+      highlights: extractHighlightBlock(release.body ?? ''),
+      publishedAt: release.published_at,
+      expiresAt: null,
+      pageUrl: release.html_url,
+      source: {
+        type: 'github_release',
+        id: String(release.id),
+        ref: release.tag_name,
+      },
+    });
+  }
+  return sortVersions(values);
+}
+
 function decodeBase64(value: string, encoding = 'base64'): string {
   if (encoding !== 'base64') return value;
   return Buffer.from(value.replace(/\s/g, ''), 'base64').toString('utf8');
@@ -497,7 +563,7 @@ async function fetchAllArtifacts(repo: string, now: number): Promise<GitHubArtif
   for (let page = 1; page <= MAX_GITHUB_PAGES; page += 1) {
     const response = await githubRequest<GitHubListResponse<GitHubArtifact>>(
       `/repos/${repo}/actions/artifacts?per_page=100&page=${page}`,
-      `github:beta:artifacts:v1:${page}`,
+      `github:preview:artifacts:v2:${page}`,
       BETA_INDEX_TTL_SECONDS,
     );
     const pageArtifacts = response.artifacts ?? [];
@@ -520,12 +586,18 @@ async function fetchAllArtifacts(repo: string, now: number): Promise<GitHubArtif
 async function fetchWorkflowRuns(
   repo: string,
   now: number,
+  stage: 'alpha' | 'beta',
 ): Promise<GitHubWorkflowRun[]> {
   const runs: GitHubWorkflowRun[] = [];
+  const event = stage === 'alpha' ? 'pull_request' : 'push';
+  const scope =
+    stage === 'alpha'
+      ? `event=pull_request&status=completed&exclude_pull_requests=false`
+      : `branch=${encodeURIComponent(branch())}&event=push&status=completed&exclude_pull_requests=true`;
   for (let page = 1; page <= MAX_GITHUB_PAGES; page += 1) {
     const response = await githubRequest<GitHubListResponse<GitHubWorkflowRun>>(
-      `/repos/${repo}/actions/workflows/${encodeURIComponent(workflow())}/runs?branch=${encodeURIComponent(branch())}&event=push&status=completed&exclude_pull_requests=true&per_page=100&page=${page}`,
-      `github:beta:runs:v1:${page}`,
+      `/repos/${repo}/actions/workflows/${encodeURIComponent(workflow())}/runs?${scope}&per_page=100&page=${page}`,
+      `github:${stage}:runs:v2:${page}`,
       BETA_INDEX_TTL_SECONDS,
     );
     const pageRuns = response.workflow_runs ?? [];
@@ -534,8 +606,8 @@ async function fetchWorkflowRuns(
         (run) =>
           run.status === 'completed' &&
           run.conclusion === 'success' &&
-          run.event === 'push' &&
-          run.head_branch === branch() &&
+          run.event === event &&
+          (stage === 'alpha' || run.head_branch === branch()) &&
           run.html_url !== null &&
           isGitHubPageUrl(run.html_url),
       ),
@@ -555,11 +627,47 @@ async function fetchWorkflowRuns(
   return runs;
 }
 
-async function betaVersions(max: number): Promise<VersionSummary[]> {
+async function fetchWorkflowRun(
+  repo: string,
+  id: number,
+): Promise<GitHubWorkflowRun | null> {
+  try {
+    return await githubRequest<GitHubWorkflowRun>(
+      `/repos/${repo}/actions/runs/${id}`,
+      `github:alpha:run:v1:${id}`,
+      BETA_INDEX_TTL_SECONDS,
+    );
+  } catch (error) {
+    if (error instanceof GitHubError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+async function fetchPullRequest(
+  repo: string,
+  number: number,
+): Promise<GitHubPullRequest | null> {
+  try {
+    const pullRequest = await githubRequest<GitHubPullRequest>(
+      `/repos/${repo}/pulls/${number}`,
+      `github:alpha:pull:v1:${number}`,
+      BETA_INDEX_TTL_SECONDS,
+    );
+    return pullRequest.title.trim() ? pullRequest : null;
+  } catch (error) {
+    if (error instanceof GitHubError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+async function actionVersions(
+  stage: 'alpha' | 'beta',
+  max: number,
+): Promise<VersionSummary[]> {
   const repo = repository();
   const now = Date.now();
   const [runs, artifacts] = await Promise.all([
-    fetchWorkflowRuns(repo, now),
+    fetchWorkflowRuns(repo, now, stage),
     fetchAllArtifacts(repo, now),
   ]);
   const artifactsByRun = new Map<number, GitHubArtifact[]>();
@@ -577,9 +685,22 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
     const version = completeArtifactVersion(runArtifacts);
     if (!version) continue;
     const parts = semverParts(version);
-    if (!parts || parts.prerelease.length !== 2 || parts.prerelease[0] !== 'alpha') continue;
+    if (!parts || parts.prerelease.length !== 2 || parts.prerelease[0] !== stage) continue;
     if (Number(parts.prerelease[1]) !== run.run_number) continue;
     if (version.slice(-7).toLowerCase() !== run.head_sha.slice(0, 7).toLowerCase()) continue;
+
+    let title = `Beta build #${run.run_number}`;
+    if (stage === 'alpha') {
+      let pullNumber = run.pull_requests?.[0]?.number;
+      if (!pullNumber) {
+        const detailedRun = await fetchWorkflowRun(repo, run.id);
+        pullNumber = detailedRun?.pull_requests?.[0]?.number;
+      }
+      if (!pullNumber) continue;
+      const pullRequest = await fetchPullRequest(repo, pullNumber);
+      if (!pullRequest) continue;
+      title = `${pullRequest.title.trim()} · Build #${run.run_number}`;
+    }
 
     const requiredRunArtifacts = requiredArtifacts(runArtifacts).filter(
       (artifact) => artifactVersion(artifact.name) === version,
@@ -590,10 +711,11 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
       .sort()[0];
     if (!expiresAt || Date.parse(expiresAt) <= now) continue;
     versions.push({
-      channel: 'beta',
+      channel: stage,
+      stage,
       version,
-      title: `Beta v${version}`,
-      highlights: { en: commitSubject(run.head_commit?.message) || `Beta v${version}` },
+      title,
+      highlights: { en: commitSubject(run.head_commit?.message) || title },
       publishedAt: run.updated_at,
       expiresAt,
       pageUrl: run.html_url!,
@@ -605,18 +727,32 @@ async function betaVersions(max: number): Promise<VersionSummary[]> {
         commitSha: run.head_sha,
       },
     });
+    if (versions.length >= max) break;
   }
 
   return sortVersions(versions).slice(0, max);
 }
 
+async function betaVersions(max: number): Promise<VersionSummary[]> {
+  const [betas, releaseCandidates] = await Promise.all([
+    actionVersions('beta', max),
+    rcVersions(),
+  ]);
+  return sortVersions([...betas, ...releaseCandidates]).slice(0, max);
+}
+
 async function loadVersions(channel: Channel): Promise<VersionSummary[]> {
-  const key = `index:v1:${repository()}:${workflow()}:${branch()}:${channel}`;
+  const key = `index:v2:${repository()}:${workflow()}:${branch()}:${channel}`;
   const cache = runtimeCache();
   const cached = (await cache.get(key)) as VersionSummary[] | null;
   if (cached) return cached.filter((item) => !item.expiresAt || Date.parse(item.expiresAt) > Date.now());
 
-  const values = channel === 'stable' ? await stableVersions() : await betaVersions(30);
+  const values =
+    channel === 'stable'
+      ? await stableVersions()
+      : channel === 'beta'
+        ? await betaVersions(30)
+        : await actionVersions('alpha', 30);
   await cache.set(key, values, {
     ttl: channel === 'stable' ? STABLE_INDEX_TTL_SECONDS : BETA_INDEX_TTL_SECONDS,
     tags: [`updates-${channel}`],
@@ -711,7 +847,7 @@ export async function handleUpdateRequest(
   }
 
   const validated = validateSearchParams(request, route);
-  if (validated instanceof Response) return validated;
+  if (isValidationError(validated)) return validated;
 
   try {
     const values = await loadVersions(validated.channel);

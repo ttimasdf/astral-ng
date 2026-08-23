@@ -1,15 +1,40 @@
 import 'package:signals_flutter/signals_flutter.dart';
 
-/// 更新相关状态
-class UpdateState {
-  /// 是否接收 Beta 更新
-  final receiveBetaUpdates = signal(false);
+enum UpdateChannel {
+  stable,
+  beta,
+  alpha;
 
-  /// 是否自动检查更新
+  static UpdateChannel? parseStorage(String? value) {
+    for (final channel in UpdateChannel.values) {
+      if (channel.name == value) return channel;
+    }
+    return null;
+  }
+
+  static UpdateChannel fromStorage(
+    String? value, {
+    required bool legacyReceiveBetaUpdates,
+  }) {
+    return parseStorage(value) ??
+        (legacyReceiveBetaUpdates ? UpdateChannel.beta : UpdateChannel.stable);
+  }
+}
+
+/// Update preferences and runtime state.
+class UpdateState {
+  final channel = signal(UpdateChannel.stable);
   final automaticUpdateChecks = signal(true);
 
-  void setReceiveBetaUpdates(bool value) {
-    receiveBetaUpdates.value = value;
+  void setChannel(UpdateChannel value) {
+    channel.value = value;
+  }
+
+  void selectChannel(UpdateChannel value) {
+    channel.value = value;
+    if (value != UpdateChannel.stable) {
+      automaticUpdateChecks.value = true;
+    }
   }
 
   void setAutomaticUpdateChecks(bool value) {

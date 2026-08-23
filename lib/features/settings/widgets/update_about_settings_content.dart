@@ -5,6 +5,7 @@ import 'package:astral/core/diagnostics/support_bundle.dart';
 import 'package:astral/core/platform/app_info.dart';
 import 'package:astral/core/platform/build_brand.dart';
 import 'package:astral/core/services/service_manager.dart';
+import 'package:astral/core/states/update_state.dart';
 import 'package:astral/features/settings/models/settings_diagnostics.dart';
 import 'package:astral/features/settings/pages/general/logs_page.dart';
 import 'package:astral/features/settings/widgets/settings_components.dart';
@@ -91,9 +92,7 @@ class _UpdateAboutSettingsContentState
     final colorScheme = Theme.of(context).colorScheme;
 
     return Watch((context) {
-      final receiveBetaUpdates = services.updateState.receiveBetaUpdates.watch(
-        context,
-      );
+      final updateChannel = services.updateState.channel.watch(context);
       final automaticUpdateChecks = services.updateState.automaticUpdateChecks
           .watch(context);
       return SettingsContentView(
@@ -187,37 +186,35 @@ class _UpdateAboutSettingsContentState
             description: LocaleKeys.update_management_desc.tr(),
             icon: Icons.system_update_alt,
             children: [
-              SettingsSegmentedChoice<bool>(
-                title: LocaleKeys.receive_beta_updates.tr(),
-                description: LocaleKeys.receive_beta_updates_desc.tr(),
-                value: receiveBetaUpdates,
+              SettingsSegmentedChoice<UpdateChannel>(
+                title: LocaleKeys.release_channel.tr(),
+                description: LocaleKeys.release_channel_desc.tr(),
+                value: updateChannel,
                 segments: [
                   ButtonSegment(
-                    value: false,
+                    value: UpdateChannel.stable,
                     icon: const Icon(Icons.verified_outlined),
                     label: Text(LocaleKeys.stable_channel.tr()),
                   ),
                   ButtonSegment(
-                    value: true,
+                    value: UpdateChannel.beta,
                     icon: const Icon(Icons.science_outlined),
                     label: Text(LocaleKeys.beta_channel.tr()),
                   ),
+                  ButtonSegment(
+                    value: UpdateChannel.alpha,
+                    icon: const Icon(Icons.construction_outlined),
+                    label: Text(LocaleKeys.alpha_channel.tr()),
+                  ),
                 ],
-                onChanged: services.appSettings.setReceiveBetaUpdates,
+                onChanged: services.appSettings.setUpdateChannel,
               ),
               SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 title: Text(LocaleKeys.automatic_update_checks.tr()),
-                subtitle: Text(
-                  receiveBetaUpdates
-                      ? LocaleKeys.beta_update_checks_required.tr()
-                      : LocaleKeys.automatic_update_checks_desc.tr(),
-                ),
-                value: receiveBetaUpdates || automaticUpdateChecks,
-                onChanged:
-                    receiveBetaUpdates
-                        ? null
-                        : services.appSettings.setAutomaticUpdateChecks,
+                subtitle: Text(LocaleKeys.automatic_update_checks_desc.tr()),
+                value: automaticUpdateChecks,
+                onChanged: services.appSettings.setAutomaticUpdateChecks,
               ),
               SettingsLinkTile(
                 icon: Icons.refresh,
@@ -264,14 +261,16 @@ class _UpdateAboutSettingsContentState
                 ),
           ),
           SettingsNotice(
-            icon:
-                receiveBetaUpdates
-                    ? Icons.science_outlined
-                    : Icons.verified_outlined,
-            message:
-                receiveBetaUpdates
-                    ? LocaleKeys.receive_beta_updates_desc.tr()
-                    : LocaleKeys.stable_channel_desc.tr(),
+            icon: switch (updateChannel) {
+              UpdateChannel.stable => Icons.verified_outlined,
+              UpdateChannel.beta => Icons.science_outlined,
+              UpdateChannel.alpha => Icons.construction_outlined,
+            },
+            message: switch (updateChannel) {
+              UpdateChannel.stable => LocaleKeys.stable_channel_desc.tr(),
+              UpdateChannel.beta => LocaleKeys.beta_channel_desc.tr(),
+              UpdateChannel.alpha => LocaleKeys.alpha_channel_desc.tr(),
+            },
           ),
         ],
       );

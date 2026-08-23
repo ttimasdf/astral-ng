@@ -6,7 +6,7 @@ import 'package:astral/core/services/service_manager.dart';
 import 'package:astral/shared/utils/version_util.dart';
 import 'package:http/http.dart' as http;
 
-const _defaultUpdateApiBaseUrl = 'https://update.astral-ng.rabit.pw/api/v1';
+const _defaultUpdateApiBaseUrl = 'https://astral-ng.rabit.pw/api/v1';
 const updateApiBaseUrl = String.fromEnvironment(
   'UPDATE_API_BASE_URL',
   defaultValue: _defaultUpdateApiBaseUrl,
@@ -43,10 +43,7 @@ class UpdateChecker {
        _baseUri = baseUri ?? Uri.parse(updateApiBaseUrl),
        _channelProvider =
            channelProvider ??
-           (() =>
-               ServiceManager().updateState.receiveBetaUpdates.value
-                   ? 'beta'
-                   : 'stable'),
+           (() => ServiceManager().updateState.channel.value.name),
        _currentVersionProvider =
            currentVersionProvider ?? AppInfoUtil.getSemanticVersion;
 
@@ -56,7 +53,7 @@ class UpdateChecker {
   }) async {
     try {
       final channel = _channelProvider();
-      if (channel != 'stable' && channel != 'beta') {
+      if (channel != 'stable' && channel != 'beta' && channel != 'alpha') {
         throw const FormatException('Unsupported update channel');
       }
       final uri = _baseUri.replace(
@@ -73,7 +70,7 @@ class UpdateChecker {
           )
           .timeout(_requestTimeout);
 
-      if (response.statusCode == 404 && channel == 'beta') {
+      if (response.statusCode == 404 && channel != 'stable') {
         return showFailureMessage
             ? const UpdateCheckResult(kind: UpdateCheckKind.unavailable)
             : null;

@@ -233,10 +233,11 @@ abstract class LocaleKeys {
   static const enable_banner_carousel_desc = 'enable_banner_carousel_desc';
   static const update_settings = 'update_settings';
   static const update_management_desc = 'update_management_desc';
-  static const receive_beta_updates = 'receive_beta_updates';
-  static const receive_beta_updates_desc = 'receive_beta_updates_desc';
+  static const release_channel = 'release_channel';
+  static const release_channel_desc = 'release_channel_desc';
   static const stable_channel = 'stable_channel';
   static const beta_channel = 'beta_channel';
+  static const alpha_channel = 'alpha_channel';
   static const automatic_update_checks = 'automatic_update_checks';
   static const automatic_update_checks_desc = 'automatic_update_checks_desc';
   static const check_update = 'check_update';
@@ -245,8 +246,8 @@ abstract class LocaleKeys {
   static const open_release_page = 'open_release_page';
   static const app_up_to_date = 'app_up_to_date';
   static const current_version_value = 'current_version_value';
-  static const beta_unavailable = 'beta_unavailable';
-  static const beta_unavailable_desc = 'beta_unavailable_desc';
+  static const preview_unavailable = 'preview_unavailable';
+  static const preview_unavailable_desc = 'preview_unavailable_desc';
   static const update_check_failed = 'update_check_failed';
   static const update_check_failed_desc = 'update_check_failed_desc';
   static const update_behavior_desc = 'update_behavior_desc';
@@ -378,7 +379,8 @@ abstract class LocaleKeys {
   static const view_adapter_priorities_desc = 'view_adapter_priorities_desc';
   static const advanced_network = 'advanced_network';
   static const advanced_network_warning = 'advanced_network_warning';
-  static const beta_update_checks_required = 'beta_update_checks_required';
+  static const beta_channel_desc = 'beta_channel_desc';
+  static const alpha_channel_desc = 'alpha_channel_desc';
   static const stable_channel_desc = 'stable_channel_desc';
   static const permission_open_system_settings =
       'permission_open_system_settings';

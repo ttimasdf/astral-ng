@@ -1,0 +1,154 @@
+name: Build Linux
+
+description: Build and package Linux artifacts.
+
+inputs:
+  package:
+    description: Package and upload distributable Linux artifacts.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve build version
+      id: resolve-version
+      uses: ./.github/actions/resolve-version
+
+    - name: Setup pinned toolchains
+      uses: ./.github/actions/setup-toolchains
+
+    - name: Setup Rust cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: "rust -> target"
+
+    - name: Install Linux build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential ninja-build libgtk-3-dev clang cmake pkg-config \
+          libcurl4-openssl-dev protobuf-compiler libayatana-appindicator3-dev
+      shell: bash
+
+    - name: Enable Linux desktop
+      run: |
+        flutter config --enable-linux-desktop
+        flutter create --platforms=linux .
+      shell: bash
+
+    - name: Get dependencies
+      run: flutter pub get
+      shell: bash
+
+    - name: Build Linux
+      env:
+        BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
+      run: >-
+        flutter build linux --release
+        --build-name "${{ steps.resolve-version.outputs.flutter_build_name }}"
+        --build-number "${{ steps.resolve-version.outputs.flutter_build_number }}"
+        --dart-define "BUILD_CHANNEL=${{ steps.resolve-version.outputs.build_channel }}"
+        --dart-define "BUILD_STAGE=${{ steps.resolve-version.outputs.build_stage }}"
+        --dart-define "BUILD_VERSION=${{ steps.resolve-version.outputs.semantic_version }}"
+        --dart-define "BUILD_COMMIT=${{ steps.resolve-version.outputs.build_commit }}"
+        --dart-define "BUILD_RUN_NUMBER=${{ steps.resolve-version.outputs.build_run_number }}"
+        --dart-define "UPDATE_API_BASE_URL=$UPDATE_API_BASE_URL"
+      shell: bash
+
+    - name: Install Linux packaging dependencies
+      if: inputs.package == 'true'
+      run: |
+        sudo apt-get install -y patchelf ruby-dev
+        sudo gem install --no-document fpm
+      shell: bash
+
+    - name: Package
+      if: inputs.package == 'true'
+      env:
+        BUILD_CHANNEL: ${{ steps.resolve-version.outputs.build_channel }}
+        APP_EXECUTABLE: ${{ steps.resolve-version.outputs.app_executable }}
+        APP_DISPLAY_NAME: ${{ steps.resolve-version.outputs.app_display_name }}
+        ASSET_VERSION: ${{ steps.resolve-version.outputs.asset_version }}
+        LINUX_PACKAGE_NAME: ${{ steps.resolve-version.outputs.linux_package_name }}
+        PACKAGE_VERSION: ${{ steps.resolve-version.outputs.package_version }}
+      run: |
+        set -e
+        mkdir -p release
+
+        BUNDLE="$GITHUB_WORKSPACE/build/linux/x64/release/bundle"
+        pushd "$BUNDLE"
+        if [ "$APP_EXECUTABLE" != astral ]; then
+          mv -- astral "$APP_EXECUTABLE"
+        fi
+        patchelf "$APP_EXECUTABLE" --add-needed libisar.so --add-needed librust_lib_astral.so
+        tar -czf "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.tar.gz" ./*
+        popd
+
+        STAGING="$GITHUB_WORKSPACE/build/linux/pkgroot"
+        rm -rf "$STAGING"
+        mkdir -p "$STAGING/opt/$APP_EXECUTABLE"
+        cp -a "$BUNDLE/." "$STAGING/opt/$APP_EXECUTABLE/"
+
+        install -d -m755 "$STAGING/usr/bin" "$STAGING/usr/share/applications"
+        printf '%s\n' \
+          '#!/usr/bin/env bash' \
+          "# Launch $APP_DISPLAY_NAME from the installed bundle" \
+          "exec /opt/$APP_EXECUTABLE/$APP_EXECUTABLE \"\$@\"" \
+          > "$STAGING/usr/bin/$APP_EXECUTABLE"
+        chmod 755 "$STAGING/usr/bin/$APP_EXECUTABLE"
+        {
+          printf '[Desktop Entry]\n'
+          printf 'Name=%s\n' "$APP_DISPLAY_NAME"
+          printf 'Comment=%s desktop client\n' "$APP_DISPLAY_NAME"
+          printf 'Exec=/usr/bin/%s %%u\n' "$APP_EXECUTABLE"
+          printf 'TryExec=/usr/bin/%s\n' "$APP_EXECUTABLE"
+          printf 'Icon=%s\n' "$APP_EXECUTABLE"
+          printf 'Terminal=false\nType=Application\nCategories=Network;\n'
+          printf 'StartupNotify=true\nX-GNOME-UsesNotifications=true\n'
+          printf 'Keywords=VPN;Network;Proxy;\n'
+        } > "$STAGING/usr/share/applications/$APP_EXECUTABLE.desktop"
+
+        if [ "$BUILD_CHANNEL" = canary ]; then
+          ICON_SOURCE=assets/logo_canary.png
+        else
+          ICON_SOURCE=assets/logo.png
+        fi
+        install -Dm644 "$ICON_SOURCE" "$STAGING/usr/share/pixmaps/$APP_EXECUTABLE.png"
+
+        fpm -s dir -t deb -n "$LINUX_PACKAGE_NAME" -v "$PACKAGE_VERSION" -a amd64 -C "$STAGING" .
+        mv -- ./*.deb "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.deb"
+
+        fpm -s dir -t rpm -n "$LINUX_PACKAGE_NAME" -v "$PACKAGE_VERSION" -a x86_64 -C "$STAGING" .
+        mv -- ./*.rpm "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.rpm"
+      shell: bash
+
+    - name: Upload Linux tarball
+      if: inputs.package == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.tar.gz
+        path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.tar.gz
+        archive: false
+        if-no-files-found: error
+        retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
+
+    - name: Upload Linux DEB
+      if: inputs.package == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.deb
+        path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.deb
+        archive: false
+        if-no-files-found: error
+        retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}
+
+    - name: Upload Linux RPM
+      if: inputs.package == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.rpm
+        path: release/${{ steps.resolve-version.outputs.app_executable }}-linux-x64-${{ steps.resolve-version.outputs.asset_version }}.rpm
+        archive: false
+        if-no-files-found: error
+        retention-days: ${{ fromJSON(steps.resolve-version.outputs.artifact_retention_days) }}

@@ -54,8 +54,7 @@ class _MainScreenState extends State<MainScreen>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ServiceManager().updateState.automaticUpdateChecks.value ||
-          ServiceManager().updateState.receiveBetaUpdates.value) {
+      if (ServiceManager().updateState.automaticUpdateChecks.value) {
         final checker = UpdateChecker();
         if (mounted) {
           Future.delayed(const Duration(milliseconds: 1000), () {

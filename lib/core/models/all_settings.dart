@@ -36,7 +36,7 @@ class AllSettings {
   /// 优先使用 AstralNG Windows 适配器
   bool preferAstralAdapter = true;
 
-  /// 接收 Beta 更新
+  /// 旧版 Beta 更新开关；保留用于迁移到独立的更新通道偏好。
   bool receiveBetaUpdates = false;
 
   /// 自动检查更新

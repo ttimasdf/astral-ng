@@ -46,8 +46,8 @@ class UpdateCheckUi {
       case UpdateCheckKind.unavailable:
         AppSnackBars.error(
           context,
-          LocaleKeys.beta_unavailable.tr(),
-          LocaleKeys.beta_unavailable_desc.tr(),
+          LocaleKeys.preview_unavailable.tr(),
+          LocaleKeys.preview_unavailable_desc.tr(),
         );
         break;
       case UpdateCheckKind.failed:

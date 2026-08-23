@@ -22,17 +22,15 @@ verified.
 
 ## Document structure
 
-Keep an `Unreleased` section at the top and released versions in reverse
-chronological order:
+Keep an entry-only `Unreleased` section at the top and released base versions
+in reverse chronological order. A base version has one evolving section from its first RC
+through its stable release; do not retain separate changelog sections for each
+RC:
 
 ```markdown
 # Changelog
 
 ## Unreleased
-
-> **Highlight:** Connect more reliably with automatic retries and clearer setup.
->
-> **版本亮点：** 自动重试与更清晰的设置流程让连接更加可靠。
 
 ### Added
 
@@ -53,28 +51,33 @@ chronological order:
 ...
 ```
 
-Release automation extracts notes by matching a heading that starts with
-`## v<version>` or `## [v<version>]`. Every release heading must therefore use
-exactly:
+Release automation extracts notes by matching the full version in a heading
+that starts with `## v<version>` or `## [v<version>]`. The current release stage
+heading must therefore use exactly:
 
 ```text
 ## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD
+## [vMAJOR.MINOR.PATCH-rc.N] - YYYY-MM-DD
 ```
 
-Add the corresponding GitHub release URL as a reference-style footnote, for
+Add a reference-style footnote for the section's current release stage, for
 example:
 
 ```markdown
 [v2.8.7]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.7
 ```
 
-Use the GitHub publication date in UTC for an existing release. Use the actual
-release date when preparing a new one.
+When publishing another RC or promoting an RC to stable, replace the previous
+stage's heading, date, and release footnote in place. Git tags and GitHub
+Releases remain immutable history even though the changelog retains only the
+latest stage for each base version. Use the GitHub publication date in UTC for
+an existing release and the actual release date for a new one.
 
 ## Release highlights
 
-Every `Unreleased` and released-version section must begin with exactly one
-English/Chinese highlight block as its first content:
+Every versioned release section must begin with exactly one English/Chinese
+highlight block as its first content. `Unreleased` contains entries only and
+has no highlight block:
 
 ```markdown
 > **Highlight:** Connect more reliably with automatic retries and clearer setup.
@@ -90,8 +93,10 @@ machine-readable field with this exact grammar:
 ^> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$
 ```
 
-The parser must first select the requested `## Unreleased` or
-`## [vMAJOR.MINOR.PATCH]` section, then require exactly one block match. Capture
+The parser must first select the requested versioned section
+`## [vMAJOR.MINOR.PATCH]` or `## [vMAJOR.MINOR.PATCH-rc.N]`, then require
+exactly one block match. `## Unreleased` is intentionally excluded because it
+has no highlight. Capture
 group 1 is English and capture group 2 is Chinese; both are suitable for a
 future release manifest after normal JSON string escaping:
 
@@ -114,8 +119,9 @@ Highlight rules:
 - translate the meaning naturally and keep product names and technical terms
   consistent between languages;
 - do not include Markdown, links, issue numbers, commit hashes, or raw URLs;
-- reset an empty `Unreleased` section with `No notable changes yet.` and
-  `暂无重要更新。`.
+- reset an empty `Unreleased` section to its heading with no highlight or
+  category; a new release section receives the next approved bilingual
+  highlight.
 
 Both markers, their capitalization, punctuation, spacing, order, blockquote
 prefixes, and the quoted blank separator are part of the format. Do not
@@ -247,8 +253,8 @@ list generated from commit subjects.
 
 1. Add the user-facing entry to `Unreleased` in the same pull request as the
    behavior change.
-2. Do not create or revise the `Unreleased` highlight during routine feature,
-   fix, or maintenance work.
+2. Do not add a highlight to `Unreleased` during routine feature, fix, or
+   maintenance work.
 3. Link the changelog entry to the pull request or other durable source when it
    is useful.
 4. Re-read the bullet from the perspective of someone who has not seen the
@@ -256,21 +262,23 @@ list generated from commit subjects.
 
 ### When releasing
 
-1. Begin only after the user explicitly requests a version bump.
-2. Inspect the accumulated entries and apply an exact bilingual highlight to
-   `CHANGELOG.md` as an uncommitted draft.
-3. Show the user the target version and both highlight lines. Wait for explicit
-   confirmation or revision of that exact wording before changing `VERSION`.
-4. After confirmation, bump the version using `scripts/version.py`, then move
-   the approved highlight and relevant entries under the new release heading.
-5. Use the release date, not the merge date of the oldest included change.
-6. Remove empty categories and deduplicate entries describing the same outcome.
-7. Reset `Unreleased` with `No notable changes yet.` and `暂无重要更新。`, with
-   no empty categories.
-8. Verify the release section has exactly one bilingual highlight pair and is
-   non-empty; CI rejects a tag without a matching changelog section.
-9. Tag or publish only when separately authorized. After publication, add or
-   verify the GitHub release link when maintaining link references.
+1. Begin only after the user explicitly requests a release.
+2. For the first RC or stable release of a new base version, inspect the
+   accumulated entries, draft an exact bilingual highlight, apply it as an
+   uncommitted draft, and wait for explicit approval of that wording.
+3. Create the base version's release section from `Unreleased`, using the actual
+   release date. Run the requested version bump when the base version changes.
+4. For a later RC or stable promotion, find the existing section for that base
+   version and replace its heading and date in place. Retain the approved
+   highlight unless the user explicitly asks to revise it.
+5. Merge current `Unreleased` entries into the existing release categories,
+   remove empty categories, and deduplicate entries describing the same outcome.
+6. Reset `Unreleased` to its heading with no highlight or empty categories.
+7. Increment `BUILD_NUMBER` before every signed RC and stable tag.
+8. Verify the current release-stage section has exactly one bilingual highlight
+   pair and is non-empty; CI rejects a tag without a matching heading.
+9. Tag or publish only when separately authorized. Tags and GitHub Releases are
+   immutable; never move an earlier RC tag when the changelog section advances.
 
 ## Review checklist
 
@@ -284,8 +292,8 @@ Before merging a changelog update, verify that:
 - removals, compatibility losses, and migration steps are not hidden under
   `Changed`;
 - links resolve to the intended repository and item;
-- release headings match `## [vMAJOR.MINOR.PATCH] - YYYY-MM-DD` and include
-  the corresponding release URL reference;
+- release headings match `## [vMAJOR.MINOR.PATCH[-rc.N]] - YYYY-MM-DD` and
+  include the corresponding release URL reference;
 - every release section has exactly one valid bilingual highlight pair, with
   each value at most 160 characters;
 - internal maintenance noise has been omitted.
