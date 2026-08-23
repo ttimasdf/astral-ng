@@ -235,6 +235,7 @@
               jq
               lnav
               act
+              actionlint
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [
               webkitgtk_4_1

@@ -221,7 +221,7 @@ jobs:
   linux:
     needs: [changes, preview-update-api]
     if: >-
-      always() &&
+      !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
@@ -256,7 +256,7 @@ jobs:
   windows:
     needs: [changes, preview-update-api]
     if: >-
-      always() &&
+      !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
@@ -291,7 +291,7 @@ jobs:
   android:
     needs: [changes, preview-update-api]
     if: >-
-      always() &&
+      !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
       (github.event_name != 'pull_request' ||
