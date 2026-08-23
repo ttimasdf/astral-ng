@@ -6,6 +6,10 @@ provenance.
 
 ## Unreleased
 
+### Changed
+
+- **Production update API.** Release tags now deploy the update server through the protected Production environment after GitHub Release publication.
+
 ## [v3.0.0-rc.1] - 2026-08-22
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.

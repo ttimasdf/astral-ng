@@ -82,12 +82,16 @@ permissions. Its platform jobs call the shared composite actions under
 Release work lives in `.github/workflows/release.yml`, which accepts canonical
 `vMAJOR.MINOR.PATCH-rc.N` and `vMAJOR.MINOR.PATCH` tag pushes and calls the same
 shared platform actions. RC tags publish GitHub prereleases; final tags publish
-stable releases. Increment and commit `BUILD_NUMBER` before every signed tag so
-installed RC builds can upgrade to later candidates and the final release.
+stable releases. After `create-release` publishes the GitHub release, the
+approved `Production` deployment publishes `update-server` from the same
+immutable tag and verifies both its deployment URL and the public production
+API. Increment and commit `BUILD_NUMBER` before every signed tag so installed
+RC builds can upgrade to later candidates and the final release.
 
-The Android signing job is attached to the protected GitHub Environment named
-`Production`. Both `Preview` and `Production` require approval from `ttimasdf`;
-administrator bypass is disabled. `Preview` permits ordinary branch refs and
+The Android signing and production update API jobs are attached to the
+protected GitHub Environment named `Production`. Both `Preview` and
+`Production` require approval from `ttimasdf`; administrator bypass is disabled.
+`Preview` permits ordinary branch refs and
 GitHub's `refs/pull/*/merge` refs because the workflow applies the
 trusted-author and `platform-*` label gates. `Production` accepts only release
 tags (`v*`). Configure signing secrets in `Production`,
