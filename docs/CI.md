@@ -85,8 +85,11 @@ shared platform actions. RC tags publish GitHub prereleases; final tags publish
 stable releases. After `create-release` publishes the GitHub release, the
 approved `Production` deployment publishes `update-server` from the same
 immutable tag and verifies both its deployment URL and the public production
-API. Increment and commit `BUILD_NUMBER` before every signed tag so installed
-RC builds can upgrade to later candidates and the final release.
+API. Release notes are reflowed at publication time so source line wrapping
+does not become visible as extra breaks in GitHub Releases; Markdown block
+structure, code blocks, and reference links are preserved. Increment and
+commit `BUILD_NUMBER` before every signed tag so installed RC builds can
+upgrade to later candidates and the final release.
 
 The Android signing job is attached to the protected `Production Signing`
 GitHub Environment, while production update API deployment remains attached to

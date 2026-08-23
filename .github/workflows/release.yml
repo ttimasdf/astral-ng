@@ -114,7 +114,7 @@ jobs:
             echo "ERROR: CHANGELOG.md not found"
             exit 1
           fi
-          CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.semantic_version }}" '
+          RAW_CHANGELOG=$(awk -v ver="v${{ steps.resolve-version.outputs.semantic_version }}" '
             /^## / { in_section = 0 }
             $0 == "## " ver || index($0, "## " ver " ") == 1 ||
               $0 == "## [" ver "]" || index($0, "## [" ver "] ") == 1 {
@@ -129,6 +129,65 @@ jobs:
               for (i = first; i <= count; i++) print lines[i]
             }
           ' CHANGELOG.md)
+          CHANGELOG=$(printf '%s\n' "$RAW_CHANGELOG" | awk '
+            function trim_left(value) {
+              sub(/^[[:space:]]+/, "", value)
+              return value
+            }
+            function flush() {
+              if (pending != "") print pending
+              pending = ""
+            }
+            function is_fence(line) {
+              return line ~ /^[[:space:]]{0,3}(```|~~~)/
+            }
+            function is_heading(line) {
+              return line ~ /^[[:space:]]{0,3}#{1,6}[[:space:]]/
+            }
+            function is_blockquote(line) {
+              return line ~ /^[[:space:]]{0,3}>/
+            }
+            function is_list_item(line) {
+              return line ~ /^[[:space:]]*([-+*]|[0-9]+[.)])[[:space:]]+/
+            }
+            function is_reference(line) {
+              return line ~ /^[[:space:]]{0,3}\[[^][]+\]:[[:space:]]*/
+            }
+            {
+              line = $0
+              if (line ~ /^[[:space:]]*$/) {
+                flush()
+                print ""
+                next
+              }
+              if (is_fence(line)) {
+                flush()
+                print line
+                in_code = !in_code
+                next
+              }
+              if (in_code) {
+                print line
+                next
+              }
+              if (is_heading(line) || is_blockquote(line) || is_reference(line)) {
+                flush()
+                print line
+                next
+              }
+              if (is_list_item(line)) {
+                flush()
+                pending = line
+                next
+              }
+              if (pending == "") {
+                pending = line
+                next
+              }
+              pending = pending " " trim_left(line)
+            }
+            END { flush() }
+          ')
           {
             echo "changelog<<EOF"
             echo "$CHANGELOG"
