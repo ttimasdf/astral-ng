@@ -59,7 +59,7 @@ jobs:
 
   android:
     needs: test
-    environment: Production
+    environment: Production Signing
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -70,12 +70,12 @@ jobs:
 
       - name: Setup Android release signing
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
           {
             echo "storeFile=upload-keystore.jks"
-            echo "keyAlias=${{ secrets.KEY_ALIAS }}"
-            echo "storePassword=${{ secrets.STORE_PASSWORD }}"
-            echo "keyPassword=${{ secrets.KEY_PASSWORD }}"
+            echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}"
+            echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}"
+            echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}"
           } >> android/key.properties
         shell: bash
 
