@@ -6,6 +6,12 @@ provenance.
 
 ## Unreleased
 
+### Changed
+
+- **Selective beta builds.** Main-branch update-server and documentation
+  changes now skip platform artifacts, with Production deployment available as
+  an approved manual action.
+
 ### Fixed
 
 - **Stable release highlights.** Stable update metadata now reads bilingual

@@ -74,12 +74,16 @@ dependencies stay inside the subproject.
 Automatic Vercel Git deployments are disabled. Trusted same-repository pull
 requests with a `platform-*` label deploy a Preview through the protected
 GitHub `Preview` environment; platform artifacts compile that deployment's
-exact `/api/v1` URL. See `docs/CI.md` for credentials and approval rules.
+exact `/api/v1` URL. Signed releases and explicit manual runs from `main`
+deploy Production through the protected `Production` environment. All three
+paths share `.github/workflows/deploy-update-api.yml`; see `docs/CI.md` for
+credentials and approval rules.
 
-Run manual CLI deployments from the repository root because the Vercel project
-already applies `update-server` as its Root Directory. Do not also pass
-`--cwd update-server`, which would resolve the project as
-`update-server/update-server`:
+Prefer the **Deploy Update API** workflow for approved Production deployments.
+When troubleshooting with a manual CLI deployment, run it from the repository
+root because the Vercel project already applies `update-server` as its Root
+Directory. Do not also pass `--cwd update-server`, which would resolve the
+project as `update-server/update-server`:
 
 ```sh
 vercel --project astral-ng-update-server

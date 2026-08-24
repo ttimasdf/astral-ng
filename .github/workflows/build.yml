@@ -36,7 +36,9 @@ jobs:
         uses: ./.github/actions/test
 
   changes:
-    if: github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     outputs:
       update_server: ${{ steps.filter.outputs.update_server }}
@@ -45,6 +47,13 @@ jobs:
       android: ${{ steps.filter.outputs.android }}
       all: ${{ steps.filter.outputs.all }}
     steps:
+      - name: Checkout push history
+        if: github.event_name == 'push'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
       - name: Detect changed paths
         id: filter
         uses: dorny/paths-filter@v4
@@ -52,6 +61,7 @@ jobs:
           filters: |
             update_server:
               - 'update-server/**'
+              - '.github/workflows/deploy-update-api.yml'
             linux:
               - 'linux/**'
               - '.github/actions/build-linux/**'
@@ -74,7 +84,7 @@ jobs:
               - 'web/**'
               - '.github/actions/test/**'
               - '.github/actions/setup-toolchains/**'
-              - '.github/workflows/**'
+              - '.github/actions/resolve-version/**'
               - 'scripts/version.py'
               - 'scripts/sync_toolchains.py'
               - 'scripts/generate_icons.py'
@@ -101,122 +111,10 @@ jobs:
        contains(github.event.pull_request.labels.*.name, 'platform-linux') ||
        contains(github.event.pull_request.labels.*.name, 'platform-windows') ||
        contains(github.event.pull_request.labels.*.name, 'platform-android'))
-    runs-on: ubuntu-latest
-    environment:
-      name: Preview
-      url: ${{ steps.deploy.outputs.deployment-url }}
-    outputs:
-      base-url: ${{ steps.deploy.outputs.base-url }}
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-      VERCEL_TELEMETRY_DISABLED: '1'
-    steps:
-      - name: Checkout PR head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-
-      - name: Deploy PR update API
-        id: deploy
-        run: |
-          set -euo pipefail
-          : "${VERCEL_TOKEN:?Set VERCEL_TOKEN in the Preview environment}"
-          : "${VERCEL_ORG_ID:?Set VERCEL_ORG_ID in the Preview environment}"
-          : "${VERCEL_PROJECT_ID:?Set VERCEL_PROJECT_ID in the Preview environment}"
-
-          umask 077
-          mkdir -p .vercel
-          project_response="$RUNNER_TEMP/vercel-project.json"
-          environment_response="$RUNNER_TEMP/vercel-preview-environment.json"
-          deployment_response="$RUNNER_TEMP/vercel-preview-deployment.json"
-
-          curl --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer $VERCEL_TOKEN" \
-            --output "$project_response" \
-            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID"
-          jq -e \
-            --arg project_id "$VERCEL_PROJECT_ID" \
-            --arg org_id "$VERCEL_ORG_ID" \
-            '.id == $project_id and .accountId == $org_id and
-             (.rootDirectory == "update-server" or .rootDirectory == "update-server/")' \
-            "$project_response" >/dev/null
-          jq '{
-                projectId: .id,
-                orgId: .accountId,
-                projectName: .name,
-                settings: {
-                  createdAt: .createdAt,
-                  framework: null,
-                  devCommand: .devCommand,
-                  installCommand: .installCommand,
-                  buildCommand: .buildCommand,
-                  outputDirectory: .outputDirectory,
-                  rootDirectory: .rootDirectory,
-                  directoryListing: .directoryListing,
-                  nodeVersion: .nodeVersion
-                }
-              }' "$project_response" > .vercel/project.json
-
-          curl --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer $VERCEL_TOKEN" \
-            --output "$environment_response" \
-            "https://api.vercel.com/v3/env/pull/$VERCEL_PROJECT_ID/preview?source=github-actions&teamId=$VERCEL_ORG_ID"
-          jq -e \
-            '(.env | type == "object") and
-             (.buildEnv | type == "object") and
-             ((.env + .buildEnv) | to_entries |
-              all(.key | test("^[A-Za-z_][A-Za-z0-9_]*$")))' \
-            "$environment_response" >/dev/null
-          jq -r \
-            '(.env + .buildEnv) | to_entries[] |
-             "\(.key)=\(.value | @json)"' \
-            "$environment_response" > .vercel/.env.preview.local
-
-          bunx vercel@59.1.3 build \
-            --token "$VERCEL_TOKEN"
-          bunx vercel@59.1.3 deploy \
-            --prebuilt \
-            --json \
-            --token "$VERCEL_TOKEN" \
-            > "$deployment_response"
-          deployment_url="$(jq -er \
-            '(.deployment.url? // .url?) |
-             select(type == "string") |
-             select(test("^https://[A-Za-z0-9-]+\\.vercel\\.app$"))' \
-            "$deployment_response")"
-
-          base_url="${deployment_url%/}/api/v1"
-          response="$RUNNER_TEMP/update-api-preview.json"
-          status="$(curl --silent --show-error \
-            --output "$response" \
-            --write-out '%{http_code}' \
-            "$base_url/versions?channel=stable&limit=1")"
-          if [ "$status" != 200 ]; then
-            echo "ERROR: Preview API returned HTTP $status"
-            exit 1
-          fi
-          jq -e '.schemaVersion == 1 and (.data | type == "array")' "$response" >/dev/null
-
-          echo "deployment-url=$deployment_url" >> "$GITHUB_OUTPUT"
-          echo "base-url=$base_url" >> "$GITHUB_OUTPUT"
-
-      - name: Remove Vercel build state
-        if: always()
-        run: |
-          rm -rf -- .vercel
-          rm -f -- \
-            "$RUNNER_TEMP/vercel-project.json" \
-            "$RUNNER_TEMP/vercel-preview-environment.json" \
-            "$RUNNER_TEMP/vercel-preview-deployment.json" \
-            "$RUNNER_TEMP/update-api-preview.json"
+    uses: ./.github/workflows/deploy-update-api.yml
+    with:
+      github_environment: Preview
+      checkout_ref: ${{ github.event.pull_request.head.sha }}
 
   linux:
     needs: [changes, preview-update-api]
@@ -224,11 +122,12 @@ jobs:
       !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
-      (github.event_name != 'pull_request' ||
-       needs.changes.outputs.all == 'true' ||
-       needs.changes.outputs.linux == 'true' ||
-       contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-linux'))
+      (github.event_name == 'workflow_dispatch' ||
+       (needs.changes.result == 'success' &&
+        (needs.changes.outputs.all == 'true' ||
+         needs.changes.outputs.linux == 'true' ||
+         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+         contains(github.event.pull_request.labels.*.name, 'platform-linux'))))
     runs-on: ubuntu-latest
     env:
       UPDATE_API_BASE_URL: >-
@@ -259,11 +158,12 @@ jobs:
       !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
-      (github.event_name != 'pull_request' ||
-       needs.changes.outputs.all == 'true' ||
-       needs.changes.outputs.windows == 'true' ||
-       contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-windows'))
+      (github.event_name == 'workflow_dispatch' ||
+       (needs.changes.result == 'success' &&
+        (needs.changes.outputs.all == 'true' ||
+         needs.changes.outputs.windows == 'true' ||
+         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+         contains(github.event.pull_request.labels.*.name, 'platform-windows'))))
     runs-on: windows-2022
     env:
       UPDATE_API_BASE_URL: >-
@@ -294,11 +194,12 @@ jobs:
       !cancelled() &&
       (needs.preview-update-api.result == 'success' ||
        needs.preview-update-api.result == 'skipped') &&
-      (github.event_name != 'pull_request' ||
-       needs.changes.outputs.all == 'true' ||
-       needs.changes.outputs.android == 'true' ||
-       contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-android'))
+      (github.event_name == 'workflow_dispatch' ||
+       (needs.changes.result == 'success' &&
+        (needs.changes.outputs.all == 'true' ||
+         needs.changes.outputs.android == 'true' ||
+         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+         contains(github.event.pull_request.labels.*.name, 'platform-android'))))
     runs-on: ubuntu-24.04
     env:
       UPDATE_API_BASE_URL: >-

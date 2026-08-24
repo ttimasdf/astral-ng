@@ -3,10 +3,12 @@
 Read this guide before running final checks, pushing a feature branch, or
 creating a pull request.
 
-## Pull request CI
+## Build CI
 
-Every pull request runs the shared `test` job. Platform build jobs are selected
-by changed paths, with labels available as explicit overrides:
+Every pull request and every push to `main` runs the shared `test` job. Platform
+build jobs are selected by changed paths, with labels available as explicit
+pull-request overrides. Main-branch beta artifacts are therefore produced only
+when application or platform paths require them:
 
 - Linux changes (`linux/**`, Linux packaging, or its build action) run Linux.
 - Windows changes (`windows/**`, Windows packaging, DLLs, or its build action)
@@ -29,19 +31,31 @@ gh pr edit <number> --remove-label platform-all
 ```
 
 Labeled pull requests upload alpha canary artifacts; pushes to `main` upload
-beta canary artifacts for the update API. Manual dispatch runs platform builds
-without uploading artifacts. Signed RC and final tags use `release.yml`.
+beta canary artifacts for the update API only when the selected platform jobs
+run. Update-server-only and documentation-only main pushes run tests without
+creating beta artifacts. Manual dispatch runs all platform builds without
+uploading artifacts. Signed RC and final tags use `release.yml`.
 
-## PR update API previews
+## Update API deployments
 
-The Vercel project has automatic Git deployments disabled. A labeled, trusted
-same-repository pull request runs the `preview-update-api` job in the protected
-`Preview` environment only when it changes `update-server/**`. The job fetches
-project settings through Vercel's project-scoped REST API, builds from the
-repository root, deploys the prebuilt server with the Vercel CLI, and verifies
-the preview endpoint. It passes the exact preview URL to labeled platform builds
-through `UPDATE_API_BASE_URL`. Other pull requests use the configured base URL
-(the production API by default).
+The Vercel project has automatic Git deployments disabled. All Preview,
+release, and manual Production deployments call the reusable
+`.github/workflows/deploy-update-api.yml` workflow. It fetches project settings
+through Vercel's project-scoped REST API, builds from the repository root,
+deploys the prebuilt server with the Vercel CLI, verifies the immutable
+deployment endpoint, and cleans up local Vercel state.
+
+A labeled, trusted same-repository pull request calls the reusable workflow in
+the protected `Preview` environment only when it changes `update-server/**` or
+the deployment workflow. It passes the exact preview URL to labeled platform
+builds through `UPDATE_API_BASE_URL`. Other pull requests use the configured
+base URL (the production API by default).
+
+Run **Deploy Update API** manually from the `main` branch to publish an
+update-server-only change without creating a release or beta platform
+artifacts. The manual job uses the same protected `Production` environment and
+verifies the public API after deployment. Rejecting its environment request
+fails that workflow run; leave it unapproved when no deployment is desired.
 
 Configure the Vercel project-scoped credentials as environment-scoped GitHub
 values. Obtain `orgId` and `projectId` from `update-server/.vercel/project.json`
@@ -52,19 +66,23 @@ project-scoped Vercel token using the Vercel dashboard or:
 vercel tokens add "AstralNG GitHub Preview" --project <project-id>
 ```
 
-Store the token only as the `Preview` environment secret, and store the
-identifiers as `Preview` environment variables:
+Store separate project-scoped tokens as environment secrets, and store the
+project identifiers as variables in both deployment environments:
 
 ```bash
 gh secret set VERCEL_TOKEN --env Preview
 printf '%s' '<org-id>' | gh variable set VERCEL_ORG_ID --env Preview
 printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Preview
+
+gh secret set VERCEL_TOKEN --env Production
+printf '%s' '<org-id>' | gh variable set VERCEL_ORG_ID --env Production
+printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Production
 ```
 
 The Vercel token owner must have project Developer access, and the token should
-be scoped to this project. The workflow intentionally bypasses `vercel pull`,
-which currently fails with project-scoped tokens, and obtains only that
-project's settings and Preview environment before `vercel build`. It sets
+be scoped to this project. The reusable workflow intentionally bypasses
+`vercel pull`, which currently fails with project-scoped tokens, and obtains
+only that project's selected Vercel environment before `vercel build`. It sets
 `VERCEL_TELEMETRY_DISABLED=1` for Vercel CLI invocations.
 
 Preview Deployment Protection must remain disabled because compiled clients
@@ -96,8 +114,9 @@ GitHub Environment, while production update API deployment remains attached to
 `Production`. Administrator bypass is disabled for `Preview`, `Production`, and
 `Production Signing`. `Preview` permits ordinary branch refs and GitHub's
 `refs/pull/*/merge` refs because the workflow applies the trusted-author and
-`platform-*` label gates. `Production` and `Production Signing` accept only
-release tags (`v*`). Configure signing secrets in `Production Signing`, not
+`platform-*` label gates. `Production` accepts release tags (`v*`) and `main`
+for explicit manual update API deployments; `Production Signing` accepts only
+release tags. Configure signing secrets in `Production Signing`, not
 `Preview`, `Production`, or repository-level Actions secrets:
 
 ```bash
