@@ -354,7 +354,8 @@ function extractHighlightBlock(markdown: string): Highlights | null {
 }
 
 function extractChangelogHighlights(markdown: string, version: string): Highlights | null {
-  const heading = new RegExp(`^## v${escapeRegExp(version)}(?:\\s|$)`, 'm');
+  const release = `v${escapeRegExp(version)}`;
+  const heading = new RegExp(`^## (?:${release}|\\[${release}\\])(?:\\s|$)`, 'm');
   const headingMatch = heading.exec(markdown);
   if (!headingMatch) return null;
   const section = markdown.slice(headingMatch.index);

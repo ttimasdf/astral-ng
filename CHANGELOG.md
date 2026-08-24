@@ -6,6 +6,11 @@ provenance.
 
 ## Unreleased
 
+### Fixed
+
+- **Stable release highlights.** Stable update metadata now reads bilingual
+  highlights from canonical bracketed changelog headings.
+
 ## [v3.0.0] - 2026-08-23
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.

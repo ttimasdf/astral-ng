@@ -48,7 +48,7 @@ function changelogContent(): string {
 
 ## Unreleased
 
-## v3.0.0 - 2026-08-14
+## [v3.0.0] - 2026-08-14
 
 > **Highlight:** Stable highlight.
 >
@@ -58,7 +58,7 @@ function changelogContent(): string {
 
 - Something.
 
-## v2.9.0 - 2026-07-01
+## [v2.9.0] - 2026-07-01
 
 > **Highlight:** Older highlight.
 >
@@ -105,6 +105,15 @@ describe('normalized metadata parsing', () => {
       zh: '稳定版亮点。',
     });
     expect(extractChangelogHighlights(changelogContent(), '9.9.9')).toBeNull();
+
+    const legacyHeading = changelogContent().replace(
+      '## [v3.0.0] - 2026-08-14',
+      '## v3.0.0 - 2026-08-14',
+    );
+    expect(extractChangelogHighlights(legacyHeading, '3.0.0')).toEqual({
+      en: 'Stable highlight.',
+      zh: '稳定版亮点。',
+    });
   });
 
   test('uses only the first commit-message line', () => {
