@@ -63,7 +63,7 @@ after running `vercel link --cwd update-server` locally, then create a
 project-scoped Vercel token using the Vercel dashboard or:
 
 ```bash
-vercel tokens add "AstralNG GitHub Preview" --project <project-id>
+vercel tokens add "EasyTier Enmesh GitHub Preview" --project <project-id>
 ```
 
 Store separate project-scoped tokens as environment secrets, and store the

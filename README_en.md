@@ -1,10 +1,10 @@
-# Astral
+# EasyTier Enmesh
 
 English | [中文](README.md)
 
 > Built upon the original work by [ldoubil](https://github.com/ldoubil). Huge thanks to the original author for laying the groundwork that made this project possible.
 
-Astral is a cross-platform P2P networking and VPN application built on [EasyTier](https://github.com/EasyTier/EasyTier), with a Flutter frontend and Rust backend.
+EasyTier Enmesh is a cross-platform P2P networking and VPN application built on [EasyTier](https://github.com/EasyTier/EasyTier), with a Flutter frontend and Rust backend.
 
 ## Features
 

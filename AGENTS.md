@@ -31,7 +31,7 @@ When instructed to implement a new feature, use the following workflow:
    below when the change is user-facing.
 7. Run final local validation from the Nix development shell with Flutter tools
    such as `flutter analyze lib` and `flutter test`, then run
-   `nix build .#astral-ng`. Resolve failures locally, repeat the demonstration
+   `nix build .#enmesh`. Resolve failures locally, repeat the demonstration
    if behavior changed, and commit the wrap-up.
 8. Read `docs/CI.md`, push the feature branch, and create a pull request. The
    pull request title must begin with `[<slug>]` so the slug is retained in the
@@ -59,13 +59,13 @@ Run Android Flutter commands from the Nix development shell with
 nixpkgs' Linux desktop compiler paths from contaminating NDK compilation and
 configures bindgen for every Android ABI used by Cargokit. Keep normal Flutter
 subcommands and arguments. The helper defaults to the canary identity; place
-Astral-specific overrides before the Flutter subcommand:
+EasyTier Enmesh-specific overrides before the Flutter subcommand:
 
 ```bash
 flutter-android run -d <device>
 flutter-android test
 flutter-android build apk --debug
-flutter-android --astral-channel production build apk --release
+flutter-android --enmesh-channel production build apk --release
 ```
 
 Use plain `flutter` for Linux desktop development. The Android helper stops
@@ -73,13 +73,13 @@ compatible Gradle daemons before commands that can build the app because Gradle
 daemons retain their startup environment.
 
 Canary Android builds are disposable testing artifacts, not production upgrade
-artifacts. Install them as the canary package (`pw.rabit.astralng.canary`) and
+artifacts. Install them as the canary package (`pw.rabit.enmesh.canary`) and
 keep production installs separate. If Android rejects a canary APK because of a
 version, downgrade, or signature mismatch, uninstall the canary package from
 the target device and install the APK again:
 
 ```sh
-adb uninstall pw.rabit.astralng.canary
+adb uninstall pw.rabit.enmesh.canary
 adb install <canary-apk>
 ```
 

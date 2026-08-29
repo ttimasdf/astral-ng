@@ -1,4 +1,4 @@
-# AstralNG troubleshooting
+# EasyTier Enmesh troubleshooting
 
 This page is the stable entry point for the troubleshooting guide. The detailed
 material is split by investigation type so a platform or networking procedure
@@ -21,7 +21,7 @@ can evolve without making every other workflow harder to find.
 - [Project-wide diagnostics catalog](DIAGNOSTIC_CATALOG.md): modules, event
   codes, native tags, and Rust fallback identities.
 
-Astral diagnostics describe control-plane decisions and failures. They do not
+EasyTier Enmesh diagnostics describe control-plane decisions and failures. They do not
 record packets, replace a profiler, or dump the host configuration. Use the
 narrowest tool that answers the question, and review every support bundle or
 packet capture before sharing it.

@@ -1,6 +1,7 @@
 # Changelog
 
-This file records notable changes to Astral-ng. User-facing entries describe
+This file records notable changes to EasyTier Enmesh. User-facing entries
+describe
 observable outcomes; concise developer notes and links provide implementation
 provenance.
 
@@ -8,6 +9,18 @@ provenance.
 
 ### Changed
 
+- **⚠ BREAKING — Package identity.** Enmesh installs as `pw.rabit.enmesh`
+  (canary: `pw.rabit.enmesh.canary`). Existing installs no longer receive
+  updates; uninstall the old app, install Enmesh, and set up rooms again.
+- **⚠ BREAKING — Share links.** Room links and QR codes now use `enmesh://`.
+  Previously shared `astral://` links stop opening; re-share rooms from
+  Enmesh.
+- **⚠ BREAKING — Canary artifacts.** Update artifacts are now named
+  `enmesh-canary-*` and served from the rebranded update API. Existing canary
+  clients see no further updates; install Enmesh manually once.
+- **Rebranded to EasyTier Enmesh.** The app is now Enmesh: short names in the
+  GUI, "EasyTier Enmesh" in the About hero and documentation. The stored
+  Windows adapter preference resets to its default.
 - **Selective beta builds.** Main-branch update-server and documentation
   changes now skip platform artifacts, with Production deployment available as
   an approved manual action.

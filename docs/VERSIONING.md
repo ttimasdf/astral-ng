@@ -1,6 +1,6 @@
 # Versioning
 
-`VERSION` is Astral-ng's single human-edited application version source. It
+`VERSION` is EasyTier Enmesh's single human-edited application version source. It
 contains the release `VERSION` and the production `BUILD_NUMBER`.
 `pubspec.yaml` is a Flutter-required mirror; it is never an independent version
 source.
@@ -48,7 +48,7 @@ Build stages follow this ordered progression:
 
 Alpha and beta builds use the GitHub Actions run number for SemVer precedence
 and the seven-character commit as non-ordering build metadata. Both retain the
-AstralNG Canary application identity. RC and final builds use production
+EasyTier Enmesh Canary application identity. RC and final builds use production
 identity and Android signing credentials.
 
 Signed releases are created from either `vMAJOR.MINOR.PATCH-rc.N` or
@@ -57,10 +57,10 @@ numbers start at 1. GitHub marks RC tags as prereleases and final tags as stable
 releases. Example artifacts are:
 
 ```text
-astral-canary-linux-x64-3.1.0-alpha.42+abcdef0.tar.gz
-astral-canary-android-debug-3.1.0-beta.57+1234567.apk
-astral-linux-x64-3.1.0-rc.1.tar.gz
-astral-linux-x64-3.1.0.tar.gz
+enmesh-canary-linux-x64-3.1.0-alpha.42+abcdef0.tar.gz
+enmesh-canary-android-debug-3.1.0-beta.57+1234567.apk
+enmesh-linux-x64-3.1.0-rc.1.tar.gz
+enmesh-linux-x64-3.1.0.tar.gz
 ```
 
 The `v` prefix belongs only to Git tags; application versions and artifact
@@ -82,8 +82,8 @@ Debian and RPM translate prereleases to values such as
 ## Build channels
 
 Labeled pull-request artifacts are alpha builds; `main` artifacts are beta
-builds. Both use the **AstralNG Canary** identity, `astral-canary` executable and
-Linux package, Android application ID `pw.rabit.astralng.canary`, independent
+builds. Both use the **EasyTier Enmesh Canary** identity, `enmesh-canary` executable and
+Linux package, Android application ID `pw.rabit.enmesh.canary`, independent
 Windows installer ID, and grayscale-and-gold icon. They are never attached to a
 GitHub Release. Normal preview artifacts are retained for 30 days; successful
 merged-PR pushes to `main` retain beta artifacts for 90 days.

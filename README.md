@@ -1,10 +1,10 @@
-# Astral-ng
+# EasyTier Enmesh
 
 [English](README_en.md) | 中文
 
 > 本项目基于 [ldoubil](https://github.com/ldoubil) 的原始工作开发。感谢原作者的开创性贡献，为本项目奠定了坚实的基础。
 
-Astral-ng 是一个跨平台的 P2P 组网与 VPN 应用，基于 [EasyTier](https://github.com/EasyTier/EasyTier) 构建，使用 Flutter（前端）和 Rust（后端）开发。
+EasyTier Enmesh 是一个跨平台的 P2P 组网与 VPN 应用，基于 [EasyTier](https://github.com/EasyTier/EasyTier) 构建，使用 Flutter（前端）和 Rust（后端）开发。
 
 ## 功能特性
 

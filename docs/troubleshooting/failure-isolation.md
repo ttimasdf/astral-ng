@@ -20,7 +20,7 @@ Expected boundary behavior:
   the startup host visible;
 - an optional initialization failure produces `<operation>.failed` and the
   application continues;
-- a Rust bridge failure leaves `AstralRust` native output active;
+- a Rust bridge failure leaves `EnmeshRust` native output active;
 - a file sink failure does not disable memory or console diagnostics;
 - a null Android TUN descriptor is `vpn.tun.establish.failed`, not
   `vpn.permission.revoked`;

@@ -1,6 +1,6 @@
 # Changelog guidelines
 
-`CHANGELOG.md` records notable Astral-ng releases. Its first reader is an
+`CHANGELOG.md` records notable EasyTier Enmesh releases. Its first reader is an
 application user deciding whether to upgrade; its second reader is a developer
 who needs to trace a statement back to implementation, a pull request, or a
 release.
@@ -12,7 +12,7 @@ The changelog is not a commit log or a substitute for a pull request.
 Verify an entry against the strongest available source before writing it:
 
 1. Current behavior, tests, and configuration in the repository.
-2. The Astral-ng pull request or issue that introduced the change.
+2. The EasyTier Enmesh pull request or issue that introduced the change.
 3. A release, issue, or commit directly relevant to the behavior.
 4. Commit messages, only when stronger sources are unavailable.
 
@@ -64,7 +64,7 @@ Add a reference-style footnote for the section's current release stage, for
 example:
 
 ```markdown
-[v2.8.7]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.7
+[v2.8.7]: https://github.com/ttimasdf/enmesh/releases/tag/v2.8.7
 ```
 
 When publishing another RC or promoting an RC to stable, replace the previous
@@ -216,7 +216,7 @@ When a durable reference is available and useful, end the entry with the best
 one. Tightly related bullets may share one release link or a grouped developer
 note instead of repeating the same reference:
 
-- Astral-ng pull request or issue;
+- EasyTier Enmesh pull request or issue;
 - a related external issue or pull request;
 - a commit only when no issue or pull request exists.
 

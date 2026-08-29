@@ -1,4 +1,4 @@
-# Astral 项目架构文档
+# EasyTier Enmesh 项目架构文档
 
 ## 目录结构
 
@@ -146,7 +146,7 @@ lib/
    ```
 
 4. **导入路径更新**：
-   - 使用全路径导入：`package:astral/features/...`
+   - 使用全路径导入：`package:enmesh/features/...`
    - 避免相对路径导入
 
 ## 开发规范

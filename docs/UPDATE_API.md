@@ -1,6 +1,6 @@
 # Serverless update API
 
-Astral-ng checks for updates through the standalone Vercel project in
+EasyTier Enmesh checks for updates through the standalone Vercel project in
 `update-server/`. The functions expose normalized metadata only; they never
 proxy or install release artifacts.
 
@@ -86,8 +86,8 @@ Directory. Do not also pass `--cwd update-server`, which would resolve the
 project as `update-server/update-server`:
 
 ```sh
-vercel --project astral-ng-update-server
-vercel --project astral-ng-update-server --prod
+vercel --project enmesh-update-server
+vercel --project enmesh-update-server --prod
 ```
 
 Set these Vercel environment variables for Production and Preview as needed:
@@ -96,7 +96,7 @@ Set these Vercel environment variables for Production and Preview as needed:
   repository Contents, Actions, and Pull requests read access. Do not expose
   this value to the client.
 - `GITHUB_REPOSITORY`: optional `OWNER/REPOSITORY`; defaults to
-  `ttimasdf/astral-ng`.
+  `ttimasdf/enmesh`.
 - `GITHUB_WORKFLOW`: optional workflow filename; defaults to `build.yml`.
 - `GITHUB_DEFAULT_BRANCH`: optional branch; defaults to `main`.
 
@@ -125,7 +125,7 @@ https://updates.example.com/api/v1
 ```
 
 The default API base is
-`https://astral-ng.rabit.pw/api/v1`. `UPDATE_API_BASE_URL` is an optional
+`https://enmesh.rabit.pw/api/v1`. `UPDATE_API_BASE_URL` is an optional
 compile-time override for a local, preview, or alternate deployment.
 
 ### GitHub Actions builds
@@ -163,7 +163,7 @@ emulator, `10.0.2.2` reaches the development host:
 
 ```sh
 nix develop -c flutter-android \
-  --astral-update-api http://10.0.2.2:3100/api/v1 \
+  --enmesh-update-api http://10.0.2.2:3100/api/v1 \
   run -d emulator-5554
 
 UPDATE_API_BASE_URL=https://updates.example.com/api/v1 \

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Astral is a cross-platform P2P networking and VPN application built with Flutter (frontend) and Rust (backend). It provides simple P2P network connections and VPN services based on EasyTier, supporting Windows, macOS, Linux, Android, and iOS.
+EasyTier Enmesh is a cross-platform P2P networking and VPN application built with Flutter (frontend) and Rust (backend). It provides simple P2P network connections and VPN services based on EasyTier, supporting Windows, macOS, Linux, Android, and iOS.
 
 ## Development Environment
 
@@ -84,7 +84,7 @@ flutter build ios
 
 ## Architecture
 
-Astral uses a **Features-based Architecture** with clean separation of concerns. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+EasyTier Enmesh uses a **Features-based Architecture** with clean separation of concerns. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
 
 ### Directory Structure
 - `lib/features/` - Business feature modules (home, rooms, explore, settings, etc.)
@@ -106,7 +106,7 @@ Astral uses a **Features-based Architecture** with clean separation of concerns.
 - `lib/src/rust/` - Auto-generated Rust FFI bindings
 - `rust/` - Rust backend code
   - `easytier/` - EasyTier P2P networking library (git submodule)
-  - Main crate: `rust_lib_astral`
+  - Main crate: `rust_lib_enmesh`
 
 ### Key Architectural Patterns
 
@@ -128,7 +128,7 @@ Astral uses a **Features-based Architecture** with clean separation of concerns.
 - Variables: camelCase (e.g., `userName`)
 
 ### Import Paths
-- Use absolute imports: `package:astral/features/...`
+- Use absolute imports: `package:enmesh/features/...`
 - Avoid relative imports
 
 ### Module Organization
