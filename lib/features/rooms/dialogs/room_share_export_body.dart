@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/features/rooms/dialogs/room_share_advanced_options.dart';
-import 'package:astral/features/rooms/dialogs/room_share_copy_link.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/features/rooms/dialogs/room_share_advanced_options.dart';
+import 'package:enmesh/features/rooms/dialogs/room_share_copy_link.dart';
 
 /// 房间分享导出对话框主体（标题 / 信息区 / 高级选项 / 操作栏）
 Widget buildRoomShareExportDialogBody({

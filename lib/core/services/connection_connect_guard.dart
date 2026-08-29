@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/features/home/widgets/connect_npcap_guard.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/features/home/widgets/connect_npcap_guard.dart';
 
 /// 连接前置检查失败原因（用于提示，避免多种原因共用一条误导文案）
 enum ConnectTargetIssue {

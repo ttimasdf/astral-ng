@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/platform/small_window_adapter.dart';
-import 'package:astral/shared/widgets/common/status_bar_actions.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/platform/small_window_adapter.dart';
+import 'package:enmesh/shared/widgets/common/status_bar_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 

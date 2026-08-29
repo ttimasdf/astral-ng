@@ -1,17 +1,17 @@
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 import 'dart:io';
 
-import 'package:astral/core/states/player_state.dart';
-import 'package:astral/core/states/display_state.dart';
-import 'package:astral/core/states/startup_state.dart';
-import 'package:astral/core/states/update_state.dart';
-import 'package:astral/core/states/window_state.dart';
-import 'package:astral/core/states/vpn_state.dart';
-import 'package:astral/core/states/app_settings_state.dart';
-import 'package:astral/core/repositories/app_settings_repository.dart';
-import 'package:astral/core/database/dao/all_settings_dao.dart';
-import 'package:astral/core/platform/startup_url_scheme.dart';
-import 'package:astral/core/services/update_channel_store.dart';
+import 'package:enmesh/core/states/player_state.dart';
+import 'package:enmesh/core/states/display_state.dart';
+import 'package:enmesh/core/states/startup_state.dart';
+import 'package:enmesh/core/states/update_state.dart';
+import 'package:enmesh/core/states/window_state.dart';
+import 'package:enmesh/core/states/vpn_state.dart';
+import 'package:enmesh/core/states/app_settings_state.dart';
+import 'package:enmesh/core/repositories/app_settings_repository.dart';
+import 'package:enmesh/core/database/dao/all_settings_dao.dart';
+import 'package:enmesh/core/platform/startup_url_scheme.dart';
+import 'package:enmesh/core/services/update_channel_store.dart';
 
 /// 应用设置服务：协调 State 与持久化
 class AppSettingsService {

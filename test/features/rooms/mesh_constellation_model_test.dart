@@ -1,5 +1,5 @@
-import 'package:astral/features/rooms/widgets/mesh_constellation_model.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/features/rooms/widgets/mesh_constellation_model.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:astral/core/services/notification_service.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/shared/utils/network/ip_utils.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/core/services/notification_service.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/shared/utils/network/ip_utils.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// 连接成功后的网络状态轮询：IPv4 刷新、子网代理 CIDR、通知/桌面贴片时长。
 class ConnectionNetworkMonitor {

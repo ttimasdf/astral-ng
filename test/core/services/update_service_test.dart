@@ -1,4 +1,4 @@
-import 'package:astral/core/services/update_service.dart';
+import 'package:enmesh/core/services/update_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
@@ -112,6 +112,6 @@ String _updateJson(String channel, {String? pageUrl}) {
       '"highlights":{"en":"A safer update."},'
       '"publishedAt":"2026-08-14T00:00:00Z",'
       '"expiresAt":null,'
-      '"pageUrl":"${pageUrl ?? 'https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0'}"'
+      '"pageUrl":"${pageUrl ?? 'https://github.com/ttimasdf/enmesh/releases/tag/v3.0.0'}"'
       '}';
 }

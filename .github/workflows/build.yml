@@ -20,7 +20,7 @@ permissions:
 
 env:
   # Optional repository/environment override for the compiled update API base URL.
-  UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://astral-ng.rabit.pw/api/v1' }}
+  UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://enmesh.rabit.pw/api/v1' }}
 
 jobs:
   test:
@@ -133,7 +133,7 @@ jobs:
       UPDATE_API_BASE_URL: >-
         ${{ needs.preview-update-api.outputs.base-url ||
             vars.UPDATE_API_BASE_URL ||
-            'https://astral-ng.rabit.pw/api/v1' }}
+            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -169,7 +169,7 @@ jobs:
       UPDATE_API_BASE_URL: >-
         ${{ needs.preview-update-api.outputs.base-url ||
             vars.UPDATE_API_BASE_URL ||
-            'https://astral-ng.rabit.pw/api/v1' }}
+            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -205,7 +205,7 @@ jobs:
       UPDATE_API_BASE_URL: >-
         ${{ needs.preview-update-api.outputs.base-url ||
             vars.UPDATE_API_BASE_URL ||
-            'https://astral-ng.rabit.pw/api/v1' }}
+            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

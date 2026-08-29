@@ -1,8 +1,8 @@
-import 'package:astral/core/app_links/definitions/app_link_definitions.dart';
-import 'package:astral/core/diagnostics/diagnostic_context.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/app_links/handlers/link_handlers.dart';
+import 'package:enmesh/core/app_links/definitions/app_link_definitions.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_context.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/app_links/handlers/link_handlers.dart';
 import 'package:uuid/uuid.dart';
 
 typedef SimpleHandler = Future<void> Function(Uri uri);
@@ -60,7 +60,7 @@ class AppLinkRegistry {
   }
 
   Future<void> _processLink(Uri uri) {
-    if (!_linkDefinitions.isValidAstralLink(uri)) return Future.value();
+    if (!_linkDefinitions.isValidEnmeshLink(uri)) return Future.value();
 
     final handler = _handlers[uri.host];
     if (handler == null) return Future.value();

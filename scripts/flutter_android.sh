@@ -2,25 +2,25 @@
 
 usage() {
   cat <<'EOF'
-Usage: flutter-android [ASTRAL_OPTIONS] <flutter-command> [flutter-arguments...]
+Usage: flutter-android [ENMESH_OPTIONS] <flutter-command> [flutter-arguments...]
 
 Run Flutter with an Android-safe Nix environment while preserving Flutter's
 normal subcommands and arguments.
 
-Astral options (must precede the Flutter command):
-  --astral-channel CHANNEL  Set production or canary build identity.
+Enmesh options (must precede the Flutter command):
+  --enmesh-channel CHANNEL  Set production or canary build identity.
                             Defaults to canary.
-  --astral-channel=CHANNEL  Equivalent inline form.
-  --astral-update-api URL   Compile an update API base URL into the app.
-  --astral-update-api=URL   Equivalent inline form.
-  --astral-help             Show this help text.
+  --enmesh-channel=CHANNEL  Equivalent inline form.
+  --enmesh-update-api URL   Compile an update API base URL into the app.
+  --enmesh-update-api=URL   Equivalent inline form.
+  --enmesh-help             Show this help text.
 
 Examples:
   flutter-android run -d <device>
   flutter-android test
   flutter-android build apk --debug
-  flutter-android --astral-channel production build apk --release
-  flutter-android --astral-update-api http://10.0.2.2:3100/api/v1 run -d <device>
+  flutter-android --enmesh-channel production build apk --release
+  flutter-android --enmesh-update-api http://10.0.2.2:3100/api/v1 run -d <device>
 EOF
 }
 
@@ -29,35 +29,35 @@ fail() {
   exit 2
 }
 
-astral_channel="canary"
-astral_update_api="${UPDATE_API_BASE_URL:-}"
+enmesh_channel="canary"
+enmesh_update_api="${UPDATE_API_BASE_URL:-}"
 has_flutter_update_api_define=false
 while (( $# > 0 )); do
   case "$1" in
-    --astral-channel)
-      (( $# >= 2 )) || fail '--astral-channel requires production or canary'
-      astral_channel="$2"
+    --enmesh-channel)
+      (( $# >= 2 )) || fail '--enmesh-channel requires production or canary'
+      enmesh_channel="$2"
       shift 2
       ;;
-    --astral-channel=*)
-      astral_channel="${1#*=}"
+    --enmesh-channel=*)
+      enmesh_channel="${1#*=}"
       shift
       ;;
-    --astral-update-api)
-      (( $# >= 2 )) || fail '--astral-update-api requires a URL'
-      astral_update_api="$2"
+    --enmesh-update-api)
+      (( $# >= 2 )) || fail '--enmesh-update-api requires a URL'
+      enmesh_update_api="$2"
       shift 2
       ;;
-    --astral-update-api=*)
-      astral_update_api="${1#*=}"
+    --enmesh-update-api=*)
+      enmesh_update_api="${1#*=}"
       shift
       ;;
-    --astral-help)
+    --enmesh-help)
       usage
       exit 0
       ;;
-    --astral-*)
-      fail "unknown Astral option: $1"
+    --enmesh-*)
+      fail "unknown Enmesh option: $1"
       ;;
     *)
       break
@@ -65,16 +65,16 @@ while (( $# > 0 )); do
   esac
 done
 
-if [[ "$astral_channel" != "production" && "$astral_channel" != "canary" ]]; then
-  fail "unsupported channel '$astral_channel'; expected production or canary"
+if [[ "$enmesh_channel" != "production" && "$enmesh_channel" != "canary" ]]; then
+  fail "unsupported channel '$enmesh_channel'; expected production or canary"
 fi
 
 [[ "$(uname -s)" == "Linux" ]] || fail 'the Nix Android wrapper currently supports Linux only'
-[[ -f pubspec.yaml && -x android/gradlew ]] || fail 'run this command from the Astral-ng repository root'
+[[ -f pubspec.yaml && -x android/gradlew ]] || fail 'run this command from the Enmesh repository root'
 
-: "${ASTRAL_FLUTTER_ROOT:?flutter-android must be launched from the Nix development shell}"
-: "${ASTRAL_FLUTTER_BIN:?flutter-android must be launched from the Nix development shell}"
-: "${ASTRAL_ANDROID_MIN_SDK:?flutter-android is missing its pinned Android minimum SDK}"
+: "${ENMESH_FLUTTER_ROOT:?flutter-android must be launched from the Nix development shell}"
+: "${ENMESH_FLUTTER_BIN:?flutter-android must be launched from the Nix development shell}"
+: "${ENMESH_ANDROID_MIN_SDK:?flutter-android is missing its pinned Android minimum SDK}"
 : "${ANDROID_NDK_ROOT:?ANDROID_NDK_ROOT is not set; enter the Nix development shell}"
 
 flutter_command="${1:-}"
@@ -116,7 +116,7 @@ bindgen_args() {
   local clang_target="$1"
   local target_include="$2"
   printf '%s' \
-    "--target=${clang_target}${ASTRAL_ANDROID_MIN_SDK} " \
+    "--target=${clang_target}${ENMESH_ANDROID_MIN_SDK} " \
     "--sysroot=$sysroot " \
     "-nostdinc " \
     "-isystem $clang_include " \
@@ -139,7 +139,7 @@ export BINDGEN_EXTRA_CLANG_ARGS_armv7_linux_androideabi
 export BINDGEN_EXTRA_CLANG_ARGS_aarch64_linux_android
 export BINDGEN_EXTRA_CLANG_ARGS_i686_linux_android
 export BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android
-export FLUTTER_ROOT="$ASTRAL_FLUTTER_ROOT"
+export FLUTTER_ROOT="$ENMESH_FLUTTER_ROOT"
 
 build_commit="${BUILD_COMMIT:-$(git rev-parse --short=7 HEAD 2>/dev/null || printf local)}"
 build_run_number="${BUILD_RUN_NUMBER:-${GITHUB_RUN_NUMBER:-0}}"
@@ -166,20 +166,20 @@ for argument in "${flutter_args[@]}"; do
   esac
 done
 
-export BUILD_CHANNEL="$astral_channel"
+export BUILD_CHANNEL="$enmesh_channel"
 export BUILD_COMMIT="$build_commit"
 export BUILD_RUN_NUMBER="$build_run_number"
 case "$flutter_command" in
   build|drive|run|test)
     flutter_args+=(
-      "--dart-define=BUILD_CHANNEL=$astral_channel"
+      "--dart-define=BUILD_CHANNEL=$enmesh_channel"
       "--dart-define=BUILD_COMMIT=$build_commit"
       "--dart-define=BUILD_RUN_NUMBER=$build_run_number"
     )
-    if [[ "$has_flutter_update_api_define" == false && -n "$astral_update_api" ]]; then
-      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$astral_update_api")
+    if [[ "$has_flutter_update_api_define" == false && -n "$enmesh_update_api" ]]; then
+      flutter_args+=("--dart-define=UPDATE_API_BASE_URL=$enmesh_update_api")
     fi
     ;;
 esac
 
-exec "$ASTRAL_FLUTTER_BIN" "${flutter_args[@]}"
+exec "$ENMESH_FLUTTER_BIN" "${flutter_args[@]}"

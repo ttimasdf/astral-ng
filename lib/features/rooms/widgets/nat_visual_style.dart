@@ -1,4 +1,4 @@
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 
 enum NatFamily {

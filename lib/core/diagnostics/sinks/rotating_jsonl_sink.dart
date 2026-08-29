@@ -6,11 +6,11 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/sinks/diagnostic_sink.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/sinks/diagnostic_sink.dart';
 
 final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
   RotatingJsonlSink._({
@@ -19,7 +19,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
     required this.retainedFiles,
     required this.maxQueueRecords,
   }) : _directory = directory,
-       _currentFile = File(p.join(directory.path, 'astral.jsonl'));
+       _currentFile = File(p.join(directory.path, 'enmesh.jsonl'));
 
   static Future<RotatingJsonlSink> open({
     Directory? directory,
@@ -171,7 +171,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
       await _currentFile.delete();
     }
 
-    _currentFile = File(p.join(_directory.path, 'astral.jsonl'));
+    _currentFile = File(p.join(_directory.path, 'enmesh.jsonl'));
     _output = _currentFile.openWrite(mode: FileMode.append);
     _currentBytes = 0;
   }
@@ -189,10 +189,10 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
               .transform(const LineSplitter())
               .first;
       final decoded = jsonDecode(firstLine);
-      final astral = decoded is Map<String, dynamic> ? decoded['astral'] : null;
+      final enmesh = decoded is Map<String, dynamic> ? decoded['enmesh'] : null;
       compatible =
-          astral is Map<String, dynamic> &&
-          astral['schema_version'] == DiagnosticRecord.schemaVersion;
+          enmesh is Map<String, dynamic> &&
+          enmesh['schema_version'] == DiagnosticRecord.schemaVersion;
     } catch (_) {
       compatible = false;
     }
@@ -200,7 +200,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
 
     await for (final entity in _directory.list()) {
       if (entity is File &&
-          p.basename(entity.path).startsWith('astral.jsonl')) {
+          p.basename(entity.path).startsWith('enmesh.jsonl')) {
         await entity.delete();
       }
     }
@@ -210,7 +210,7 @@ final class RotatingJsonlSink implements DiagnosticSink, DiagnosticSinkHealth {
     final cutoff = DateTime.now().subtract(const Duration(days: 7));
     await for (final entity in _directory.list()) {
       if (entity is! File ||
-          !p.basename(entity.path).startsWith('astral.jsonl')) {
+          !p.basename(entity.path).startsWith('enmesh.jsonl')) {
         continue;
       }
       if ((await entity.lastModified()).isBefore(cutoff)) {

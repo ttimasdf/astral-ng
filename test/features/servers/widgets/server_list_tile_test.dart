@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/features/servers/widgets/server_list_tile.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/features/servers/widgets/server_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

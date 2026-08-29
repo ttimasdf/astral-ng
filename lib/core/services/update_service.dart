@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:astral/core/models/update_version.dart';
-import 'package:astral/core/platform/app_info.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/shared/utils/version_util.dart';
+import 'package:enmesh/core/models/update_version.dart';
+import 'package:enmesh/core/platform/app_info.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/shared/utils/version_util.dart';
 import 'package:http/http.dart' as http;
 
-const _defaultUpdateApiBaseUrl = 'https://astral-ng.rabit.pw/api/v1';
+const _defaultUpdateApiBaseUrl = 'https://enmesh.rabit.pw/api/v1';
 const updateApiBaseUrl = String.fromEnvironment(
   'UPDATE_API_BASE_URL',
   defaultValue: _defaultUpdateApiBaseUrl,
@@ -65,7 +65,7 @@ class UpdateChecker {
             uri,
             headers: const {
               'Accept': 'application/json',
-              'User-Agent': 'astral-ng',
+              'User-Agent': 'enmesh',
             },
           )
           .timeout(_requestTimeout);

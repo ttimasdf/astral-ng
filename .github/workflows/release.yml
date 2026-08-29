@@ -14,7 +14,7 @@ permissions:
 
 env:
   # Optional repository/environment override for the compiled update API base URL.
-  UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://astral-ng.rabit.pw/api/v1' }}
+  UPDATE_API_BASE_URL: ${{ vars.UPDATE_API_BASE_URL || 'https://enmesh.rabit.pw/api/v1' }}
 
 jobs:
   test:
@@ -278,4 +278,4 @@ jobs:
     with:
       github_environment: Production
       checkout_ref: ${{ github.ref_name }}
-      public_base_url: https://astral-ng.rabit.pw/api/v1
+      public_base_url: https://enmesh.rabit.pw/api/v1

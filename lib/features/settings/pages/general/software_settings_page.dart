@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/window_state.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/features/settings/models/settings_availability.dart';
-import 'package:astral/features/settings/widgets/settings_components.dart';
-import 'package:astral/core/ui/base_settings_page.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/window_state.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/features/settings/models/settings_availability.dart';
+import 'package:enmesh/features/settings/widgets/settings_components.dart';
+import 'package:enmesh/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class SoftwareSettingsPage extends BaseStatefulSettingsPage {

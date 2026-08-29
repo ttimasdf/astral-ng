@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate, merge, and retrieve Astral's canonical diagnostic JSONL."""
+"""Validate, merge, and retrieve Enmesh's canonical diagnostic JSONL."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from typing import Any
 ANSI_ESCAPE = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
 PACKAGE_NAME = re.compile(r"^[A-Za-z0-9._]+$")
 REQUIRED_LEVELS = {"trace", "debug", "info", "warning", "error", "fatal"}
-ROTATED_NAMES = ("astral.jsonl.2", "astral.jsonl.1", "astral.jsonl")
+ROTATED_NAMES = ("enmesh.jsonl.2", "enmesh.jsonl.1", "enmesh.jsonl")
 ANDROID_LOG_DIRECTORY = "cache/logs"
 
 
@@ -54,11 +54,11 @@ def validate_record(record: Any, location: str) -> dict[str, Any]:
     if str(event.get("code", "")).startswith("rust.event@"):
         raise DiagnosticError(f"{location}: source locations are not semantic event codes")
 
-    astral = _object(item.get("astral"), "astral", location)
-    if not isinstance(astral.get("schema_version"), int):
-        raise DiagnosticError(f"{location}: missing astral.schema_version")
-    if not isinstance(astral.get("ingest_sequence"), int):
-        raise DiagnosticError(f"{location}: missing astral.ingest_sequence")
+    enmesh = _object(item.get("enmesh"), "enmesh", location)
+    if not isinstance(enmesh.get("schema_version"), int):
+        raise DiagnosticError(f"{location}: missing enmesh.schema_version")
+    if not isinstance(enmesh.get("ingest_sequence"), int):
+        raise DiagnosticError(f"{location}: missing enmesh.ingest_sequence")
 
     if contains_ansi(item):
         raise DiagnosticError(f"{location}: ANSI escape sequence is not allowed")
@@ -95,14 +95,14 @@ def read_records(paths: Iterable[pathlib.Path]) -> list[dict[str, Any]]:
 
 
 def record_sort_key(record: dict[str, Any]) -> tuple[Any, ...]:
-    astral = record["astral"]
+    enmesh = record["enmesh"]
     session = record.get("session")
     session_id = session.get("id", "") if isinstance(session, dict) else ""
     return (
         record["@timestamp"],
         record["event"]["created"],
         session_id,
-        astral["ingest_sequence"],
+        enmesh["ingest_sequence"],
     )
 
 
@@ -189,7 +189,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    validate = subparsers.add_parser("validate", help="validate ECS/Astral JSONL")
+    validate = subparsers.add_parser("validate", help="validate ECS/Enmesh JSONL")
     validate.add_argument("paths", nargs="+", help="JSONL files or log directories")
 
     merge = subparsers.add_parser("merge", help="merge and chronologically sort JSONL")
@@ -197,7 +197,7 @@ def build_parser() -> argparse.ArgumentParser:
     merge.add_argument("-o", "--output", required=True, type=pathlib.Path)
 
     pull = subparsers.add_parser("pull-android", help="pull private logs with adb run-as")
-    pull.add_argument("-p", "--package", default="pw.rabit.astralng.canary")
+    pull.add_argument("-p", "--package", default="pw.rabit.enmesh.canary")
     pull.add_argument("-s", "--device")
     pull.add_argument("-o", "--output", required=True, type=pathlib.Path)
     return parser

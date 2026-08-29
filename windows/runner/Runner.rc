@@ -52,16 +52,16 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-#ifdef ASTRAL_CANARY
+#ifdef ENMESH_CANARY
 IDI_APP_ICON            ICON                    "resources\\app_icon_canary.ico"
-#define APP_DISPLAY_NAME "AstralNG Canary"
-#define APP_INTERNAL_NAME "astral-canary"
-#define APP_FILENAME "astral-canary.exe"
+#define APP_DISPLAY_NAME "Enmesh Canary"
+#define APP_INTERNAL_NAME "enmesh-canary"
+#define APP_FILENAME "enmesh-canary.exe"
 #else
 IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
-#define APP_DISPLAY_NAME "AstralNG"
-#define APP_INTERNAL_NAME "astral"
-#define APP_FILENAME "astral.exe"
+#define APP_DISPLAY_NAME "Enmesh"
+#define APP_INTERNAL_NAME "enmesh"
+#define APP_FILENAME "enmesh.exe"
 #endif
 
 

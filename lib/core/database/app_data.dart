@@ -1,18 +1,18 @@
 import 'dart:io';
 
-import 'package:astral/core/models/all_settings.dart';
-import 'package:astral/core/models/net_config.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/core/database/dao/all_settings_dao.dart';
-import 'package:astral/core/database/dao/net_config_dao.dart';
-import 'package:astral/core/database/dao/room_dao.dart';
-import 'package:astral/core/database/dao/server_dao.dart';
-import 'package:astral/core/database/dao/magic_wall_dao.dart';
+import 'package:enmesh/core/models/all_settings.dart';
+import 'package:enmesh/core/models/net_config.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/database/dao/all_settings_dao.dart';
+import 'package:enmesh/core/database/dao/net_config_dao.dart';
+import 'package:enmesh/core/database/dao/room_dao.dart';
+import 'package:enmesh/core/database/dao/server_dao.dart';
+import 'package:enmesh/core/database/dao/magic_wall_dao.dart';
 import 'package:isar_community/isar.dart';
-import 'package:astral/core/models/theme_settings.dart';
-import 'package:astral/core/database/dao/theme_settings_dao.dart';
+import 'package:enmesh/core/models/theme_settings.dart';
+import 'package:enmesh/core/database/dao/theme_settings_dao.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 

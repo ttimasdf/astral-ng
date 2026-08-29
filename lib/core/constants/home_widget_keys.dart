@@ -19,9 +19,9 @@ abstract final class HomeWidgetKeys {
 
   // Keep provider class names tied to the Kotlin namespace rather than the
   // channel-specific Android application ID.
-  static const widgetProviderPackage = 'pw.rabit.astralng';
-  static const widgetSmall = '$widgetProviderPackage.AstralWidgetProvider';
+  static const widgetProviderPackage = 'pw.rabit.enmesh';
+  static const widgetSmall = '$widgetProviderPackage.EnmeshWidgetProvider';
   static const widgetMedium =
-      '$widgetProviderPackage.AstralWidgetProviderMedium';
-  static const widgetLarge = '$widgetProviderPackage.AstralWidgetProviderLarge';
+      '$widgetProviderPackage.EnmeshWidgetProviderMedium';
+  static const widgetLarge = '$widgetProviderPackage.EnmeshWidgetProviderLarge';
 }

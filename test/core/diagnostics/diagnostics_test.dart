@@ -5,25 +5,25 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
-import 'package:astral/core/bootstrap/startup_host.dart';
-import 'package:astral/features/settings/pages/general/logs_page.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
-import 'package:astral/core/diagnostics/diagnostic_context.dart';
-import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
-import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/diagnostic_sanitizer.dart';
-import 'package:astral/core/diagnostics/diagnostic_store.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/error/error_coordinator.dart';
-import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
-import 'package:astral/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
-import 'package:astral/core/diagnostics/support_bundle.dart';
+import 'package:enmesh/core/bootstrap/bootstrap_stage_failure.dart';
+import 'package:enmesh/core/bootstrap/startup_host.dart';
+import 'package:enmesh/features/settings/pages/general/logs_page.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_launch_options.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_context.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_flood_controller.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_formatter.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_sanitizer.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_store.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/error/error_coordinator.dart';
+import 'package:enmesh/core/diagnostics/error/error_hook_registration.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:enmesh/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
+import 'package:enmesh/core/diagnostics/support_bundle.dart';
 
 void main() {
   group('LogPolicy', () {
@@ -71,8 +71,8 @@ void main() {
       final options = DiagnosticLaunchOptions.parse(const [
         '--autostart',
         '--log-preset=diagnostic',
-        '--log-module=astral.connection=info',
-        '--log-module=astral.easytier.peer=trace',
+        '--log-module=enmesh.connection=info',
+        '--log-module=enmesh.easytier.peer=trace',
         '--log-duration=45s',
       ]);
       final runtime = DiagnosticsRuntime.bootstrap(
@@ -185,7 +185,7 @@ void main() {
     first.dispose();
   });
 
-  test('easy_localization warnings use Astral diagnostics', () async {
+  test('easy_localization warnings use Enmesh diagnostics', () async {
     final runtime = DiagnosticsRuntime.bootstrap(
       initialPolicy: LogPolicy.debugDefaults(),
     );
@@ -323,7 +323,7 @@ void main() {
     );
     expect(
       sanitizer.text(
-        'astral://room?code=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'enmesh://room?code=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
       ),
       '<redacted-room-link>',
     );
@@ -388,8 +388,8 @@ void main() {
     final decoded = jsonDecode(encoded) as Map<String, dynamic>;
     final records = decoded['records'] as List<dynamic>;
     final record = records.single as Map<String, dynamic>;
-    final astral = record['astral'] as Map<String, dynamic>;
-    final fields = astral['fields'] as Map<String, dynamic>;
+    final enmesh = record['enmesh'] as Map<String, dynamic>;
+    final fields = enmesh['fields'] as Map<String, dynamic>;
 
     expect(decoded['support_bundle_schema_version'], 3);
     expect(
@@ -401,7 +401,7 @@ void main() {
   });
 
   test('late file sink replays bounded startup records', () async {
-    final directory = await Directory.systemTemp.createTemp('astral-startup-');
+    final directory = await Directory.systemTemp.createTemp('enmesh-startup-');
     addTearDown(() => directory.delete(recursive: true));
     final runtime = DiagnosticsRuntime.bootstrap(
       initialPolicy: LogPolicy.debugDefaults().withModuleLevel(
@@ -418,7 +418,7 @@ void main() {
     runtime.attachSink(sink, replayStoredRecords: true);
     await runtime.flush();
 
-    final records = await File('${directory.path}/astral.jsonl').readAsLines();
+    final records = await File('${directory.path}/enmesh.jsonl').readAsLines();
     expect(records, hasLength(1));
     final decoded = jsonDecode(records.single) as Map<String, dynamic>;
     expect(
@@ -432,24 +432,24 @@ void main() {
   });
 
   test('JSONL sink resets an incompatible rotation set', () async {
-    final directory = await Directory.systemTemp.createTemp('astral-schema-');
+    final directory = await Directory.systemTemp.createTemp('enmesh-schema-');
     addTearDown(() => directory.delete(recursive: true));
     await File(
-      '${directory.path}/astral.jsonl',
+      '${directory.path}/enmesh.jsonl',
     ).writeAsString('{"schema_version":1,"message":"legacy"}\n');
     await File(
-      '${directory.path}/astral.jsonl.1',
+      '${directory.path}/enmesh.jsonl.1',
     ).writeAsString('{"schema_version":1,"message":"legacy rotation"}\n');
 
     final sink = await RotatingJsonlSink.open(directory: directory);
     addTearDown(sink.close);
 
-    expect(await File('${directory.path}/astral.jsonl').length(), 0);
-    expect(File('${directory.path}/astral.jsonl.1').existsSync(), isFalse);
+    expect(await File('${directory.path}/enmesh.jsonl').length(), 0);
+    expect(File('${directory.path}/enmesh.jsonl.1').existsSync(), isFalse);
   });
 
   test('rotating JSONL sink persists structured bounded records', () async {
-    final directory = await Directory.systemTemp.createTemp('astral-logs-');
+    final directory = await Directory.systemTemp.createTemp('enmesh-logs-');
     addTearDown(() => directory.delete(recursive: true));
     final sink = await RotatingJsonlSink.open(
       directory: directory,
@@ -487,7 +487,7 @@ void main() {
     final decoded = jsonDecode(lines.last) as Map<String, dynamic>;
     expect(decoded['ecs.version'], DiagnosticRecord.ecsVersion);
     expect(
-      (decoded['astral'] as Map<String, dynamic>)['schema_version'],
+      (decoded['enmesh'] as Map<String, dynamic>)['schema_version'],
       DiagnosticRecord.schemaVersion,
     );
     expect(
@@ -495,7 +495,7 @@ void main() {
       DiagnosticModules.bootstrap,
     );
     expect(
-      (decoded['astral'] as Map<String, dynamic>)['fields'],
+      (decoded['enmesh'] as Map<String, dynamic>)['fields'],
       isA<Map<String, dynamic>>(),
     );
   });
@@ -523,12 +523,12 @@ void main() {
     final log = json['log'] as Map<String, Object?>;
     final origin = log['origin'] as Map<String, Object?>;
     final file = origin['file'] as Map<String, Object?>;
-    final astral = json['astral'] as Map<String, Object?>;
+    final enmesh = json['enmesh'] as Map<String, Object?>;
 
     expect(json['@timestamp'], '2026-01-01T00:00:00.000Z');
     expect(event, isNot(contains('code')));
     expect(file, {'name': 'easytier/peers/peer_ospf_route.rs', 'line': 3289});
-    expect(astral['classification'], 'upstream-unclassified');
+    expect(enmesh['classification'], 'upstream-unclassified');
   });
 
   testWidgets('LogsPage links to an error and exposes advanced filters', (
@@ -572,7 +572,7 @@ void main() {
       StartupHost(diagnostics: runtime, bootstrap: () => completer.future),
     );
 
-    expect(find.text('AstralNG'), findsOneWidget);
+    expect(find.text('Enmesh'), findsOneWidget);
     expect(find.text('Starting…'), findsOneWidget);
 
     completer.complete(const MaterialApp(home: Text('Ready')));
@@ -628,7 +628,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('AstralNG could not start'), findsOneWidget);
+    expect(find.text('Enmesh could not start'), findsOneWidget);
     expect(find.textContaining('database unavailable'), findsOneWidget);
     expect(find.textContaining('Diagnostic ID:'), findsOneWidget);
     expect(

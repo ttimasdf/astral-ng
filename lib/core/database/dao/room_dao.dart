@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:isar_community/isar.dart';
-import 'package:astral/core/models/room.dart';
+import 'package:enmesh/core/models/room.dart';
 
 class RoomDao {
   final Isar _isar;

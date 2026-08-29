@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/models/room.dart';
+﻿import 'package:enmesh/core/models/room.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 房间状态（纯Signal）

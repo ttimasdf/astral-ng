@@ -1,10 +1,10 @@
-﻿import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/shared/utils/network/blocked_servers.dart';
-import 'package:astral/features/servers/dialogs/server_dialog.dart';
-import 'package:astral/features/servers/widgets/server_list_tile.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/core/ui/base_settings_page.dart';
+﻿import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/shared/utils/network/blocked_servers.dart';
+import 'package:enmesh/features/servers/dialogs/server_dialog.dart';
+import 'package:enmesh/features/servers/widgets/server_list_tile.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/ui/base_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

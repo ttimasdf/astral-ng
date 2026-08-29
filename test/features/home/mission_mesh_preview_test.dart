@@ -1,6 +1,6 @@
-import 'package:astral/features/home/widgets/mission_mesh_preview.dart';
-import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/features/home/widgets/mission_mesh_preview.dart';
+import 'package:enmesh/shared/utils/network/mesh_peer_identity.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

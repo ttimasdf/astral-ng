@@ -41,7 +41,7 @@ pub fn init(filter: &str) -> Result<(), String> {
     let (filter_layer, filter_handle) = reload::Layer::new(env_filter);
     Registry::default()
         .with(filter_layer)
-        .with(AstralDiagnosticLayer)
+        .with(EnmeshDiagnosticLayer)
         .try_init()
         .map_err(|error| format!("failed to install Rust diagnostic subscriber: {error}"))?;
     FILTER_HANDLE
@@ -50,7 +50,7 @@ pub fn init(filter: &str) -> Result<(), String> {
     install_panic_hook();
     let _ = INITIALIZED.set(());
     tracing::info!(
-        target: "astral.bootstrap",
+        target: "enmesh.bootstrap",
         event_code = "rust.diagnostics.ready",
         filter,
         "Rust diagnostics initialized"
@@ -110,7 +110,7 @@ fn init_bridge_worker() {
     BRIDGE_SENDER.get_or_init(|| {
         let (sender, receiver) = mpsc::sync_channel(BRIDGE_CAPACITY);
         let worker = std::thread::Builder::new()
-            .name("astral-diagnostics".to_string())
+            .name("enmesh-diagnostics".to_string())
             .spawn(move || {
                 while let Ok(first) = receiver.recv() {
                     let mut events = Vec::with_capacity(50);
@@ -176,9 +176,9 @@ impl BridgeState {
     }
 }
 
-struct AstralDiagnosticLayer;
+struct EnmeshDiagnosticLayer;
 
-impl<S> Layer<S> for AstralDiagnosticLayer
+impl<S> Layer<S> for EnmeshDiagnosticLayer
 where
     S: Subscriber + for<'lookup> LookupSpan<'lookup>,
 {
@@ -250,11 +250,11 @@ fn enqueue_bridge(event: RustDiagnosticEvent) {
             timestamp_millis: Utc::now().timestamp_millis(),
             source_sequence: SOURCE_SEQUENCE.fetch_add(1, Ordering::Relaxed),
             level: "warning".to_string(),
-            module: "astral.logging".to_string(),
-            raw_target: "astral.diagnostics".to_string(),
+            module: "enmesh.logging".to_string(),
+            raw_target: "enmesh.diagnostics".to_string(),
             source_file: None,
             source_line: None,
-            source_function: Some("astral.diagnostics".to_string()),
+            source_function: Some("enmesh.diagnostics".to_string()),
             event_code: Some("logging.records.suppressed".to_string()),
             message: "Rust diagnostic bridge suppressed records".to_string(),
             fields,
@@ -391,30 +391,30 @@ fn compact_rust_source_file(target: &str, file: Option<&str>) -> Option<String> 
 
 fn compact_crate_label<'a>(target: &str, crate_directory: Option<&'a str>) -> &'a str {
     match crate_directory {
-        Some("rust") => "astral",
+        Some("rust") => "enmesh",
         Some(directory) => directory,
-        None if target.starts_with("rust_lib_astral") || target.starts_with("astral") => "astral",
+        None if target.starts_with("rust_lib_enmesh") || target.starts_with("enmesh") => "enmesh",
         None if target.starts_with("easytier") || target.starts_with("CORE") => "easytier",
         None => "rust",
     }
 }
 
 pub fn map_target(target: &str) -> String {
-    if target.starts_with("astral.") {
+    if target.starts_with("enmesh.") {
         return target.to_string();
     }
     if target.starts_with("CORE::INSTANCE::CONNECTION") {
-        return "astral.easytier.connection".to_string();
+        return "enmesh.easytier.connection".to_string();
     }
     if target.starts_with("CORE::INSTANCE") {
-        return "astral.easytier.instance".to_string();
+        return "enmesh.easytier.instance".to_string();
     }
     if target.starts_with("CORE") {
-        return "astral.easytier".to_string();
+        return "enmesh.easytier".to_string();
     }
     if target.contains("::tunnel::") {
         return format!(
-            "astral.easytier.tunnel.{}",
+            "enmesh.easytier.tunnel.{}",
             target
                 .split("::tunnel::")
                 .nth(1)
@@ -423,18 +423,18 @@ pub fn map_target(target: &str) -> String {
         );
     }
     if target.starts_with("easytier") {
-        return format!("astral.{}", target.replace("::", "."));
+        return format!("enmesh.{}", target.replace("::", "."));
     }
-    if target.starts_with("rust_lib_astral") {
-        return format!("astral.rust.{}", target.replace("::", "."));
+    if target.starts_with("rust_lib_enmesh") {
+        return format!("enmesh.rust.{}", target.replace("::", "."));
     }
-    "astral.easytier".to_string()
+    "enmesh.easytier".to_string()
 }
 
 fn format_native(event: &RustDiagnosticEvent) -> String {
     let module = event
         .module
-        .strip_prefix("astral.")
+        .strip_prefix("enmesh.")
         .unwrap_or(&event.module);
     let mut field_entries = event.fields.iter().collect::<Vec<_>>();
     field_entries.sort_by_key(|(key, _)| *key);
@@ -490,7 +490,7 @@ fn write_native_line(_priority: i32, message: &str) {
 
 #[cfg(target_os = "android")]
 fn write_native_line(priority: i32, message: &str) {
-    const TAG: &[u8] = b"AstralRust\0";
+    const TAG: &[u8] = b"EnmeshRust\0";
     let safe = message.replace('\0', "�");
     if let Ok(message) = CString::new(safe) {
         unsafe {
@@ -534,14 +534,14 @@ mod tests {
 
     #[test]
     fn maps_stable_easytier_targets() {
-        assert_eq!(map_target("CORE::INSTANCE"), "astral.easytier.instance");
+        assert_eq!(map_target("CORE::INSTANCE"), "enmesh.easytier.instance");
         assert_eq!(
             map_target("CORE::INSTANCE::CONNECTION"),
-            "astral.easytier.connection"
+            "enmesh.easytier.connection"
         );
         assert_eq!(
             map_target("easytier::tunnel::udp"),
-            "astral.easytier.tunnel.udp"
+            "enmesh.easytier.tunnel.udp"
         );
     }
 
@@ -558,10 +558,10 @@ mod tests {
         );
         assert_eq!(
             compact_rust_source_file(
-                "rust_lib_astral::api::simple",
+                "rust_lib_enmesh::api::simple",
                 Some("rust\\src\\api\\simple.rs"),
             ),
-            Some("astral/api/simple.rs".to_string())
+            Some("enmesh/api/simple.rs".to_string())
         );
     }
 
@@ -597,7 +597,7 @@ mod tests {
             timestamp_millis: 0,
             source_sequence: sequence as u64,
             level: "info".to_string(),
-            module: "astral.easytier".to_string(),
+            module: "enmesh.easytier".to_string(),
             raw_target: "CORE".to_string(),
             source_file: Some("easytier/connector/manual.rs".to_string()),
             source_line: Some(213),

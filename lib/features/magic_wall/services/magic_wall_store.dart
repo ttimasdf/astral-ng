@@ -1,9 +1,9 @@
-import 'package:astral/core/database/dao/magic_wall_dao.dart';
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
+import 'package:enmesh/core/database/dao/magic_wall_dao.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/features/magic_wall/models/magic_wall_group_bundle.dart';
 import 'package:uuid/uuid.dart';
 
 /// Magic Wall 领域逻辑：加载/迁移、打包、事件、路径回写。

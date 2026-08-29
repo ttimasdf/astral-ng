@@ -1,4 +1,4 @@
-import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
+import 'package:enmesh/features/rooms/widgets/nat_visual_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

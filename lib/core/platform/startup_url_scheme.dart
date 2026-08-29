@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
 
 const _startupRunKey =
     'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
-const _startupValueName = 'Astral';
+const _startupValueName = 'Enmesh';
 
 final _log = Diagnostics.logger(DiagnosticModules.appLinks);
 
@@ -15,7 +15,7 @@ Future<void> _removeLegacyStartupShortcut() async {
   try {
     final startupFolder =
         '${Platform.environment['APPDATA']}\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
-    final shortcutPath = '$startupFolder\\Astral.lnk';
+    final shortcutPath = '$startupFolder\\Enmesh.lnk';
     final shortcut = File(shortcutPath);
     if (await shortcut.exists()) {
       await shortcut.delete();
@@ -86,15 +86,15 @@ class UrlSchemeRegistrar {
       final commands = [
         [
           'add',
-          'HKEY_CURRENT_USER\\Software\\Classes\\astral',
+          'HKEY_CURRENT_USER\\Software\\Classes\\enmesh',
           '/ve',
           '/d',
-          'URL:Astral Protocol',
+          'URL:Enmesh Protocol',
           '/f',
         ],
         [
           'add',
-          'HKEY_CURRENT_USER\\Software\\Classes\\astral',
+          'HKEY_CURRENT_USER\\Software\\Classes\\enmesh',
           '/v',
           'URL Protocol',
           '/d',
@@ -103,7 +103,7 @@ class UrlSchemeRegistrar {
         ],
         [
           'add',
-          'HKEY_CURRENT_USER\\Software\\Classes\\astral\\DefaultIcon',
+          'HKEY_CURRENT_USER\\Software\\Classes\\enmesh\\DefaultIcon',
           '/ve',
           '/d',
           '"$executablePath",1',
@@ -111,7 +111,7 @@ class UrlSchemeRegistrar {
         ],
         [
           'add',
-          'HKEY_CURRENT_USER\\Software\\Classes\\astral\\shell\\open\\command',
+          'HKEY_CURRENT_USER\\Software\\Classes\\enmesh\\shell\\open\\command',
           '/ve',
           '/d',
           '"$executablePath" "%1"',

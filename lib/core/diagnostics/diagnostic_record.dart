@@ -1,4 +1,4 @@
-import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
 
 final class DiagnosticRecord {
   DiagnosticRecord({
@@ -79,7 +79,7 @@ final class DiagnosticRecord {
       'provider': origin,
       if (eventCode != null) 'code': eventCode,
     },
-    'service': {'name': 'astral-ng'},
+    'service': {'name': 'enmesh'},
     'session': {'id': sessionId},
     if (errorId != null ||
         errorType != null ||
@@ -91,7 +91,7 @@ final class DiagnosticRecord {
         if (errorMessage != null) 'message': errorMessage,
         if (stackTrace != null) 'stack_trace': stackTrace,
       },
-    'astral': {
+    'enmesh': {
       'schema_version': schemaVersion,
       'ingest_sequence': ingestSequence,
       if (sourceSequence != null) 'source_sequence': sourceSequence,

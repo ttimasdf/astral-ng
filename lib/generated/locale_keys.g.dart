@@ -141,7 +141,7 @@ abstract class LocaleKeys {
   static const rooms_copy_value = 'rooms_copy_value';
   static const language = 'language';
   static const about = 'about';
-  static const astralng_version = 'astralng_version';
+  static const enmesh_version = 'enmesh_version';
   static const easytier_version = 'easytier_version';
   static const select_room_first = 'select_room_first';
   static const go_select_room = 'go_select_room';
@@ -162,8 +162,8 @@ abstract class LocaleKeys {
   static const go_settings = 'go_settings';
   static const edit = 'edit';
   static const delete = 'delete';
-  static const prefer_astral_adapter = 'prefer_astral_adapter';
-  static const prefer_astral_adapter_desc = 'prefer_astral_adapter_desc';
+  static const prefer_enmesh_adapter = 'prefer_enmesh_adapter';
+  static const prefer_enmesh_adapter_desc = 'prefer_enmesh_adapter_desc';
   static const view_adapter_priorities = 'view_adapter_priorities';
   static const windows_adapter_priorities = 'windows_adapter_priorities';
   static const close = 'close';

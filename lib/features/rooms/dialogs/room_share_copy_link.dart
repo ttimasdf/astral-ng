@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/room/room_share_codec.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/room/room_share_codec.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
 
 /// 复制房间分享链接到剪贴板
 ///

@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:astral/features/nat_test/pages/nat_test_page.dart';
-import 'package:astral/features/magic_wall/pages/magic_wall_page.dart';
-import 'package:astral/features/settings/pages/network/port_whitelist_page.dart';
+import 'package:enmesh/features/nat_test/pages/nat_test_page.dart';
+import 'package:enmesh/features/magic_wall/pages/magic_wall_page.dart';
+import 'package:enmesh/features/settings/pages/network/port_whitelist_page.dart';
 import 'package:flutter/material.dart';
 
 /// 工具入口项

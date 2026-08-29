@@ -15,8 +15,8 @@ enum class NativeLogLevel(val priority: Int, val wireName: String, val token: St
 }
 
 object NativeLogger {
-    private const val TAG = "Astral"
-    private const val MODULE = "astral.vpn.android"
+    private const val TAG = "Enmesh"
+    private const val MODULE = "enmesh.vpn.android"
     private const val MAX_VALUE_LENGTH = 1024
     private const val MAX_MESSAGE_LENGTH = 4096
     private const val MAX_STACK_LENGTH = 32768

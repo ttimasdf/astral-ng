@@ -1,4 +1,4 @@
-import 'package:astral/core/states/update_state.dart';
+import 'package:enmesh/core/states/update_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

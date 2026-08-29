@@ -1,21 +1,21 @@
 import 'dart:convert';
 import 'dart:io' show gzip;
 
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/room/room_mode.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/room/room_mode.dart';
 
 /// 房间分享编解码（纯逻辑，不含 Flutter UI）
 ///
 /// 分享码格式：base64url(gzip(json))
 class RoomShareCodec {
-  static const String appScheme = 'astral';
+  static const String appScheme = 'enmesh';
   static const String roomPath = 'room';
 
   /// 生成房间分享链接
   ///
-  /// [includeDeepLink] 为 true 时返回 `astral://room?code=...`，否则仅返回分享码
+  /// [includeDeepLink] 为 true 时返回 `enmesh://room?code=...`，否则仅返回分享码
   static String generateShareLink(Room room, {bool includeDeepLink = true}) {
     try {
       final (isValid, errorMessage) = validateRoom(room);
@@ -60,7 +60,7 @@ class RoomShareCodec {
     }
 
     String shareText = '''
-🎮 AstralNG 房间分享
+🎮 Enmesh 房间分享
 
 $roomSummary$shareOptions
 🔗 分享链接：$link
@@ -70,7 +70,7 @@ $roomSummary$shareOptions
       shareText += '''
 
 📖 使用说明：
-1. 确保已安装 AstralNG 应用
+1. 确保已安装 Enmesh 应用
 2. 点击上方链接自动导入房间
 3. 或复制分享码在应用内手动导入
 

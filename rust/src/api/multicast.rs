@@ -121,7 +121,7 @@ pub fn create_multicast_sender(
                 senders.push(sender);
                 let index = senders.len() - 1;
                 tracing::info!(
-                    target: "astral.connection",
+                    target: "enmesh.connection",
                     event_code = "multicast.sender.start",
                     sender_index = index,
                     interval_ms,
@@ -156,7 +156,7 @@ pub fn create_multicast_sender_with_bind(
                 senders.push(sender);
                 let index = senders.len() - 1;
                 tracing::info!(
-                    target: "astral.connection",
+                    target: "enmesh.connection",
                     event_code = "multicast.sender.start",
                     sender_index = index,
                     interval_ms,
@@ -181,7 +181,7 @@ pub fn stop_multicast_sender(index: usize) -> Result<(), String> {
 
         senders[index].stop().await;
         tracing::info!(
-            target: "astral.connection",
+            target: "enmesh.connection",
             event_code = "multicast.sender.stop",
             sender_index = index,
             "Multicast sender stopped"
@@ -202,7 +202,7 @@ pub fn stop_all_multicast_senders() -> Result<(), String> {
 
         senders.clear();
         tracing::info!(
-            target: "astral.connection",
+            target: "enmesh.connection",
             event_code = "multicast.senders.stop",
             sender_count,
             "All multicast senders stopped"

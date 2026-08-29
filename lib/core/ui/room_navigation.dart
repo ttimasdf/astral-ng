@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/core/ui/main_tab.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/ui/main_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 

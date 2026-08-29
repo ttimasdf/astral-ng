@@ -2,7 +2,7 @@ import { getCache } from '@vercel/functions';
 
 const API_VERSION = '2022-11-28';
 const SCHEMA_VERSION = 1;
-const DEFAULT_REPOSITORY = 'ttimasdf/astral-ng';
+const DEFAULT_REPOSITORY = 'ttimasdf/enmesh';
 const DEFAULT_WORKFLOW = 'build.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
@@ -165,7 +165,7 @@ function githubHeaders(etag?: string | null): Headers {
   const headers = new Headers({
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': API_VERSION,
-    'User-Agent': 'astral-ng-update-api',
+    'User-Agent': 'enmesh-update-api',
   });
   const token = process.env.GITHUB_TOKEN?.trim();
   if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -375,7 +375,7 @@ function commitSubject(message: string | null | undefined): string {
 }
 
 const CANARY_ARTIFACT_PATTERN =
-  /^astral-canary-.+-(\d+\.\d+\.\d+-(?:alpha|beta)\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
+  /^enmesh-canary-.+-(\d+\.\d+\.\d+-(?:alpha|beta)\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
 
 function artifactVersion(name: string): string | null {
   const match = CANARY_ARTIFACT_PATTERN.exec(name);
@@ -383,12 +383,12 @@ function artifactVersion(name: string): string | null {
 }
 
 const REQUIRED_CANARY_ARTIFACTS = [
-  /^astral-canary-android-debug-.+\.apk$/,
-  /^astral-canary-windows-x64-.+\.zip$/,
-  /^astral-canary-windows-x64-setup-.+\.exe$/,
-  /^astral-canary-linux-x64-.+\.deb$/,
-  /^astral-canary-linux-x64-.+\.rpm$/,
-  /^astral-canary-linux-x64-.+\.tar\.gz$/,
+  /^enmesh-canary-android-debug-.+\.apk$/,
+  /^enmesh-canary-windows-x64-.+\.zip$/,
+  /^enmesh-canary-windows-x64-setup-.+\.exe$/,
+  /^enmesh-canary-linux-x64-.+\.deb$/,
+  /^enmesh-canary-linux-x64-.+\.rpm$/,
+  /^enmesh-canary-linux-x64-.+\.tar\.gz$/,
 ];
 
 function requiredArtifacts(artifacts: GitHubArtifact[]): GitHubArtifact[] {

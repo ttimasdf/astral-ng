@@ -1,7 +1,7 @@
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/features/settings/models/settings_diagnostics.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/features/settings/models/settings_diagnostics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

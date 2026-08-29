@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
-import 'package:astral/shared/utils/network/node_utils.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/shared/utils/network/mesh_peer_identity.dart';
+import 'package:enmesh/shared/utils/network/node_utils.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:flutter/material.dart';
 
 List<KVNodeInfo> projectMissionMeshEndpoints(

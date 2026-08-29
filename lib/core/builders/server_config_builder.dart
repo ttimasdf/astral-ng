@@ -1,9 +1,9 @@
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/shared/utils/network/ip_utils.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/shared/utils/network/ip_utils.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// 服务器配置构建器
 ///

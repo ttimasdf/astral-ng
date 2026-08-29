@@ -1,10 +1,10 @@
 import 'dart:developer' as developer;
 
-import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/sinks/diagnostic_sink.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_formatter.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/sinks/diagnostic_sink.dart';
 
 final class DeveloperConsoleSink implements DiagnosticSink {
   @override

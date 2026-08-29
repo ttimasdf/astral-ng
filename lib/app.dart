@@ -1,8 +1,8 @@
-import 'package:astral/core/platform/small_window_adapter.dart';
-import 'package:astral/shared/widgets/common/home_widget_refresh_binder.dart';
-import 'package:astral/features/home/pages/main_screen.dart';
+import 'package:enmesh/core/platform/small_window_adapter.dart';
+import 'package:enmesh/shared/widgets/common/home_widget_refresh_binder.dart';
+import 'package:enmesh/features/home/pages/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

@@ -1,4 +1,4 @@
-import 'package:astral/core/platform/build_brand.dart';
+import 'package:enmesh/core/platform/build_brand.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 应用设置状态

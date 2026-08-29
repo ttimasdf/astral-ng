@@ -1,17 +1,17 @@
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/support_bundle.dart';
-import 'package:astral/core/platform/app_info.dart';
-import 'package:astral/core/platform/build_brand.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/update_state.dart';
-import 'package:astral/features/settings/models/settings_diagnostics.dart';
-import 'package:astral/features/settings/pages/general/logs_page.dart';
-import 'package:astral/features/settings/widgets/settings_components.dart';
-import 'package:astral/features/settings/widgets/update_settings_actions.dart';
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/support_bundle.dart';
+import 'package:enmesh/core/platform/app_info.dart';
+import 'package:enmesh/core/platform/build_brand.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/update_state.dart';
+import 'package:enmesh/features/settings/models/settings_diagnostics.dart';
+import 'package:enmesh/features/settings/pages/general/logs_page.dart';
+import 'package:enmesh/features/settings/widgets/settings_components.dart';
+import 'package:enmesh/features/settings/widgets/update_settings_actions.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -128,7 +128,7 @@ class _UpdateAboutSettingsContentState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        BuildBrand.appName,
+                        BuildBrand.appLongName,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -156,7 +156,7 @@ class _UpdateAboutSettingsContentState
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18),
                 leading: const Icon(Icons.apps_outlined),
-                title: Text(LocaleKeys.astralng_version.tr()),
+                title: Text(LocaleKeys.enmesh_version.tr()),
                 trailing: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(

@@ -20,8 +20,8 @@ val resolvedApplicationId =
     System.getenv("ANDROID_APPLICATION_ID")
         ?: System.getenv("APP_PACKAGE_ID")
         ?: project.findProperty("applicationId") as String?
-        ?: if (isCanary) "pw.rabit.astralng.canary" else "pw.rabit.astralng"
-val resolvedAppLabel = if (isCanary) "AstralNG Canary" else "AstralNG"
+        ?: if (isCanary) "pw.rabit.enmesh.canary" else "pw.rabit.enmesh"
+val resolvedAppLabel = if (isCanary) "Enmesh Canary" else "Enmesh"
 val resolvedAppIcon =
     if (isCanary) "@mipmap/ic_launcher_canary" else "@mipmap/ic_launcher"
 
@@ -30,7 +30,7 @@ val toolchainProperties = Properties().apply {
 }
 
 android {
-    namespace = "pw.rabit.astralng"
+    namespace = "pw.rabit.enmesh"
     compileSdk = toolchainProperties.getProperty("android.compileSdk").toInt()
     toolchainProperties.getProperty("android.compileSdkMinor").toInt().let { minor ->
         if (minor > 0) compileSdkMinor = minor

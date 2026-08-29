@@ -93,9 +93,9 @@
         flutterDev = pkgs.writeShellApplication {
           name = "flutter";
           runtimeEnv = {
-            ASTRAL_FLUTTER_BIN = "${flutterSdk}/bin/flutter";
+            ENMESH_FLUTTER_BIN = "${flutterSdk}/bin/flutter";
           };
-          meta.description = "Run Flutter with Astral-ng's default canary identity";
+          meta.description = "Run Flutter with Enmesh's default canary identity";
           text = builtins.readFile ./scripts/flutter_dev.sh;
         };
         flutterAndroid = pkgs.writeShellApplication {
@@ -105,15 +105,15 @@
             pkgs.gawk
           ];
           runtimeEnv = {
-            ASTRAL_FLUTTER_ROOT = "${flutterSdk}";
-            ASTRAL_FLUTTER_BIN = "${flutterSdk.unwrapped}/bin/flutter";
-            ASTRAL_ANDROID_MIN_SDK = "24";
+            ENMESH_FLUTTER_ROOT = "${flutterSdk}";
+            ENMESH_FLUTTER_BIN = "${flutterSdk.unwrapped}/bin/flutter";
+            ENMESH_ANDROID_MIN_SDK = "24";
           };
-          meta.description = "Run Flutter with Astral-ng's Android-safe Nix environment";
+          meta.description = "Run Flutter with Enmesh's Android-safe Nix environment";
           text = builtins.readFile ./scripts/flutter_android.sh;
         };
 
-        astral-ng = pkgs.callPackage ./package.nix { };
+        enmesh = pkgs.callPackage ./package.nix { };
       in
       {
         packages = {
@@ -121,8 +121,8 @@
           flutter-android = flutterAndroid;
         }
         // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-          inherit astral-ng;
-          default = astral-ng;
+          inherit enmesh;
+          default = enmesh;
         };
 
         apps.sync-toolchains = {
@@ -157,17 +157,17 @@
                 channel_file="$TMPDIR/channel"
                 cat > "$fake_flutter" <<'EOF'
                 #!${pkgs.runtimeShell}
-                printf '%s\n' "$@" > "$ASTRAL_TEST_ARGS_FILE"
-                printf '%s\n' "$BUILD_CHANNEL" > "$ASTRAL_TEST_CHANNEL_FILE"
+                printf '%s\n' "$@" > "$ENMESH_TEST_ARGS_FILE"
+                printf '%s\n' "$BUILD_CHANNEL" > "$ENMESH_TEST_CHANNEL_FILE"
                 EOF
                 chmod +x "$fake_flutter"
 
                 env -u BUILD_CHANNEL \
                   BUILD_COMMIT=abcdef0 \
                   BUILD_RUN_NUMBER=42 \
-                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
-                  ASTRAL_TEST_ARGS_FILE="$args_file" \
-                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  ENMESH_FLUTTER_BIN="$fake_flutter" \
+                  ENMESH_TEST_ARGS_FILE="$args_file" \
+                  ENMESH_TEST_CHANNEL_FILE="$channel_file" \
                   bash ${./scripts/flutter_dev.sh} run -d linux
                 grep -Fx -- '--dart-define=BUILD_CHANNEL=canary' "$args_file"
                 grep -Fx -- '--dart-define=BUILD_COMMIT=abcdef0' "$args_file"
@@ -177,18 +177,18 @@
                 UPDATE_API_BASE_URL=https://updates.example/api/v1 \
                   BUILD_COMMIT=abcdef0 \
                   BUILD_RUN_NUMBER=42 \
-                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
-                  ASTRAL_TEST_ARGS_FILE="$args_file" \
-                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  ENMESH_FLUTTER_BIN="$fake_flutter" \
+                  ENMESH_TEST_ARGS_FILE="$args_file" \
+                  ENMESH_TEST_CHANNEL_FILE="$channel_file" \
                   bash ${./scripts/flutter_dev.sh} run -d linux
                 grep -Fx -- '--dart-define=UPDATE_API_BASE_URL=https://updates.example/api/v1' "$args_file"
 
                 BUILD_CHANNEL=canary \
                   BUILD_COMMIT=abcdef0 \
                   BUILD_RUN_NUMBER=42 \
-                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
-                  ASTRAL_TEST_ARGS_FILE="$args_file" \
-                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  ENMESH_FLUTTER_BIN="$fake_flutter" \
+                  ENMESH_TEST_ARGS_FILE="$args_file" \
+                  ENMESH_TEST_CHANNEL_FILE="$channel_file" \
                   bash ${./scripts/flutter_dev.sh} run \
                     --dart-define=BUILD_CHANNEL=production
                 test "$(grep -Fxc -- '--dart-define=BUILD_CHANNEL=production' "$args_file")" -eq 1
@@ -197,9 +197,9 @@
                 UPDATE_API_BASE_URL=https://environment.example/api/v1 \
                   BUILD_COMMIT=abcdef0 \
                   BUILD_RUN_NUMBER=42 \
-                  ASTRAL_FLUTTER_BIN="$fake_flutter" \
-                  ASTRAL_TEST_ARGS_FILE="$args_file" \
-                  ASTRAL_TEST_CHANNEL_FILE="$channel_file" \
+                  ENMESH_FLUTTER_BIN="$fake_flutter" \
+                  ENMESH_TEST_ARGS_FILE="$args_file" \
+                  ENMESH_TEST_CHANNEL_FILE="$channel_file" \
                   bash ${./scripts/flutter_dev.sh} run \
                     --dart-define=UPDATE_API_BASE_URL=https://explicit.example/api/v1
                 test "$(grep -Fxc -- '--dart-define=UPDATE_API_BASE_URL=https://explicit.example/api/v1' "$args_file")" -eq 1
@@ -212,7 +212,7 @@
         devShells.default =
           with pkgs;
           mkShell {
-            name = "astral-dev";
+            name = "enmesh-dev";
             buildInputs = [
               rustc
               rustfmt

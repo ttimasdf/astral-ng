@@ -42,7 +42,7 @@ jobs:
       name: ${{ inputs.github_environment || 'Production' }}
       url: >-
         ${{ inputs.github_environment == 'Preview' && steps.deploy.outputs.deployment-url ||
-            'https://astral-ng.rabit.pw/' }}
+            'https://enmesh.rabit.pw/' }}
     outputs:
       deployment-url: ${{ steps.deploy.outputs.deployment-url }}
       base-url: ${{ steps.deploy.outputs.base-url }}
@@ -51,7 +51,7 @@ jobs:
       PUBLIC_BASE_URL: >-
         ${{ inputs.public_base_url ||
             (github.event_name == 'workflow_dispatch' &&
-             'https://astral-ng.rabit.pw/api/v1' || '') }}
+             'https://enmesh.rabit.pw/api/v1' || '') }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}

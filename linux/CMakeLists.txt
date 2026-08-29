@@ -5,12 +5,12 @@ project(runner LANGUAGES CXX)
 # Flutter's Linux runner discovers and launches the executable using the first
 # BINARY_NAME declaration. Keep this filename stable across build channels;
 # channel-specific branding and identity are configured independently below.
-set(BINARY_NAME "astral")
-set(APPLICATION_ID "pw.rabit.astralng")
-set(APP_DISPLAY_NAME "AstralNG")
+set(BINARY_NAME "enmesh")
+set(APPLICATION_ID "pw.rabit.enmesh")
+set(APP_DISPLAY_NAME "Enmesh")
 if("$ENV{BUILD_CHANNEL}" STREQUAL "canary")
-  set(APPLICATION_ID "pw.rabit.astralng.canary")
-  set(APP_DISPLAY_NAME "AstralNG Canary")
+  set(APPLICATION_ID "pw.rabit.enmesh.canary")
+  set(APP_DISPLAY_NAME "Enmesh Canary")
 endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent

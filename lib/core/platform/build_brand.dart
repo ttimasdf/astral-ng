@@ -21,9 +21,15 @@ abstract final class BuildBrand {
   );
 
   static const isCanary = channel == 'canary';
-  static const appName = isCanary ? 'AstralNG Canary' : 'AstralNG';
+
+  /// Short brand name used across the GUI: window titles, tray, status bar.
+  static const appName = isCanary ? 'Enmesh Canary' : 'Enmesh';
+
+  /// Long brand name used in hero areas such as the About page header.
+  static const appLongName = isCanary ? 'EasyTier Enmesh Canary' : 'EasyTier Enmesh';
+
   static const packageId =
-      isCanary ? 'pw.rabit.astralng.canary' : 'pw.rabit.astralng';
+      isCanary ? 'pw.rabit.enmesh.canary' : 'pw.rabit.enmesh';
   static const trayIcon =
       isCanary ? 'assets/icon_canary.ico' : 'assets/icon.ico';
   static const appIcon =

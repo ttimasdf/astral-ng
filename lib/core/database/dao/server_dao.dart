@@ -1,4 +1,4 @@
-import 'package:astral/core/models/server_mod.dart';
+import 'package:enmesh/core/models/server_mod.dart';
 import 'package:isar_community/isar.dart';
 
 class ServerDao {

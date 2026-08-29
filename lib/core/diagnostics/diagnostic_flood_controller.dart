@@ -1,5 +1,5 @@
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
 
 final class DiagnosticFloodController {
   DiagnosticFloodController({DateTime Function()? clock})

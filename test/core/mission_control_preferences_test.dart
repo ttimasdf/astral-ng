@@ -1,5 +1,5 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/models/network_config_share.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

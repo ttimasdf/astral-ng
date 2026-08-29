@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 

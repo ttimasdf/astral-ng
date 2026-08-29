@@ -1,14 +1,14 @@
-import 'package:astral/core/room/room_share_codec.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/core/ui/room_navigation.dart';
+import 'package:enmesh/core/room/room_share_codec.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/ui/room_navigation.dart';
 import 'package:flutter/material.dart';
 
 class LinkHandlers {
   static final _services = ServiceManager();
 
-  // 处理房间分享链接: astral://room?code=JWT_TOKEN
+  // 处理房间分享链接: enmesh://room?code=JWT_TOKEN
   static Future<void> handleRoom(Uri uri, {BuildContext? context}) async {
     try {
       final code = uri.queryParameters['code'];
@@ -109,7 +109,7 @@ class LinkHandlers {
     }
   }
 
-  // 处理调试链接: astral://debug
+  // 处理调试链接: enmesh://debug
   static Future<void> handleDebug(Uri uri, {BuildContext? context}) async {
     if (context != null) {
       AppSnackBars.info(context, '调试信息', '已触发调试链接: ${uri.host}');

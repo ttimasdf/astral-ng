@@ -1,4 +1,4 @@
-import 'package:astral/core/diagnostics/diagnostic_context.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_context.dart';
 
 final class DiagnosticMessage {
   DiagnosticMessage({

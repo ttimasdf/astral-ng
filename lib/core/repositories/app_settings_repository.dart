@@ -1,5 +1,5 @@
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/models/all_settings.dart';
+import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/models/all_settings.dart';
 
 /// 应用设置持久化（单例 [AllSettings]）
 class AppSettingsRepository {

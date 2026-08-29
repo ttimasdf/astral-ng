@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/module_logger.dart';
-import 'package:astral/src/rust/api/diagnostics.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/module_logger.dart';
+import 'package:enmesh/src/rust/api/diagnostics.dart';
 
 final class RustDiagnosticSource {
   RustDiagnosticSource(this.diagnostics)
@@ -107,15 +107,15 @@ final class RustDiagnosticSource {
   String _buildFilter(LogPolicy policy) {
     final directives = <String>[
       'warn',
-      'rust_lib_astral=${_sourceLevel(policy, DiagnosticModules.root)}',
+      'rust_lib_enmesh=${_sourceLevel(policy, DiagnosticModules.root)}',
       'CORE=${_sourceLevel(policy, DiagnosticModules.easyTier)}',
       'easytier=${_sourceLevel(policy, DiagnosticModules.easyTier)}',
       'easytier::tunnel=${_sourceLevel(policy, DiagnosticModules.easyTierTunnel)}',
-      'astral.bootstrap=${_sourceLevel(policy, DiagnosticModules.bootstrap)}',
-      'astral.easytier=${_sourceLevel(policy, DiagnosticModules.easyTier)}',
-      'astral.easytier.instance=${_sourceLevel(policy, DiagnosticModules.easyTierInstance)}',
-      'astral.easytier.peer=${_sourceLevel(policy, DiagnosticModules.easyTierPeer)}',
-      'astral.easytier.connection=${_sourceLevel(policy, DiagnosticModules.easyTierConnection)}',
+      'enmesh.bootstrap=${_sourceLevel(policy, DiagnosticModules.bootstrap)}',
+      'enmesh.easytier=${_sourceLevel(policy, DiagnosticModules.easyTier)}',
+      'enmesh.easytier.instance=${_sourceLevel(policy, DiagnosticModules.easyTierInstance)}',
+      'enmesh.easytier.peer=${_sourceLevel(policy, DiagnosticModules.easyTierPeer)}',
+      'enmesh.easytier.connection=${_sourceLevel(policy, DiagnosticModules.easyTierConnection)}',
     ];
     return directives.join(',');
   }

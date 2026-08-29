@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
 import 'package:flutter/services.dart';
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/room/room_share_codec.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/core/ui/room_navigation.dart';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/core/room/room_share_codec.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/ui/room_navigation.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 
 /// 房间分享导入对话框与相关逻辑
 class RoomShareImportDialogs {

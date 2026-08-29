@@ -21,7 +21,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - rust_lib_astral (0.0.1):
+  - rust_lib_enmesh (0.0.1):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
@@ -52,7 +52,7 @@ DEPENDENCIES:
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
-  - rust_lib_astral (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_astral/macos`)
+  - rust_lib_enmesh (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_enmesh/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -87,8 +87,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
-  rust_lib_astral:
-    :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_astral/macos
+  rust_lib_enmesh:
+    :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_enmesh/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   sentry_flutter:
@@ -114,7 +114,7 @@ SPEC CHECKSUMS:
   isar_flutter_libs: a65381780401f81ad6bf3f2e7cd0de5698fb98c4
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
-  rust_lib_astral: 4aeee0bf4cee4e3686f7ad3ce11123a85d4a57f5
+  rust_lib_enmesh: 4aeee0bf4cee4e3686f7ad3ce11123a85d4a57f5
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
   sentry_flutter: 27892878729f42701297c628eb90e7c6529f3684

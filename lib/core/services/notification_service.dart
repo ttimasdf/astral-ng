@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 
 /// 连接状态通知服务（仅Android）
 class NotificationService {
@@ -54,9 +54,9 @@ class NotificationService {
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-          'astral_connection',
-          'AstralNG 连接状态',
-          channelDescription: '显示 AstralNG 连接状态和信息',
+          'enmesh_connection',
+          'Enmesh 连接状态',
+          channelDescription: '显示 Enmesh 连接状态和信息',
           importance: Importance.low,
           priority: Priority.low,
           ongoing: true,
@@ -71,7 +71,7 @@ class NotificationService {
 
     await plugin.show(
       _connectionNotificationId,
-      'AstralNG - $status',
+      'Enmesh - $status',
       'IP: $ip | 连接时间: $duration',
       details,
     );

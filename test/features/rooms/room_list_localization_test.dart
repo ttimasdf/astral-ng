@@ -1,7 +1,7 @@
-import 'package:astral/features/rooms/widgets/all_user_card_nat.dart';
-import 'package:astral/features/rooms/widgets/mini_user_card_nat.dart';
-import 'package:astral/features/rooms/widgets/peer_connection_style.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/features/rooms/widgets/all_user_card_nat.dart';
+import 'package:enmesh/features/rooms/widgets/mini_user_card_nat.dart';
+import 'package:enmesh/features/rooms/widgets/peer_connection_style.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

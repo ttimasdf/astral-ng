@@ -1,8 +1,8 @@
-import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
-import 'package:astral/features/rooms/widgets/nat_visual_style.dart';
-import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
-import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/features/rooms/widgets/mesh_constellation.dart';
+import 'package:enmesh/features/rooms/widgets/nat_visual_style.dart';
+import 'package:enmesh/shared/widgets/network/mesh_peer_badge.dart';
+import 'package:enmesh/shared/utils/network/mesh_peer_identity.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -244,7 +244,7 @@ void main() {
     expect(tester.element(find.byType(gv.GraphView)), same(graphElement));
   });
 
-  testWidgets('pan and zoom stay within Astral bounds', (tester) async {
+  testWidgets('pan and zoom stay within Enmesh bounds', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: MeshConstellation(

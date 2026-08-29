@@ -27,7 +27,7 @@ const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
   setRuntimeCacheForTests(new MemoryCache());
-  process.env.GITHUB_REPOSITORY = 'ttimasdf/astral-ng';
+  process.env.GITHUB_REPOSITORY = 'ttimasdf/enmesh';
   process.env.GITHUB_WORKFLOW = 'build.yml';
   process.env.GITHUB_DEFAULT_BRANCH = 'main';
   process.env.GITHUB_TOKEN = 'test-token';
@@ -89,12 +89,12 @@ function artifact(
 
 function completeArtifacts(runId: number, version: string, startId = 1) {
   return [
-    artifact(startId, runId, `astral-canary-android-debug-${version}.apk`),
-    artifact(startId + 1, runId, `astral-canary-windows-x64-${version}.zip`),
-    artifact(startId + 2, runId, `astral-canary-windows-x64-setup-${version}.exe`),
-    artifact(startId + 3, runId, `astral-canary-linux-x64-${version}.deb`),
-    artifact(startId + 4, runId, `astral-canary-linux-x64-${version}.rpm`),
-    artifact(startId + 5, runId, `astral-canary-linux-x64-${version}.tar.gz`),
+    artifact(startId, runId, `enmesh-canary-android-debug-${version}.apk`),
+    artifact(startId + 1, runId, `enmesh-canary-windows-x64-${version}.zip`),
+    artifact(startId + 2, runId, `enmesh-canary-windows-x64-setup-${version}.exe`),
+    artifact(startId + 3, runId, `enmesh-canary-linux-x64-${version}.deb`),
+    artifact(startId + 4, runId, `enmesh-canary-linux-x64-${version}.rpm`),
+    artifact(startId + 5, runId, `enmesh-canary-linux-x64-${version}.tar.gz`),
   ];
 }
 
@@ -130,7 +130,7 @@ describe('normalized metadata parsing', () => {
     expect(
       completeArtifactVersion([
         ...artifacts,
-        artifact(99, 100, 'astral-canary-extra-3.0.0-alpha.67+1234567.zip'),
+        artifact(99, 100, 'enmesh-canary-extra-3.0.0-alpha.67+1234567.zip'),
       ]),
     ).toBe(version);
     expect(completeArtifactVersion(artifacts.slice(1))).toBeNull();
@@ -461,7 +461,7 @@ describe('HTTP contract', () => {
             artifact(
               99,
               101,
-              `astral-canary-extra-${version}.zip`,
+              `enmesh-canary-extra-${version}.zip`,
               '2026-08-14T00:01:00Z',
             ),
           ],

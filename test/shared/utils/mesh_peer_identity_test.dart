@@ -1,4 +1,4 @@
-import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
+import 'package:enmesh/shared/utils/network/mesh_peer_identity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-package pw.rabit.astralng
+package pw.rabit.enmesh
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
@@ -6,7 +6,7 @@ import android.content.SharedPreferences
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
-open class AstralWidgetProvider : HomeWidgetProvider() {
+open class EnmeshWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,

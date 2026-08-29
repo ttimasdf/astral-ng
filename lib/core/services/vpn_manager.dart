@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/platform/build_brand.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/shared/utils/network/ip_utils.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/platform/build_brand.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/shared/utils/network/ip_utils.dart';
 import 'package:vpn_service_plugin/vpn_service_plugin.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// VPN 管理器（仅 Android）
 class VpnManager {

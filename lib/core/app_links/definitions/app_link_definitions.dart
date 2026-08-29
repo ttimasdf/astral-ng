@@ -38,8 +38,8 @@ class AppLinkDefinitions {
     return _appLinks.uriLinkStream;
   }
 
-  /// 验证是否是有效的 Astral 链接
-  bool isValidAstralLink(Uri uri) {
-    return uri.scheme == 'astral' && uri.host.isNotEmpty;
+  /// 验证是否是有效的 Enmesh 链接
+  bool isValidEnmeshLink(Uri uri) {
+    return uri.scheme == 'enmesh' && uri.host.isNotEmpty;
   }
 }

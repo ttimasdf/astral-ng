@@ -1,4 +1,4 @@
-package pw.rabit.astralng
+package pw.rabit.enmesh
 
 import android.content.SharedPreferences
 

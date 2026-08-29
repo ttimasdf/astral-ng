@@ -3,19 +3,19 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:uuid/uuid.dart';
-import 'package:astral/core/builders/server_config_builder.dart';
-import 'package:astral/core/diagnostics/diagnostic_context.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/module_logger.dart';
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/services/connection_network_monitor.dart';
-import 'package:astral/core/services/connection_status_tracker.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/services/notification_service.dart';
-import 'package:astral/src/rust/api/simple.dart';
-import 'package:astral/src/rust/api/hops.dart';
+import 'package:enmesh/core/builders/server_config_builder.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_context.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/module_logger.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/core/services/connection_network_monitor.dart';
+import 'package:enmesh/core/services/connection_status_tracker.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/services/notification_service.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
+import 'package:enmesh/src/rust/api/hops.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:isar_community/isar.dart';
 
@@ -471,7 +471,7 @@ class ServerConnectionManager {
       });
 
       if (Platform.isWindows) {
-        setInterfaceMetric(interfaceName: "astral", metric: 0);
+        setInterfaceMetric(interfaceName: "enmesh", metric: 0);
       }
 
       _networkMonitor.start();

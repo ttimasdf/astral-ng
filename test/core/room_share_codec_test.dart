@@ -1,5 +1,5 @@
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/room/room_share_codec.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/room/room_share_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

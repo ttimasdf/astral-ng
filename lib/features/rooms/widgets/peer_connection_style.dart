@@ -1,4 +1,4 @@
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 
 /// 节点连接展示共用样式（All / Mini 用户卡共用）

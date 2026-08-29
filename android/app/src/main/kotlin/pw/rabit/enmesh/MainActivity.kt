@@ -1,4 +1,4 @@
-package pw.rabit.astralng
+package pw.rabit.enmesh
 
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -68,10 +68,10 @@ class MainActivity : FlutterActivity() {
     }
 
     companion object {
-        const val QUICK_SETTINGS_CHANNEL = "pw.rabit.astralng/quick_settings"
-        const val LOG_PRESET_EXTRA = "astral.log-preset"
-        const val LOG_MODULES_EXTRA = "astral.log-modules"
-        const val LOG_DURATION_EXTRA = "astral.log-duration"
+        const val QUICK_SETTINGS_CHANNEL = "pw.rabit.enmesh/quick_settings"
+        const val LOG_PRESET_EXTRA = "enmesh.log-preset"
+        const val LOG_MODULES_EXTRA = "enmesh.log-modules"
+        const val LOG_DURATION_EXTRA = "enmesh.log-duration"
         const val MAX_MODULE_OVERRIDES = 32
         const val MAX_OPTION_LENGTH = 256
 

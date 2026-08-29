@@ -52,7 +52,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="astral" />
+                <data android:scheme="enmesh" />
             </intent-filter>
             
             <!-- 支持HTTP/HTTPS链接 -->
@@ -60,7 +60,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="astral.app" />
+                <data android:scheme="https" android:host="enmesh.app" />
             </intent-filter>
         </activity>
 
@@ -75,9 +75,9 @@
         </service>
 
         <service
-            android:name=".AstralQuickSettingsTileService"
+            android:name=".EnmeshQuickSettingsTileService"
             android:exported="true"
-            android:icon="@drawable/ic_quick_settings_astral"
+            android:icon="@drawable/ic_quick_settings_enmesh"
             android:label="@string/quick_settings_tile_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -92,7 +92,7 @@
         </service>
 
         <!-- Widgets Receivers -->
-        <receiver android:name=".AstralWidgetProvider" android:exported="true">
+        <receiver android:name=".EnmeshWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -101,7 +101,7 @@
                 android:resource="@xml/widget_info_small" />
         </receiver>
 
-        <receiver android:name=".AstralWidgetProviderMedium" android:exported="true">
+        <receiver android:name=".EnmeshWidgetProviderMedium" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -110,7 +110,7 @@
                 android:resource="@xml/widget_info_medium" />
         </receiver>
 
-        <receiver android:name=".AstralWidgetProviderLarge" android:exported="true">
+        <receiver android:name=".EnmeshWidgetProviderLarge" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

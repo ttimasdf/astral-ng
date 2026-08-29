@@ -178,7 +178,7 @@ pub fn create_forward_server(listen_addr: String, forward_addr: String) -> Resul
                 servers.push(server);
                 let index = servers.len() - 1;
                 tracing::info!(
-                    target: "astral.connection",
+                    target: "enmesh.connection",
                     event_code = "forward.server.start",
                     server_index = index,
                     "Port-forward server started"
@@ -201,7 +201,7 @@ pub fn stop_forward_server(index: usize) -> Result<(), String> {
 
         servers[index].stop().await;
         tracing::info!(
-            target: "astral.connection",
+            target: "enmesh.connection",
             event_code = "forward.server.stop",
             server_index = index,
             "Port-forward server stopped"
@@ -222,7 +222,7 @@ pub fn stop_all_forward_servers() -> Result<(), String> {
 
         servers.clear();
         tracing::info!(
-            target: "astral.connection",
+            target: "enmesh.connection",
             event_code = "forward.servers.stop",
             server_count,
             "All port-forward servers stopped"

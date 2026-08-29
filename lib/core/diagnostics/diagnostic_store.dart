@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/sinks/diagnostic_sink.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/sinks/diagnostic_sink.dart';
 
 final class DiagnosticStore extends ValueNotifier<List<DiagnosticRecord>>
     implements DiagnosticSink, DiagnosticSinkHealth {

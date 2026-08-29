@@ -1,5 +1,5 @@
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
 
 abstract final class DiagnosticFormatter {
   static String console(DiagnosticRecord record) {
@@ -8,8 +8,8 @@ abstract final class DiagnosticFormatter {
         '${_two(local.hour)}:${_two(local.minute)}:'
         '${_two(local.second)}.${_three(local.millisecond)}';
     final module =
-        record.module.startsWith('astral.')
-            ? record.module.substring('astral.'.length)
+        record.module.startsWith('enmesh.')
+            ? record.module.substring('enmesh.'.length)
             : record.module;
     final fields = <String, Object?>{
       ...record.fields,
