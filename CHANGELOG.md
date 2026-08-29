@@ -14,6 +14,8 @@ provenance.
 
 ### Fixed
 
+- **Tile long-press.** Long-pressing the Android Quick Settings tile now
+  opens AstralNG directly instead of the system App Info screen.
 - **Stable release highlights.** Stable update metadata now reads bilingual
   highlights from canonical bracketed changelog headings.
 
