@@ -7,30 +7,7 @@ provenance.
 
 ## Unreleased
 
-### Changed
-
-- **⚠ BREAKING — Package identity.** Enmesh installs as `pw.rabit.enmesh`
-  (canary: `pw.rabit.enmesh.canary`). Existing installs no longer receive
-  updates; uninstall the old app, install Enmesh, and set up rooms again.
-- **⚠ BREAKING — Share links.** Room links and QR codes now use `enmesh://`.
-  Previously shared `astral://` links stop opening; re-share rooms from
-  Enmesh.
-- **⚠ BREAKING — Canary artifacts.** Update artifacts are now named
-  `enmesh-canary-*` and served from the rebranded update API. Existing canary
-  clients see no further updates; install Enmesh manually once.
-- **Rebranded to EasyTier Enmesh.** The app is now Enmesh: short names in the
-  GUI, "EasyTier Enmesh" in the About hero and documentation. The stored
-  Windows adapter preference resets to its default.
-- **Selective beta builds.** Main-branch update-server and documentation
-  changes now skip platform artifacts, with Production deployment available as
-  an approved manual action.
-
-### Fixed
-
-- **Stable release highlights.** Stable update metadata now reads bilingual
-  highlights from canonical bracketed changelog headings.
-
-## [v3.0.0] - 2026-08-23
+## [v3.0.0-rc.3] - 2026-08-30
 
 > **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
 >
@@ -60,6 +37,21 @@ provenance.
 
 ### Changed
 
+- **⚠ BREAKING — Package identity.** Enmesh installs as `pw.rabit.enmesh`
+  (canary: `pw.rabit.enmesh.canary`). Existing installs no longer receive
+  updates; uninstall the old app, install Enmesh, and set up rooms again.
+- **⚠ BREAKING — Share links.** Room links and QR codes now use `enmesh://`.
+  Previously shared `astral://` links stop opening; re-share rooms from
+  Enmesh.
+- **⚠ BREAKING — Canary artifacts.** Update artifacts are now named
+  `enmesh-canary-*` and served from the rebranded update API. Existing canary
+  clients see no further updates; install Enmesh manually once.
+- **Rebranded to EasyTier Enmesh.** The app is now Enmesh: short names in the
+  GUI, "EasyTier Enmesh" in the About hero and documentation. The stored
+  Windows adapter preference resets to its default.
+- **Selective beta builds.** Main-branch update-server and documentation
+  changes now skip platform artifacts, with Production deployment available as
+  an approved manual action.
 - **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
   replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
   alpha.
@@ -138,6 +130,8 @@ provenance.
 
 ### Fixed
 
+- **Stable release highlights.** Stable update metadata now reads bilingual
+  highlights from canonical bracketed changelog headings.
 - **Android VPN readiness.** Connection now appears only after consent, TUN
   creation, and descriptor handoff; setup failures and requested disconnects
   clean up the VPN interface and service. ([#15])
@@ -298,5 +292,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
+[v3.0.0-rc.3]: https://github.com/ttimasdf/enmesh/releases/tag/v3.0.0-rc.3
 [v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
