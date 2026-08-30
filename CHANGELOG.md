@@ -10,8 +10,8 @@ provenance.
 ## [v3.0.0-rc.3] - 2026-08-30
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
->
-> **版本亮点：** Enmesh 3.0：名称焕新，掌控更从容——重塑的任务控制台、路径感知拓扑界面、更清晰可信的诊断日志。
+
+[中文更新日志](CHANGELOG.zh-CN.md#v300-rc3---2026-08-30)
 
 ### Added
 
@@ -130,8 +130,8 @@ provenance.
 
 ### Fixed
 
-- **Stable release highlights.** Stable update metadata now reads bilingual
-  highlights from canonical bracketed changelog headings.
+- **Update highlights.** Update metadata now reads release highlights from
+  the bracketed headings of the English and Chinese changelogs.
 - **Android VPN readiness.** Connection now appears only after consent, TUN
   creation, and descriptor handoff; setup failures and requested disconnects
   clean up the VPN interface and service. ([#15])

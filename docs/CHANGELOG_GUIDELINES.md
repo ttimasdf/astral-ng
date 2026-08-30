@@ -45,8 +45,8 @@ RC:
 ## [v2.8.7] - 2026-07-30
 
 > **Highlight:** Connect more reliably with automatic retries and clearer setup.
->
-> **版本亮点：** 自动重试与更清晰的设置流程让连接更加可靠。
+
+[中文更新日志](CHANGELOG.zh-CN.md#v287---2026-07-30)
 
 ...
 ```
@@ -75,30 +75,58 @@ an existing release and the actual release date for a new one.
 
 ## Release highlights
 
-Every versioned release section must begin with exactly one English/Chinese
-highlight block as its first content. `Unreleased` contains entries only and
-has no highlight block:
+A release highlight is written only during a version bump: when a versioned
+section is created (first RC of a base version) or renamed (later RC or stable
+promotion), and only with explicit user approval of the exact wording. Routine
+work never adds or edits a highlight.
+
+Every versioned release section in `CHANGELOG.md` must begin with exactly one
+English highlight block as its first content. `Unreleased` contains entries
+only and has no highlight block:
 
 ```markdown
 > **Highlight:** Connect more reliably with automatic retries and clearer setup.
->
+```
+
+The block is a stable machine-readable field with this exact grammar:
+
+```regex
+^> \*\*Highlight:\*\* ([^\r\n]+)$
+```
+
+The Chinese highlight does not live in `CHANGELOG.md`. `CHANGELOG.zh-CN.md`
+carries the matching Chinese highlight block:
+
+```markdown
 > **版本亮点：** 自动重试与更清晰的设置流程让连接更加可靠。
 ```
 
-The quoted blank line creates a reliable visual paragraph break while keeping
-both translations in one blockquote. The block is also a stable
-machine-readable field with this exact grammar:
+with this exact grammar:
 
 ```regex
-^> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$
+^> \*\*版本亮点：\*\* ([^\r\n]+)$
 ```
 
-The parser must first select the requested versioned section
+Immediately after the English highlight block, the versioned release section
+must include one Chinese-changelog link line so published release notes link
+the translation:
+
+```markdown
+[中文更新日志](CHANGELOG.zh-CN.md#v287---2026-07-30)
+```
+
+The anchor is the GitHub slug of the matching heading in `CHANGELOG.zh-CN.md`.
+
+A release-notes parser must first select the requested versioned section
 `## [vMAJOR.MINOR.PATCH]` or `## [vMAJOR.MINOR.PATCH-rc.N]`, then require
-exactly one block match. `## Unreleased` is intentionally excluded because it
-has no highlight. Capture
-group 1 is English and capture group 2 is Chinese; both are suitable for a
-future release manifest after normal JSON string escaping:
+exactly one highlight match. `## Unreleased` is intentionally excluded because
+it has no highlight. The update API assembles bilingual `{en, zh}` metadata
+from the English block in `CHANGELOG.md` and the Chinese block in
+`CHANGELOG.zh-CN.md`. Historical GitHub release bodies and older changelog
+sections may still carry the legacy combined bilingual block
+(`Highlight:` line, quoted blank separator, `版本亮点：` line); parsers accept
+it unchanged, which is why the Chinese value remains optional in metadata.
+Both are suitable for a release manifest after normal JSON string escaping:
 
 ```json
 {
@@ -116,16 +144,37 @@ Highlight rules:
 - limit each captured value to 160 Unicode characters;
 - end the English sentence with a period and the Chinese sentence with `。`;
 - describe the release's most important user outcome, not its implementation;
-- translate the meaning naturally and keep product names and technical terms
-  consistent between languages;
+- keep the two lines translations of each other, with product names and
+  technical terms consistent between languages; do not add slogans or
+  marketing phrases absent from the other language;
 - do not include Markdown, links, issue numbers, commit hashes, or raw URLs;
 - reset an empty `Unreleased` section to its heading with no highlight or
-  category; a new release section receives the next approved bilingual
-  highlight.
+  category; a new release section receives the next approved English
+  highlight, and `CHANGELOG.zh-CN.md` receives its approved Chinese
+  translation.
 
-Both markers, their capitalization, punctuation, spacing, order, blockquote
-prefixes, and the quoted blank separator are part of the format. Do not
-translate, reorder, or reflow them.
+Each block's marker, capitalization, punctuation, spacing, and blockquote
+prefix are part of the format. Do not translate, reorder, or reflow them.
+
+## Chinese changelog
+
+`CHANGELOG.zh-CN.md` mirrors the English changelog for Chinese readers; the
+English file remains the only authoritative source.
+
+- Translate a version section only during its version bump: when a release
+  section is created or renamed in `CHANGELOG.md`, translate that section's
+  highlight and entries into `CHANGELOG.zh-CN.md` in the same release
+  preparation commit.
+- Do not edit the Chinese file between bumps; at the next bump, retranslate
+  the section from the final English wording.
+- Mirror the English heading exactly (`## [vMAJOR.MINOR.PATCH[-rc.N]] -
+  YYYY-MM-DD`) so anchors and release automation match.
+- Begin the section with the approved Chinese highlight block, then translate
+  every category and entry, keeping reference-style link labels, issue
+  numbers, product names, and code spans unchanged, and carry over the
+  reference-style footnote definitions the section uses.
+- Use these category names: 新增 (Added), 变更 (Changed), 修复 (Fixed), 安全
+  (Security), 弃用 (Deprecated), 移除 (Removed), 开发者说明 (Developer notes).
 
 Use only the headings that have entries:
 
