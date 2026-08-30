@@ -11,7 +11,7 @@
 ### 新增
 
 - **Android 快速设置。** 新增快速设置磁贴，显示连接状态，并支持一键连接或断开
-  AstralNG。([#10])
+  Enmesh。([#10])
 - **上游新增功能。**
   - **自动重试。** 新增可配置的失败连接重试次数上限。([upstream-auto-retry])
   - **无 TUN SOCKS5 访问。** 新增可配置的本地监听端口，用于访问虚拟网络。
@@ -51,8 +51,8 @@
   `3.0.0`。([#4])
 - **可选更新通道。** 设置现在提供稳定、Beta 与 Alpha 通道。初次选择 Beta 或
   Alpha 时会启用自动检查，同时保留用户可控的开关。
-- **更新服务主页。** 新构建使用 `astral-ng.rabit.pw`；其服务根页面现以中英文介绍
-  Astral-NG 并附源代码链接。
+- **更新服务主页。** 新构建使用 `enmesh.rabit.pw`；其服务根页面现以中英文介绍
+  EasyTier Enmesh 并附源代码链接。
 - **Alpha 产物匹配。** PR 构建现在识别来源提交而非 GitHub 的合成合并提交，成功的
   Alpha 产物因此出现在更新中。
 - **响应式设置。** 重新设计桌面与移动端导航、状态描述以及"网络与连接"控件，提供
@@ -71,7 +71,7 @@
   与切换。([#11], [#13])
 - **金丝雀身份。** 金丝雀构建在 Linux、Windows 与 Android 上使用独立的名称、命令、
   包标识、图标与 SemVer 显示。([#14])
-- **AstralNG 品牌。** 在受支持的平台间统一应用、小组件、通知、安装器与快速设置的
+- **Enmesh 品牌。** 在受支持的平台间统一应用、小组件、通知、安装器与快速设置的
   品牌呈现。([#14])
 - **移动端中转手势。** 在 Android 与 iOS 上支持点按编辑、右滑切换、左滑删除前
   确认。([#11])
@@ -150,20 +150,20 @@
 - **EasyTier 诊断。** 在开发 shell 中加入固定的 EasyTier CLI，用于本地无 TUN 与
   端到端网络排查。
 
-[#2]: https://github.com/ttimasdf/astral-ng/pull/2
-[#3]: https://github.com/ttimasdf/astral-ng/pull/3
-[#4]: https://github.com/ttimasdf/astral-ng/pull/4
-[#5]: https://github.com/ttimasdf/astral-ng/pull/5
-[#6]: https://github.com/ttimasdf/astral-ng/pull/6
-[#9]: https://github.com/ttimasdf/astral-ng/pull/9
-[#10]: https://github.com/ttimasdf/astral-ng/pull/10
-[#11]: https://github.com/ttimasdf/astral-ng/pull/11
-[#12]: https://github.com/ttimasdf/astral-ng/pull/12
-[#13]: https://github.com/ttimasdf/astral-ng/pull/13
-[#14]: https://github.com/ttimasdf/astral-ng/pull/14
-[#15]: https://github.com/ttimasdf/astral-ng/pull/15
-[#17]: https://github.com/ttimasdf/astral-ng/pull/17
-[nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
+[#2]: https://github.com/ttimasdf/enmesh/pull/2
+[#3]: https://github.com/ttimasdf/enmesh/pull/3
+[#4]: https://github.com/ttimasdf/enmesh/pull/4
+[#5]: https://github.com/ttimasdf/enmesh/pull/5
+[#6]: https://github.com/ttimasdf/enmesh/pull/6
+[#9]: https://github.com/ttimasdf/enmesh/pull/9
+[#10]: https://github.com/ttimasdf/enmesh/pull/10
+[#11]: https://github.com/ttimasdf/enmesh/pull/11
+[#12]: https://github.com/ttimasdf/enmesh/pull/12
+[#13]: https://github.com/ttimasdf/enmesh/pull/13
+[#14]: https://github.com/ttimasdf/enmesh/pull/14
+[#15]: https://github.com/ttimasdf/enmesh/pull/15
+[#17]: https://github.com/ttimasdf/enmesh/pull/17
+[nix-flutter-3.44]: https://github.com/ttimasdf/enmesh/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
 [upstream-#229]: https://github.com/ldoubil/astral/issues/229

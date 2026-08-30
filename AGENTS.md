@@ -48,9 +48,9 @@ When instructed to implement a new feature, use the following workflow:
 Sign every commit (`git commit --gpg-sign`) — in linked worktrees and on `main`
 alike. Never bypass or disable commit signing: do not use `--no-gpg-sign`, and
 do not override `commit.gpgsign` to skip signing. Create all RC and stable
-release tags as cryptographically signed tags (`git tag --sign`) using
-`ttimasdf`'s signing identity. Verify the tag signature before pushing it;
-never publish an unsigned or lightweight release tag.
+release tags as cryptographically signed tags (`git tag --sign`) using the
+configured repository signing identity. Verify the tag signature before
+pushing it; never publish an unsigned or lightweight release tag.
 
 ## Local Android Builds
 
