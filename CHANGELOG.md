@@ -9,9 +9,9 @@ provenance.
 
 ## [v3.0.0-rc.3] - 2026-08-30
 
-> **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
+> **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
 >
-> **版本亮点：** AstralNG 3.0 全新登场：焕新的任务控制台、路径感知网络拓扑、更清晰的设置与更安全的诊断，让每一次连接都尽在掌控。
+> **版本亮点：** Enmesh 3.0：名称焕新，掌控更从容——重塑的任务控制台、路径感知拓扑界面、更清晰可信的诊断日志。
 
 ### Added
 
