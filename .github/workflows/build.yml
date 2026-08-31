@@ -41,7 +41,6 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     outputs:
-      update_server: ${{ steps.filter.outputs.update_server }}
       linux: ${{ steps.filter.outputs.linux }}
       windows: ${{ steps.filter.outputs.windows }}
       android: ${{ steps.filter.outputs.android }}
@@ -59,9 +58,6 @@ jobs:
         uses: dorny/paths-filter@v4
         with:
           filters: |
-            update_server:
-              - 'update-server/**'
-              - '.github/workflows/deploy-update-api.yml'
             linux:
               - 'linux/**'
               - '.github/actions/build-linux/**'
@@ -97,43 +93,16 @@ jobs:
               - 'VERSION'
               - 'BUILD_NUMBER'
 
-  preview-update-api:
+  linux:
     needs: changes
     if: >-
-      needs.changes.result == 'success' &&
-      needs.changes.outputs.update_server == 'true' &&
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      (github.event.pull_request.author_association == 'OWNER' ||
-       github.event.pull_request.author_association == 'MEMBER' ||
-       github.event.pull_request.author_association == 'COLLABORATOR') &&
-      (contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-linux') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-windows') ||
-       contains(github.event.pull_request.labels.*.name, 'platform-android'))
-    uses: ./.github/workflows/deploy-update-api.yml
-    with:
-      github_environment: Preview
-      checkout_ref: ${{ github.event.pull_request.head.sha }}
-
-  linux:
-    needs: [changes, preview-update-api]
-    if: >-
-      !cancelled() &&
-      (needs.preview-update-api.result == 'success' ||
-       needs.preview-update-api.result == 'skipped') &&
-      (github.event_name == 'workflow_dispatch' ||
-       (needs.changes.result == 'success' &&
-        (needs.changes.outputs.all == 'true' ||
-         needs.changes.outputs.linux == 'true' ||
-         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-         contains(github.event.pull_request.labels.*.name, 'platform-linux'))))
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.result == 'success' &&
+       (needs.changes.outputs.all == 'true' ||
+        needs.changes.outputs.linux == 'true' ||
+        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+        contains(github.event.pull_request.labels.*.name, 'platform-linux')))
     runs-on: ubuntu-latest
-    env:
-      UPDATE_API_BASE_URL: >-
-        ${{ needs.preview-update-api.outputs.base-url ||
-            vars.UPDATE_API_BASE_URL ||
-            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -153,23 +122,15 @@ jobs:
                   contains(github.event.pull_request.labels.*.name, 'platform-linux'))) }}
 
   windows:
-    needs: [changes, preview-update-api]
+    needs: changes
     if: >-
-      !cancelled() &&
-      (needs.preview-update-api.result == 'success' ||
-       needs.preview-update-api.result == 'skipped') &&
-      (github.event_name == 'workflow_dispatch' ||
-       (needs.changes.result == 'success' &&
-        (needs.changes.outputs.all == 'true' ||
-         needs.changes.outputs.windows == 'true' ||
-         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-         contains(github.event.pull_request.labels.*.name, 'platform-windows'))))
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.result == 'success' &&
+       (needs.changes.outputs.all == 'true' ||
+        needs.changes.outputs.windows == 'true' ||
+        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+        contains(github.event.pull_request.labels.*.name, 'platform-windows')))
     runs-on: windows-2022
-    env:
-      UPDATE_API_BASE_URL: >-
-        ${{ needs.preview-update-api.outputs.base-url ||
-            vars.UPDATE_API_BASE_URL ||
-            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -189,23 +150,15 @@ jobs:
                   contains(github.event.pull_request.labels.*.name, 'platform-windows'))) }}
 
   android:
-    needs: [changes, preview-update-api]
+    needs: changes
     if: >-
-      !cancelled() &&
-      (needs.preview-update-api.result == 'success' ||
-       needs.preview-update-api.result == 'skipped') &&
-      (github.event_name == 'workflow_dispatch' ||
-       (needs.changes.result == 'success' &&
-        (needs.changes.outputs.all == 'true' ||
-         needs.changes.outputs.android == 'true' ||
-         contains(github.event.pull_request.labels.*.name, 'platform-all') ||
-         contains(github.event.pull_request.labels.*.name, 'platform-android'))))
+      github.event_name == 'workflow_dispatch' ||
+      (needs.changes.result == 'success' &&
+       (needs.changes.outputs.all == 'true' ||
+        needs.changes.outputs.android == 'true' ||
+        contains(github.event.pull_request.labels.*.name, 'platform-all') ||
+        contains(github.event.pull_request.labels.*.name, 'platform-android')))
     runs-on: ubuntu-24.04
-    env:
-      UPDATE_API_BASE_URL: >-
-        ${{ needs.preview-update-api.outputs.base-url ||
-            vars.UPDATE_API_BASE_URL ||
-            'https://enmesh.rabit.pw/api/v1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

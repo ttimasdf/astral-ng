@@ -271,11 +271,3 @@ jobs:
             release-assets/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-update-api:
-    needs: create-release
-    uses: ./.github/workflows/deploy-update-api.yml
-    with:
-      github_environment: Production
-      checkout_ref: ${{ github.ref_name }}
-      public_base_url: https://enmesh.rabit.pw/api/v1
