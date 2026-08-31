@@ -69,21 +69,19 @@ to `update-server`, and use the **Other** framework preset. The checked-in
 `update-server/vercel.json` also disables framework auto-detection. Vercel then
 installs `update-server/package.json` and maps `update-server/api/` to `/api/`.
 The functions cannot access files outside that root, so all runtime code and
-dependencies stay inside the subproject.
+dependencies stay inside the subproject. The dashboard ignored-build-step and
+deployment-retention settings are listed in `docs/CI.md`.
 
-Automatic Vercel Git deployments are disabled. Trusted same-repository pull
-requests with a `platform-*` label deploy a Preview through the protected
-GitHub `Preview` environment; platform artifacts compile that deployment's
-exact `/api/v1` URL. Signed releases and explicit manual runs from `main`
-deploy Production through the protected `Production` environment. All three
-paths share `.github/workflows/deploy-update-api.yml`; see `docs/CI.md` for
-credentials and approval rules.
+Deployments run through the Vercel Git integration: every push to `main`
+deploys Production, and pull requests that change `update-server/**` receive
+Preview deployments. GitHub Actions does not deploy the update API; see
+`docs/CI.md`.
 
-Prefer the **Deploy Update API** workflow for approved Production deployments.
-When troubleshooting with a manual CLI deployment, run it from the repository
-root because the Vercel project already applies `update-server` as its Root
+For troubleshooting only, a manual CLI deployment is possible. Run it from the
+repository root because the Vercel project applies `update-server` as its Root
 Directory. Do not also pass `--cwd update-server`, which would resolve the
-project as `update-server/update-server`:
+project as `update-server/update-server`. A CLI deployment can move the
+Production alias until the next push to `main`:
 
 ```sh
 vercel --project enmesh-update-server

@@ -38,57 +38,43 @@ uploading artifacts. Signed RC and final tags use `release.yml`.
 
 ## Update API deployments
 
-The Vercel project has automatic Git deployments disabled. All Preview,
-release, and manual Production deployments call the reusable
-`.github/workflows/deploy-update-api.yml` workflow. It fetches project settings
-through Vercel's project-scoped REST API, builds from the repository root,
-deploys the prebuilt server with the Vercel CLI, verifies the immutable
-deployment endpoint, and cleans up local Vercel state.
+The update API deploys through the Vercel Git integration, not GitHub Actions.
+The Vercel project builds `update-server/` on every push to `main`
+(Production) and creates Preview deployments for pull requests that change
+`update-server/**`. No GitHub Actions workflow deploys the update API, and no
+deployment environment approval gates it.
 
-A labeled, trusted same-repository pull request calls the reusable workflow in
-the protected `Preview` environment only when it changes `update-server/**` or
-the deployment workflow. It passes the exact preview URL to labeled platform
-builds through `UPDATE_API_BASE_URL`. Other pull requests use the configured
-base URL (the production API by default).
+### Vercel project setup
 
-Run **Deploy Update API** manually from the `main` branch to publish an
-update-server-only change without creating a release or beta platform
-artifacts. The manual job uses the same protected `Production` environment and
-verifies the public API after deployment. Rejecting its environment request
-fails that workflow run; leave it unapproved when no deployment is desired.
+Create the Vercel project from this repository, then configure it in the
+project dashboard. Under **Settings → Build and Deployment**:
 
-Configure the Vercel project-scoped credentials as environment-scoped GitHub
-values. Obtain `orgId` and `projectId` from `update-server/.vercel/project.json`
-after running `vercel link --cwd update-server` locally, then create a
-project-scoped Vercel token using the Vercel dashboard or:
+- **Framework Preset:** `Other`. The checked-in `update-server/vercel.json`
+  also disables framework auto-detection.
+- **Root Directory:** `update-server/`.
+- **Ignored Build Step:** select *Only build if there are changes in a
+  folder* and keep its command:
 
-```bash
-vercel tokens add "EasyTier Enmesh GitHub Preview" --project <project-id>
-```
+  ```bash
+  git diff HEAD^ HEAD --quiet -- .
+  ```
 
-Store separate project-scoped tokens as environment secrets, and store the
-project identifiers as variables in both deployment environments:
+  Vercel runs the command from the Root Directory, so `.` already means
+  `update-server/`. A clean diff (exit 0) skips the build; only commits that
+  touch the update server deploy.
+- **Deployment Retention:** canceled deployments `1 day`, errored deployments
+  `1 week`, pre-production deployments `2 weeks`, production deployments
+  `30 days`.
 
-```bash
-gh secret set VERCEL_TOKEN --env Preview
-printf '%s' '<org-id>' | gh variable set VERCEL_ORG_ID --env Preview
-printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Preview
+Then under **Settings → Git**, enable pull request comments and commit
+comments so deployment URLs are posted where changes originate, and enable
+**Require Verified Commits** so Vercel only builds commits whose signatures
+GitHub has verified.
 
-gh secret set VERCEL_TOKEN --env Production
-printf '%s' '<org-id>' | gh variable set VERCEL_ORG_ID --env Production
-printf '%s' '<project-id>' | gh variable set VERCEL_PROJECT_ID --env Production
-```
-
-The Vercel token owner must have project Developer access, and the token should
-be scoped to this project. The reusable workflow intentionally bypasses
-`vercel pull`, which currently fails with project-scoped tokens, and obtains
-only that project's selected Vercel environment before `vercel build`. It sets
-`VERCEL_TELEMETRY_DISABLED=1` for Vercel CLI invocations.
-
-Preview Deployment Protection must remain disabled because compiled clients
-call the deployment without credentials. Keep GitHub Actions and Vercel runtime
-credentials separate: the Vercel Preview environment needs its own read-only
-`GITHUB_TOKEN` for the update API’s GitHub queries.
+Keep Vercel Deployment Protection disabled because compiled clients call the
+API without credentials. Configure the runtime variables (including
+`GITHUB_TOKEN`) in the Vercel project dashboard for Production and Preview;
+see `docs/UPDATE_API.md` for the full variable list and deployment details.
 
 ## Release credential boundary
 
@@ -100,24 +86,17 @@ permissions. Its platform jobs call the shared composite actions under
 Release work lives in `.github/workflows/release.yml`, which accepts canonical
 `vMAJOR.MINOR.PATCH-rc.N` and `vMAJOR.MINOR.PATCH` tag pushes and calls the same
 shared platform actions. RC tags publish GitHub prereleases; final tags publish
-stable releases. After `create-release` publishes the GitHub release, the
-approved `Production` deployment publishes `update-server` from the same
-immutable tag and verifies both its deployment URL and the public production
-API. Release notes are reflowed at publication time so source line wrapping
-does not become visible as extra breaks in GitHub Releases; Markdown block
+stable releases. Release notes are reflowed at publication time so source
+line wrapping does not become visible as extra breaks in GitHub Releases; Markdown block
 structure, code blocks, and reference links are preserved. Increment and
 commit `BUILD_NUMBER` before every signed tag so installed RC builds can
 upgrade to later candidates and the final release.
 
 The Android signing job is attached to the protected `Production Signing`
-GitHub Environment, while production update API deployment remains attached to
-`Production`. Administrator bypass is disabled for `Preview`, `Production`, and
-`Production Signing`. `Preview` permits ordinary branch refs and GitHub's
-`refs/pull/*/merge` refs because the workflow applies the trusted-author and
-`platform-*` label gates. `Production` accepts release tags (`v*`) and `main`
-for explicit manual update API deployments; `Production Signing` accepts only
+GitHub Environment; it is the only GitHub Environment the workflows use.
+Administrator bypass is disabled for `Production Signing`, which accepts only
 release tags. Configure signing secrets in `Production Signing`, not
-`Preview`, `Production`, or repository-level Actions secrets:
+repository-level Actions secrets:
 
 ```bash
 gh secret set ANDROID_KEYSTORE_BASE64 --env 'Production Signing' < upload-keystore.base64
