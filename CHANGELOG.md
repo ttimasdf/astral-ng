@@ -7,6 +7,12 @@ provenance.
 
 ## Unreleased
 
+### Developer notes
+
+- **Vercel Git deployments.** The update API now deploys through the Vercel
+  Git integration; the Deploy Update API GitHub Actions workflow and its
+  `Preview`/`Production` environment gates were removed.
+
 ## [v3.0.0-rc.3] - 2026-08-30
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
