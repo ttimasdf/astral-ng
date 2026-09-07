@@ -52,16 +52,17 @@ project dashboard. Under **Settings → Build and Deployment**:
 - **Framework Preset:** `Other`. The checked-in `update-server/vercel.json`
   also disables framework auto-detection.
 - **Root Directory:** `update-server/`.
-- **Ignored Build Step:** select *Only build if there are changes in a
-  folder* and keep its command:
+- **Ignored Build Step:** select *Custom* and enter the following command:
 
   ```bash
-  git diff HEAD^ HEAD --quiet -- .
+  if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then exit 1; fi; git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" -- .
   ```
 
   Vercel runs the command from the Root Directory, so `.` already means
-  `update-server/`. A clean diff (exit 0) skips the build; only commits that
-  touch the update server deploy.
+  `update-server/`. The command compares the last successful deployment with
+  the commit that triggered the current deployment, covering every commit in
+  a multi-commit push. A clean diff (exit 0) skips the build; changes (exit 1)
+  continue it. The empty-SHA guard forces the first deployment to build.
 - **Deployment Retention:** canceled deployments `1 day`, errored deployments
   `1 week`, pre-production deployments `2 weeks`, production deployments
   `30 days`.
