@@ -59,7 +59,9 @@ jobs:
 
   android:
     needs: test
-    environment: Production Signing
+    environment:
+      name: Production Signing
+      url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
