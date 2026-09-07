@@ -7,17 +7,11 @@ provenance.
 
 ## Unreleased
 
-### Developer notes
-
-- **Vercel Git deployments.** The update API now deploys through the Vercel
-  Git integration; the Deploy Update API GitHub Actions workflow and its
-  `Preview`/`Production` environment gates were removed.
-
-## [v3.0.0-rc.3] - 2026-08-30
+## [v3.0.0-rc.3] - 2026-08-31
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
 
-[中文更新日志](CHANGELOG.zh-CN.md#v300-rc3---2026-08-30)
+[中文更新日志](CHANGELOG.zh-CN.md#v300-rc3---2026-08-31)
 
 ### Added
 
@@ -169,13 +163,14 @@ provenance.
 - **Staged preview versions.** Pull-request artifacts use alpha versions,
   `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
   prereleases with distinct update-history metadata.
-- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
-  after Preview approval and compile its URL into platform artifacts.
+- **Vercel Git deployments.** The update API deploys through the Vercel Git
+  integration; the Deploy Update API workflow and its `Preview`/`Production`
+  GitHub environment gates are removed.
 - **Release pipeline split.** Shared platform actions use explicit Android
   debug/release modes and unified/split APK layouts.
 - **Release credential isolation.** Android signing secrets are scoped to the
-  protected `Production Signing` environment; update deployment remains in
-  `Production`.
+  protected `Production Signing` environment, now the only GitHub environment
+  CI uses.
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build

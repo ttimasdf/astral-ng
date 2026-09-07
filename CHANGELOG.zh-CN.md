@@ -4,7 +4,7 @@
 `CHANGELOG.md` 是唯一权威来源。仅在版本提升（version bump）时翻译对应版本的
 章节；两次版本提升之间不维护此文件。
 
-## [v3.0.0-rc.3] - 2026-08-30
+## [v3.0.0-rc.3] - 2026-08-31
 
 > **版本亮点：** Enmesh 3.0：名称焕新，掌控更从容——重塑的任务控制台、路径感知拓扑界面、更清晰可信的诊断日志。
 
@@ -127,12 +127,12 @@
 
 - **分阶段预览版本。** 拉取请求产物使用 alpha 版本，`main` 产物使用 beta 版本，
   签名的 `-rc.N` 标签发布带有独立更新历史元数据的 GitHub 预发布。
-- **PR 预览 API。** 受信任的带标签 PR 构建在 Preview 环境批准后部署 Vercel
-  预览 API，并将其 URL 编译进平台产物。
+- **Vercel Git 部署。** 更新 API 改为通过 Vercel Git 集成部署；移除了 Deploy
+  Update API 工作流及其 `Preview`/`Production` GitHub 环境审批。
 - **发布流水线拆分。** 共享平台操作显式区分 Android debug/release 模式与统一/
   拆分 APK 布局。
 - **发布凭据隔离。** Android 签名密钥限定于受保护的 `Production Signing`
-  环境；更新部署保留在 `Production`。
+  环境，这也是 CI 使用的唯一 GitHub 环境。
 - **EasyTier 依赖。** 锁定发布 `v2.6.4`；Windows 改为单独获取 Npcap SDK，而非
   来自内置的 EasyTier 源码树。([#2])
 - **版本来源。** `VERSION` 现在控制生产版本号与构建号；CI 将非发布产物标记为
