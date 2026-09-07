@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/features/magic_wall/dialogs/magic_wall_group_dialog.dart';
-import 'package:astral/features/magic_wall/dialogs/magic_wall_rule_dialog.dart';
-import 'package:astral/features/magic_wall/services/magic_wall_controller.dart';
-import 'package:astral/features/magic_wall/widgets/magic_wall_control_panel.dart';
-import 'package:astral/features/magic_wall/widgets/magic_wall_group_list.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/features/magic_wall/dialogs/magic_wall_group_dialog.dart';
+import 'package:enmesh/features/magic_wall/dialogs/magic_wall_rule_dialog.dart';
+import 'package:enmesh/features/magic_wall/services/magic_wall_controller.dart';
+import 'package:enmesh/features/magic_wall/widgets/magic_wall_control_panel.dart';
+import 'package:enmesh/features/magic_wall/widgets/magic_wall_group_list.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

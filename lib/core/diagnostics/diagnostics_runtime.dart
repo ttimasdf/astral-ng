@@ -4,18 +4,18 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_flood_controller.dart';
-import 'package:astral/core/diagnostics/diagnostic_message.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/diagnostic_sanitizer.dart';
-import 'package:astral/core/diagnostics/diagnostic_store.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_policy_controller.dart';
-import 'package:astral/core/diagnostics/module_logger.dart';
-import 'package:astral/core/diagnostics/sinks/developer_console_sink.dart';
-import 'package:astral/core/diagnostics/sinks/diagnostic_sink.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_flood_controller.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_message.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_sanitizer.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_store.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_policy_controller.dart';
+import 'package:enmesh/core/diagnostics/module_logger.dart';
+import 'package:enmesh/core/diagnostics/sinks/developer_console_sink.dart';
+import 'package:enmesh/core/diagnostics/sinks/diagnostic_sink.dart';
 
 final class DiagnosticsRuntime {
   DiagnosticsRuntime._({

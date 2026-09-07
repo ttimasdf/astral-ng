@@ -1,7 +1,7 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/features/home/widgets/mission_control_dashboard.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/features/home/widgets/mission_control_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

@@ -1,4 +1,4 @@
-import 'package:astral/shared/utils/version_util.dart';
+import 'package:enmesh/shared/utils/version_util.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

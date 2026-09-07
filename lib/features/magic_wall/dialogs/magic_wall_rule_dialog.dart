@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:isar_community/isar.dart';
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
 
 /// 规则编辑对话框
 class MagicWallRuleDialog extends StatefulWidget {

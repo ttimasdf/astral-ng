@@ -1,7 +1,7 @@
-import 'package:astral/core/states/app_settings_state.dart';
-import 'package:astral/core/states/display_state.dart';
-import 'package:astral/core/states/window_state.dart';
-import 'package:astral/features/settings/widgets/settings_components.dart';
+import 'package:enmesh/core/states/app_settings_state.dart';
+import 'package:enmesh/core/states/display_state.dart';
+import 'package:enmesh/core/states/window_state.dart';
+import 'package:enmesh/features/settings/widgets/settings_components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

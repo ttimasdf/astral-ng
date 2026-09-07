@@ -1,4 +1,4 @@
-import 'package:astral/core/ui/main_tab.dart';
+import 'package:enmesh/core/ui/main_tab.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

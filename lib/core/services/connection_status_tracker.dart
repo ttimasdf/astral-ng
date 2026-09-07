@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:astral/core/services/connection_network_monitor.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/core/services/connection_network_monitor.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// Connection wait / timeout / status-check timers for [ServerConnectionManager].
 ///

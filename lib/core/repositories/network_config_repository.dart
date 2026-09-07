@@ -1,5 +1,5 @@
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/models/net_config.dart';
+import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/models/net_config.dart';
 
 /// 网络配置持久化（单例 [NetConfig]）
 class NetworkConfigRepository {
@@ -12,9 +12,9 @@ class NetworkConfigRepository {
   Future<void> update(void Function(NetConfig config) mutate) =>
       _db.netConfig.update(mutate);
 
-  Future<bool> getPreferAstralAdapter() async =>
-      (await _db.allSettings.get()).preferAstralAdapter;
+  Future<bool> getPreferEnmeshAdapter() async =>
+      (await _db.allSettings.get()).preferEnmeshAdapter;
 
-  Future<void> setPreferAstralAdapter(bool value) =>
-      _db.allSettings.update((s) => s.preferAstralAdapter = value);
+  Future<void> setPreferEnmeshAdapter(bool value) =>
+      _db.allSettings.update((s) => s.preferEnmeshAdapter = value);
 }

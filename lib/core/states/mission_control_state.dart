@@ -1,4 +1,4 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// Device-local per-room overrides for Mission Control.

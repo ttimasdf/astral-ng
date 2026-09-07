@@ -1,4 +1,4 @@
-import 'package:astral/features/settings/models/settings_availability.dart';
+import 'package:enmesh/features/settings/models/settings_availability.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

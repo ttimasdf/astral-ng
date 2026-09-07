@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/shared/utils/network/ping_util.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/shared/utils/network/ping_util.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:isar_community/isar.dart';
 

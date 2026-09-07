@@ -1,7 +1,7 @@
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/src/rust/api/nat_test.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/src/rust/api/nat_test.dart';
 import 'package:flutter/material.dart';
 
 /// NAT 类型检测页面（多 STUN 标准探测）

@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:easy_logger/easy_logger.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
 
 final class EasyLocalizationDiagnosticSource {
   EasyLocalizationDiagnosticSource._({

@@ -1,7 +1,7 @@
 import 'package:logging/logging.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_message.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_message.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
 
 final class ModuleLogger {
   ModuleLogger({

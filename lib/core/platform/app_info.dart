@@ -1,4 +1,4 @@
-import 'package:astral/core/platform/build_brand.dart';
+import 'package:enmesh/core/platform/build_brand.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// 应用包信息工具

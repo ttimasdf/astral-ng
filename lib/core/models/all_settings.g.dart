@@ -92,9 +92,9 @@ const AllSettingsSchema = CollectionSchema(
       name: r'peerSortOrder',
       type: IsarType.long,
     ),
-    r'preferAstralAdapter': PropertySchema(
+    r'preferEnmeshAdapter': PropertySchema(
       id: 15,
-      name: r'preferAstralAdapter',
+      name: r'preferEnmeshAdapter',
       type: IsarType.bool,
     ),
     r'receiveBetaUpdates': PropertySchema(
@@ -185,7 +185,7 @@ void _allSettingsSerialize(
   writer.writeString(offsets[12], object.peerName);
   writer.writeLong(offsets[13], object.peerSortOption);
   writer.writeLong(offsets[14], object.peerSortOrder);
-  writer.writeBool(offsets[15], object.preferAstralAdapter);
+  writer.writeBool(offsets[15], object.preferEnmeshAdapter);
   writer.writeBool(offsets[16], object.receiveBetaUpdates);
   writer.writeBool(offsets[17], object.reduceTopologyAnimations);
   writer.writeLong(offsets[18], object.selectedRoomId);
@@ -214,7 +214,7 @@ AllSettings _allSettingsDeserialize(
   object.peerName = reader.readStringOrNull(offsets[12]);
   object.peerSortOption = reader.readLong(offsets[13]);
   object.peerSortOrder = reader.readLong(offsets[14]);
-  object.preferAstralAdapter = reader.readBool(offsets[15]);
+  object.preferEnmeshAdapter = reader.readBool(offsets[15]);
   object.receiveBetaUpdates = reader.readBool(offsets[16]);
   object.reduceTopologyAnimations = reader.readBool(offsets[17]);
   object.selectedRoomId = reader.readLongOrNull(offsets[18]);
@@ -1459,10 +1459,10 @@ extension AllSettingsQueryFilter
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterFilterCondition>
-  preferAstralAdapterEqualTo(bool value) {
+  preferEnmeshAdapterEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'preferAstralAdapter', value: value),
+        FilterCondition.equalTo(property: r'preferEnmeshAdapter', value: value),
       );
     });
   }
@@ -1744,16 +1744,16 @@ extension AllSettingsQuerySortBy
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByPreferAstralAdapter() {
+  sortByPreferEnmeshAdapter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'preferAstralAdapter', Sort.asc);
+      return query.addSortBy(r'preferEnmeshAdapter', Sort.asc);
     });
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  sortByPreferAstralAdapterDesc() {
+  sortByPreferEnmeshAdapterDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'preferAstralAdapter', Sort.desc);
+      return query.addSortBy(r'preferEnmeshAdapter', Sort.desc);
     });
   }
 
@@ -1987,16 +1987,16 @@ extension AllSettingsQuerySortThenBy
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByPreferAstralAdapter() {
+  thenByPreferEnmeshAdapter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'preferAstralAdapter', Sort.asc);
+      return query.addSortBy(r'preferEnmeshAdapter', Sort.asc);
     });
   }
 
   QueryBuilder<AllSettings, AllSettings, QAfterSortBy>
-  thenByPreferAstralAdapterDesc() {
+  thenByPreferEnmeshAdapterDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'preferAstralAdapter', Sort.desc);
+      return query.addSortBy(r'preferEnmeshAdapter', Sort.desc);
     });
   }
 
@@ -2148,9 +2148,9 @@ extension AllSettingsQueryWhereDistinct
   }
 
   QueryBuilder<AllSettings, AllSettings, QDistinct>
-  distinctByPreferAstralAdapter() {
+  distinctByPreferEnmeshAdapter() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'preferAstralAdapter');
+      return query.addDistinctBy(r'preferEnmeshAdapter');
     });
   }
 
@@ -2281,9 +2281,9 @@ extension AllSettingsQueryProperty
   }
 
   QueryBuilder<AllSettings, bool, QQueryOperations>
-  preferAstralAdapterProperty() {
+  preferEnmeshAdapterProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'preferAstralAdapter');
+      return query.addPropertyName(r'preferEnmeshAdapter');
     });
   }
 

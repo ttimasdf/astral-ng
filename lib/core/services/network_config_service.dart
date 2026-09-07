@@ -1,6 +1,6 @@
-﻿import 'package:astral/core/database/dao/net_config_dao.dart';
-import 'package:astral/core/states/network_config_state.dart';
-import 'package:astral/core/repositories/network_config_repository.dart';
+﻿import 'package:enmesh/core/database/dao/net_config_dao.dart';
+import 'package:enmesh/core/states/network_config_state.dart';
+import 'package:enmesh/core/repositories/network_config_repository.dart';
 
 /// 网络配置服务：协调 State 与持久化
 class NetworkConfigService {
@@ -13,7 +13,7 @@ class NetworkConfigService {
     final config = await _repo.get();
     state.applyFrom(
       config,
-      preferAstralAdapterValue: await _repo.getPreferAstralAdapter(),
+      preferEnmeshAdapterValue: await _repo.getPreferEnmeshAdapter(),
     );
   }
 
@@ -27,9 +27,9 @@ class NetworkConfigService {
     await _repo.update((c) => c.dhcp = value);
   }
 
-  Future<void> setPreferAstralAdapter(bool value) async {
-    state.preferAstralAdapter.value = value;
-    await _repo.setPreferAstralAdapter(value);
+  Future<void> setPreferEnmeshAdapter(bool value) async {
+    state.preferEnmeshAdapter.value = value;
+    await _repo.setPreferEnmeshAdapter(value);
   }
 
   Future<void> updateDefaultProtocol(String value) async {

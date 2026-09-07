@@ -1,4 +1,4 @@
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// Returns whether an identity represents an EasyTier public relay server.
 bool isServerIdentity(String hostname, String ipv4) {

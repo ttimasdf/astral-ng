@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
-import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/error/app_failure.dart';
-import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:enmesh/core/bootstrap/bootstrap_stage_failure.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_formatter.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/error/app_failure.dart';
+import 'package:enmesh/core/diagnostics/error/error_coordinator.dart';
 
 final class StartupHost extends StatefulWidget {
   const StartupHost({
@@ -122,7 +122,7 @@ final class _LoadingContent extends StatelessWidget {
       children: [
         Icon(Icons.hub_outlined, size: 64),
         SizedBox(height: 24),
-        Text('AstralNG', style: TextStyle(fontSize: 28)),
+        Text('Enmesh', style: TextStyle(fontSize: 28)),
         SizedBox(height: 24),
         CircularProgressIndicator(),
         SizedBox(height: 16),
@@ -155,7 +155,7 @@ final class _FailureContent extends StatelessWidget {
           const Icon(Icons.error_outline, color: Colors.red, size: 64),
           const SizedBox(height: 20),
           Text(
-            'AstralNG could not start',
+            'Enmesh could not start',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall,
           ),

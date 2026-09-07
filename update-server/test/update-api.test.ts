@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import {
   artifactVersion,
   betaCacheTtl,
+  changelogSection,
   commitSubject,
   completeArtifactVersion,
   extractChangelogHighlights,
@@ -27,7 +28,7 @@ const originalFetch = globalThis.fetch;
 
 beforeEach(() => {
   setRuntimeCacheForTests(new MemoryCache());
-  process.env.GITHUB_REPOSITORY = 'ttimasdf/astral-ng';
+  process.env.GITHUB_REPOSITORY = 'ttimasdf/enmesh';
   process.env.GITHUB_WORKFLOW = 'build.yml';
   process.env.GITHUB_DEFAULT_BRANCH = 'main';
   process.env.GITHUB_TOKEN = 'test-token';
@@ -51,8 +52,8 @@ function changelogContent(): string {
 ## [v3.0.0] - 2026-08-14
 
 > **Highlight:** Stable highlight.
->
-> **版本亮点：** 稳定版亮点。
+
+[中文更新日志](CHANGELOG.zh-CN.md#v300---2026-08-14)
 
 ### Added
 
@@ -62,6 +63,23 @@ function changelogContent(): string {
 
 > **Highlight:** Older highlight.
 >
+> **版本亮点：** 较早版本亮点。
+`;
+}
+
+function chineseChangelogContent(): string {
+  return `# 更新日志（中文）
+
+## [v3.0.0] - 2026-08-14
+
+> **版本亮点：** 稳定版亮点。
+
+### 新增
+
+- 某项功能。
+
+## [v2.9.0] - 2026-07-01
+
 > **版本亮点：** 较早版本亮点。
 `;
 }
@@ -89,31 +107,52 @@ function artifact(
 
 function completeArtifacts(runId: number, version: string, startId = 1) {
   return [
-    artifact(startId, runId, `astral-canary-android-debug-${version}.apk`),
-    artifact(startId + 1, runId, `astral-canary-windows-x64-${version}.zip`),
-    artifact(startId + 2, runId, `astral-canary-windows-x64-setup-${version}.exe`),
-    artifact(startId + 3, runId, `astral-canary-linux-x64-${version}.deb`),
-    artifact(startId + 4, runId, `astral-canary-linux-x64-${version}.rpm`),
-    artifact(startId + 5, runId, `astral-canary-linux-x64-${version}.tar.gz`),
+    artifact(startId, runId, `enmesh-canary-android-debug-${version}.apk`),
+    artifact(startId + 1, runId, `enmesh-canary-windows-x64-${version}.zip`),
+    artifact(startId + 2, runId, `enmesh-canary-windows-x64-setup-${version}.exe`),
+    artifact(startId + 3, runId, `enmesh-canary-linux-x64-${version}.deb`),
+    artifact(startId + 4, runId, `enmesh-canary-linux-x64-${version}.rpm`),
+    artifact(startId + 5, runId, `enmesh-canary-linux-x64-${version}.tar.gz`),
   ];
 }
 
 describe('normalized metadata parsing', () => {
-  test('extracts the exact bilingual highlight from the requested release section', () => {
-    expect(extractChangelogHighlights(changelogContent(), '3.0.0')).toEqual({
-      en: 'Stable highlight.',
-      zh: '稳定版亮点。',
-    });
+  test('extracts the English highlight and merges the Chinese highlight from the Chinese changelog', () => {
+    expect(
+      extractChangelogHighlights(
+        changelogContent(),
+        '3.0.0',
+        chineseChangelogContent(),
+      ),
+    ).toEqual({ en: 'Stable highlight.', zh: '稳定版亮点。' });
+  });
+
+  test('keeps the Chinese highlight optional when the Chinese changelog is missing', () => {
+    expect(extractChangelogHighlights(changelogContent(), '3.0.0', null)).toEqual(
+      { en: 'Stable highlight.' },
+    );
     expect(extractChangelogHighlights(changelogContent(), '9.9.9')).toBeNull();
+  });
+
+  test('still reads legacy bilingual blocks from the English changelog alone', () => {
+    expect(extractChangelogHighlights(changelogContent(), '2.9.0')).toEqual({
+      en: 'Older highlight.',
+      zh: '较早版本亮点。',
+    });
 
     const legacyHeading = changelogContent().replace(
       '## [v3.0.0] - 2026-08-14',
       '## v3.0.0 - 2026-08-14',
     );
-    expect(extractChangelogHighlights(legacyHeading, '3.0.0')).toEqual({
-      en: 'Stable highlight.',
-      zh: '稳定版亮点。',
-    });
+    expect(
+      extractChangelogHighlights(legacyHeading, '3.0.0', chineseChangelogContent()),
+    ).toEqual({ en: 'Stable highlight.', zh: '稳定版亮点。' });
+  });
+
+  test('selects the requested section in the Chinese changelog', () => {
+    const section = changelogSection(chineseChangelogContent(), '3.0.0');
+    expect(section).toContain('稳定版亮点。');
+    expect(section).not.toContain('较早版本亮点。');
   });
 
   test('uses only the first commit-message line', () => {
@@ -130,7 +169,7 @@ describe('normalized metadata parsing', () => {
     expect(
       completeArtifactVersion([
         ...artifacts,
-        artifact(99, 100, 'astral-canary-extra-3.0.0-alpha.67+1234567.zip'),
+        artifact(99, 100, 'enmesh-canary-extra-3.0.0-alpha.67+1234567.zip'),
       ]),
     ).toBe(version);
     expect(completeArtifactVersion(artifacts.slice(1))).toBeNull();
@@ -285,6 +324,12 @@ describe('HTTP contract', () => {
           content: Buffer.from(changelogContent()).toString('base64'),
         });
       }
+      if (url.pathname.endsWith('/contents/CHANGELOG.zh-CN.md')) {
+        return githubJson({
+          encoding: 'base64',
+          content: Buffer.from(chineseChangelogContent()).toString('base64'),
+        });
+      }
       return new Response('not found', { status: 404 });
     }) as unknown as typeof fetch;
 
@@ -425,6 +470,54 @@ describe('HTTP contract', () => {
     });
   });
 
+  test('merges the Chinese highlight from the tagged Chinese changelog for new-format candidates', async () => {
+    globalThis.fetch = mock(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith('/releases')) {
+        return githubJson([
+          {
+            id: 301,
+            tag_name: 'v3.1.0-rc.1',
+            draft: false,
+            prerelease: true,
+            published_at: '2026-08-14T02:00:00Z',
+            html_url: 'https://github.com/example/releases/tag/v3.1.0-rc.1',
+            body:
+              '> **Highlight:** Candidate highlight.\n\n[中文更新日志](CHANGELOG.zh-CN.md#v310-rc1---2026-08-14)',
+          },
+        ]);
+      }
+      if (url.pathname.endsWith('/contents/CHANGELOG.zh-CN.md')) {
+        return githubJson({
+          encoding: 'base64',
+          content: Buffer.from(
+            '# 更新日志（中文）\n\n## [v3.1.0-rc.1] - 2026-08-14\n\n> **版本亮点：** 候选版本亮点。\n',
+          ).toString('base64'),
+        });
+      }
+      if (url.pathname.includes('/actions/workflows/')) {
+        return githubJson({ total_count: 0, workflow_runs: [] });
+      }
+      if (url.pathname.endsWith('/actions/artifacts')) {
+        return githubJson({ total_count: 0, artifacts: [] });
+      }
+      return new Response('not found', { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const response = await handleUpdateRequest(
+      new Request('https://updates.example/api/v1/update?channel=beta'),
+      'latest',
+    );
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data).toMatchObject({
+      channel: 'beta',
+      stage: 'rc',
+      version: '3.1.0-rc.1',
+      highlights: { en: 'Candidate highlight.', zh: '候选版本亮点。' },
+    });
+  });
+
   test('uses only required artifacts to determine beta expiry', async () => {
     const version = '3.0.0-beta.67+abcdef0';
     globalThis.fetch = mock(async (input: string | URL | Request) => {
@@ -461,7 +554,7 @@ describe('HTTP contract', () => {
             artifact(
               99,
               101,
-              `astral-canary-extra-${version}.zip`,
+              `enmesh-canary-extra-${version}.zip`,
               '2026-08-14T00:01:00Z',
             ),
           ],

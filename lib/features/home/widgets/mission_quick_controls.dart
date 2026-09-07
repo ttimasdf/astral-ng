@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/ui/main_tab.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/ui/main_tab.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 

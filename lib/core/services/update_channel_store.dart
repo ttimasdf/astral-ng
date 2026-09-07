@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:astral/core/states/update_state.dart';
+import 'package:enmesh/core/states/update_state.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 

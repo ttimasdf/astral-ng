@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/ui/base_settings_page.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/ui/base_settings_page.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class ListenListPage extends BaseSettingsPage {

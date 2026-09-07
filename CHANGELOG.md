@@ -1,32 +1,22 @@
 # Changelog
 
-This file records notable changes to Astral-ng. User-facing entries describe
+This file records notable changes to EasyTier Enmesh. User-facing entries
+describe
 observable outcomes; concise developer notes and links provide implementation
 provenance.
 
 ## Unreleased
 
-### Changed
+## [v3.0.0-rc.3] - 2026-08-31
 
-- **Selective beta builds.** Main-branch update-server and documentation
-  changes now skip platform artifacts, with Production deployment available as
-  an approved manual action.
+> **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
 
-### Fixed
-
-- **Stable release highlights.** Stable update metadata now reads bilingual
-  highlights from canonical bracketed changelog headings.
-
-## [v3.0.0] - 2026-08-23
-
-> **Highlight:** Meet AstralNG 3.0: redesigned Mission Control, route-aware mesh topology, clearer settings, and safer diagnostics bring every connection under your control.
->
-> **版本亮点：** AstralNG 3.0 全新登场：焕新的任务控制台、路径感知网络拓扑、更清晰的设置与更安全的诊断，让每一次连接都尽在掌控。
+[中文更新日志](CHANGELOG.zh-CN.md#v300-rc3---2026-08-31)
 
 ### Added
 
 - **Android Quick Settings.** Added a tile that shows connection state and
-  connects or disconnects AstralNG with one tap. ([#10])
+  connects or disconnects Enmesh with one tap. ([#10])
 - **Upstream additions.**
   - **Automatic retries.** Added a configurable retry limit for failed
     connections. ([upstream-auto-retry])
@@ -47,6 +37,21 @@ provenance.
 
 ### Changed
 
+- **⚠ BREAKING — Package identity.** Enmesh installs as `pw.rabit.enmesh`
+  (canary: `pw.rabit.enmesh.canary`). Existing installs no longer receive
+  updates; uninstall the old app, install Enmesh, and set up rooms again.
+- **⚠ BREAKING — Share links.** Room links and QR codes now use `enmesh://`.
+  Previously shared `astral://` links stop opening; re-share rooms from
+  Enmesh.
+- **⚠ BREAKING — Canary artifacts.** Update artifacts are now named
+  `enmesh-canary-*` and served from the rebranded update API. Existing canary
+  clients see no further updates; install Enmesh manually once.
+- **Rebranded to EasyTier Enmesh.** The app is now Enmesh: short names in the
+  GUI, "EasyTier Enmesh" in the About hero and documentation. The stored
+  Windows adapter preference resets to its default.
+- **Selective beta builds.** Main-branch update-server and documentation
+  changes now skip platform artifacts, with Production deployment available as
+  an approved manual action.
 - **⚠ BREAKING — Main artifacts.** Download scripts matching main builds must
   replace `-alpha.RUN+SHA` with `-beta.RUN+SHA`; pull-request artifacts remain
   alpha.
@@ -62,8 +67,8 @@ provenance.
 - **Selectable update channels.** Settings now offers Stable, Beta, and Alpha.
   Choosing Beta or Alpha enables automatic checks initially while leaving the
   switch under user control.
-- **Update service home.** New builds use `astral-ng.rabit.pw`; its service root
-  now introduces Astral-NG in English and Chinese with a source link.
+- **Update service home.** New builds use `enmesh.rabit.pw`; its service root
+  now introduces EasyTier Enmesh in English and Chinese with a source link.
 - **Alpha artifact matching.** PR builds now identify the source commit instead
   of GitHub's synthetic merge commit, so successful Alpha artifacts appear in
   updates.
@@ -90,7 +95,7 @@ provenance.
 - **Canary identity.** Canary builds now use separate names, commands, package
   identities, icons, and SemVer displays across Linux, Windows, and Android.
   ([#14])
-- **AstralNG branding.** Unified visible application, widget, notification,
+- **Enmesh branding.** Unified visible application, widget, notification,
   installer, and Quick Settings branding across supported platforms. ([#14])
 - **Mobile relay gestures.** Tap edits, right swipe toggles, and left swipe asks
   before deletion on Android and iOS. ([#11])
@@ -125,6 +130,8 @@ provenance.
 
 ### Fixed
 
+- **Update highlights.** Update metadata now reads release highlights from
+  the bracketed headings of the English and Chinese changelogs.
 - **Android VPN readiness.** Connection now appears only after consent, TUN
   creation, and descriptor handoff; setup failures and requested disconnects
   clean up the VPN interface and service. ([#15])
@@ -156,13 +163,14 @@ provenance.
 - **Staged preview versions.** Pull-request artifacts use alpha versions,
   `main` artifacts use beta versions, and signed `-rc.N` tags publish GitHub
   prereleases with distinct update-history metadata.
-- **PR preview API.** Trusted labeled PR builds deploy a Vercel preview API
-  after Preview approval and compile its URL into platform artifacts.
+- **Vercel Git deployments.** The update API deploys through the Vercel Git
+  integration; the Deploy Update API workflow and its `Preview`/`Production`
+  GitHub environment gates are removed.
 - **Release pipeline split.** Shared platform actions use explicit Android
   debug/release modes and unified/split APK layouts.
 - **Release credential isolation.** Android signing secrets are scoped to the
-  protected `Production Signing` environment; update deployment remains in
-  `Production`.
+  protected `Production Signing` environment, now the only GitHub environment
+  CI uses.
 - **EasyTier dependency.** Pinned release `v2.6.4`; Windows obtains the Npcap SDK
   separately instead of from a vendored EasyTier tree. ([#2])
 - **Version source.** `VERSION` now controls production versions and build
@@ -253,20 +261,20 @@ Astral-ng forked from upstream Astral `v2.7.3`. Releases `v2.7.3` and earlier
 belong to the upstream project; consult its release and tag history for those
 changes. ([upstream-v2.7.3])
 
-[#2]: https://github.com/ttimasdf/astral-ng/pull/2
-[#3]: https://github.com/ttimasdf/astral-ng/pull/3
-[#4]: https://github.com/ttimasdf/astral-ng/pull/4
-[#5]: https://github.com/ttimasdf/astral-ng/pull/5
-[#6]: https://github.com/ttimasdf/astral-ng/pull/6
-[#9]: https://github.com/ttimasdf/astral-ng/pull/9
-[#10]: https://github.com/ttimasdf/astral-ng/pull/10
-[#11]: https://github.com/ttimasdf/astral-ng/pull/11
-[#12]: https://github.com/ttimasdf/astral-ng/pull/12
-[#13]: https://github.com/ttimasdf/astral-ng/pull/13
-[#14]: https://github.com/ttimasdf/astral-ng/pull/14
-[#15]: https://github.com/ttimasdf/astral-ng/pull/15
-[#17]: https://github.com/ttimasdf/astral-ng/pull/17
-[nix-flutter-3.44]: https://github.com/ttimasdf/astral-ng/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
+[#2]: https://github.com/ttimasdf/enmesh/pull/2
+[#3]: https://github.com/ttimasdf/enmesh/pull/3
+[#4]: https://github.com/ttimasdf/enmesh/pull/4
+[#5]: https://github.com/ttimasdf/enmesh/pull/5
+[#6]: https://github.com/ttimasdf/enmesh/pull/6
+[#9]: https://github.com/ttimasdf/enmesh/pull/9
+[#10]: https://github.com/ttimasdf/enmesh/pull/10
+[#11]: https://github.com/ttimasdf/enmesh/pull/11
+[#12]: https://github.com/ttimasdf/enmesh/pull/12
+[#13]: https://github.com/ttimasdf/enmesh/pull/13
+[#14]: https://github.com/ttimasdf/enmesh/pull/14
+[#15]: https://github.com/ttimasdf/enmesh/pull/15
+[#17]: https://github.com/ttimasdf/enmesh/pull/17
+[nix-flutter-3.44]: https://github.com/ttimasdf/enmesh/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
 [upstream-#229]: https://github.com/ldoubil/astral/issues/229
@@ -282,8 +290,8 @@ changes. ([upstream-v2.7.3])
 [upstream-widgets]: https://github.com/ldoubil/astral/commit/b43ad374ca6b40ef481727777a1e05219e53c1e7
 [upstream-window-close]: https://github.com/ldoubil/astral/commit/e6f42be69152a24f16cd47fd36cb1a32c394e1d3
 [upstream-windows-fps]: https://github.com/ldoubil/astral/commit/eb08c820630e7d14e1611e36e4017e0986fe3ec8
-[v2.7.8-merge]: https://github.com/ttimasdf/astral-ng/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
-[v2.8.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.0
-[v2.8.1]: https://github.com/ttimasdf/astral-ng/releases/tag/v2.8.1
-[v3.0.0]: https://github.com/ttimasdf/astral-ng/releases/tag/v3.0.0
-[v2.8.1-forward-port]: https://github.com/ttimasdf/astral-ng/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
+[v2.7.8-merge]: https://github.com/ttimasdf/enmesh/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
+[v2.8.0]: https://github.com/ttimasdf/enmesh/releases/tag/v2.8.0
+[v2.8.1]: https://github.com/ttimasdf/enmesh/releases/tag/v2.8.1
+[v3.0.0-rc.3]: https://github.com/ttimasdf/enmesh/releases/tag/v3.0.0-rc.3
+[v2.8.1-forward-port]: https://github.com/ttimasdf/enmesh/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9

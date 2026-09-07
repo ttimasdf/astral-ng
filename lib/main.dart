@@ -8,28 +8,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
     show ExternalLibrary;
 import 'package:path/path.dart' as p;
-import 'package:astral/app.dart';
-import 'package:astral/core/app_links/app_link_registry.dart';
-import 'package:astral/core/bootstrap/bootstrap_stage_failure.dart';
-import 'package:astral/core/bootstrap/startup_host.dart';
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/diagnostics/diagnostic_context.dart';
-import 'package:astral/core/diagnostics/diagnostic_launch_options.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/error/error_coordinator.dart';
-import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
-import 'package:astral/core/diagnostics/module_logger.dart';
-import 'package:astral/core/diagnostics/sinks/rotating_jsonl_sink.dart';
-import 'package:astral/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
-import 'package:astral/core/diagnostics/sources/rust_diagnostic_source.dart';
-import 'package:astral/core/platform/app_info.dart';
-import 'package:astral/core/platform/startup_url_scheme.dart';
-import 'package:astral/core/platform/window_manager.dart';
-import 'package:astral/core/services/connection_connect_guard.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/src/rust/api/utils.dart';
-import 'package:astral/src/rust/frb_generated.dart';
+import 'package:enmesh/app.dart';
+import 'package:enmesh/core/app_links/app_link_registry.dart';
+import 'package:enmesh/core/bootstrap/bootstrap_stage_failure.dart';
+import 'package:enmesh/core/bootstrap/startup_host.dart';
+import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_context.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_launch_options.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/error/error_coordinator.dart';
+import 'package:enmesh/core/diagnostics/error/error_hook_registration.dart';
+import 'package:enmesh/core/diagnostics/module_logger.dart';
+import 'package:enmesh/core/diagnostics/sinks/rotating_jsonl_sink.dart';
+import 'package:enmesh/core/diagnostics/sources/easy_localization_diagnostic_source.dart';
+import 'package:enmesh/core/diagnostics/sources/rust_diagnostic_source.dart';
+import 'package:enmesh/core/platform/app_info.dart';
+import 'package:enmesh/core/platform/startup_url_scheme.dart';
+import 'package:enmesh/core/platform/window_manager.dart';
+import 'package:enmesh/core/services/connection_connect_guard.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/src/rust/api/utils.dart';
+import 'package:enmesh/src/rust/frb_generated.dart';
 import 'package:uuid/uuid.dart';
 
 void main(List<String> arguments) {
@@ -49,7 +49,7 @@ void main(List<String> arguments) {
       .logger(DiagnosticModules.bootstrap)
       .info(
         'session.start',
-        'AstralNG diagnostic session started',
+        'Enmesh diagnostic session started',
         fields: {
           'session': diagnostics.sessionId,
           'build_mode': kDebugMode ? 'debug' : 'release',
@@ -87,14 +87,14 @@ Future<void> _initRustLib() async {
   if (!kIsWeb) {
     final executableDirectory = File(Platform.resolvedExecutable).parent.path;
     final bundledPath = switch (Platform.operatingSystem) {
-      'windows' => p.join(executableDirectory, 'rust_lib_astral.dll'),
-      'linux' => p.join(executableDirectory, 'lib', 'librust_lib_astral.so'),
+      'windows' => p.join(executableDirectory, 'rust_lib_enmesh.dll'),
+      'linux' => p.join(executableDirectory, 'lib', 'librust_lib_enmesh.so'),
       'macos' => p.normalize(
         p.join(
           executableDirectory,
           '..',
           'Frameworks',
-          'librust_lib_astral.dylib',
+          'librust_lib_enmesh.dylib',
         ),
       ),
       _ => null,

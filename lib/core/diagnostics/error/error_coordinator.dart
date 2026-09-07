@@ -1,7 +1,7 @@
 import 'package:uuid/uuid.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/error/app_failure.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/error/app_failure.dart';
 
 final class ErrorCoordinator {
   ErrorCoordinator(this.runtime);

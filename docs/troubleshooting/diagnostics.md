@@ -28,7 +28,7 @@ module names.
 
 ## Canonical JSONL timeline
 
-The rotating `astral.jsonl` set is the canonical diagnostic interface for both
+The rotating `enmesh.jsonl` set is the canonical diagnostic interface for both
 agents and humans. It contains ECS-compatible records from Dart, Rust/EasyTier,
 and the Android VPN adapter after their bounded bridges attach. Native consoles
 remain immediate/emergency fallbacks; do not merge DevTools and `logcat` output
@@ -40,19 +40,19 @@ From the Nix development shell, validate or merge a desktop rotation set:
 python3 scripts/diagnostic_jsonl.py validate <application-cache>/logs
 python3 scripts/diagnostic_jsonl.py merge \
   <application-cache>/logs \
-  --output /tmp/astral-diagnostics.jsonl
-lnav /tmp/astral-diagnostics.jsonl
+  --output /tmp/enmesh-diagnostics.jsonl
+lnav /tmp/enmesh-diagnostics.jsonl
 ```
 
 On Linux the production identity stores the set under
-`$XDG_CACHE_HOME/pw.rabit.astralng/logs` (normally
-`~/.cache/pw.rabit.astralng/logs`); canary uses
-`pw.rabit.astralng.canary`. On other platforms, resolve the directory returned
+`$XDG_CACHE_HOME/pw.rabit.enmesh/logs` (normally
+`~/.cache/pw.rabit.enmesh/logs`); canary uses
+`pw.rabit.enmesh.canary`. On other platforms, resolve the directory returned
 by Flutter's `getApplicationCacheDirectory()` and append `logs`. Cache
-diagnostics are best-effort: Astral retains up to seven days or approximately
+diagnostics are best-effort: EasyTier Enmesh retains up to seven days or approximately
 6 MiB, but the OS or user may remove them earlier.
 
-Astral uses Flutter's storage classes directly, with no runtime migration or
+EasyTier Enmesh uses Flutter's storage classes directly, with no runtime migration or
 legacy fallback:
 
 | Platform | Database (`Application Support/db`) | Logs (`Application Cache/logs`) |
@@ -68,14 +68,14 @@ chronological order with:
 
 ```sh
 python3 scripts/diagnostic_jsonl.py pull-android \
-  --package pw.rabit.astralng.canary \
-  --output /tmp/astral-diagnostics.jsonl
-lnav /tmp/astral-diagnostics.jsonl
+  --package pw.rabit.enmesh.canary \
+  --output /tmp/enmesh-diagnostics.jsonl
+lnav /tmp/enmesh-diagnostics.jsonl
 ```
 
 Use `--device <adb-serial>` when more than one device is connected. Android
 release storage is intentionally unavailable to `adb run-as`; use the reviewed
-in-app support workflow instead. Every persisted rotation set has one Astral
+in-app support workflow instead. Every persisted rotation set has one EasyTier Enmesh
 schema version. An incompatible pre-ECS set is discarded on migration rather
 than mixed with the new contract.
 
@@ -95,7 +95,7 @@ Supported entrypoint arguments:
 
 ```text
 --log-preset=production|debug|diagnostic
---log-module=<astral.module>=off|trace|debug|info|warning|error|fatal
+--log-module=<enmesh.module>=off|trace|debug|info|warning|error|fatal
 --log-duration=<30s..3600s|1m..60m>
 ```
 
@@ -105,9 +105,9 @@ the diagnostic preset. Packet logging remains unavailable.
 For a built desktop executable:
 
 ```sh
-./astral \
+./enmesh \
   --log-preset=diagnostic \
-  --log-module=astral.easytier.connection=trace \
+  --log-module=enmesh.easytier.connection=trace \
   --log-duration=15m
 ```
 
@@ -116,7 +116,7 @@ When using Flutter tooling on desktop, repeat its entrypoint-argument option:
 ```sh
 flutter run -d linux \
   --dart-entrypoint-args=--log-preset=diagnostic \
-  --dart-entrypoint-args=--log-module=astral.localization=debug \
+  --dart-entrypoint-args=--log-module=enmesh.localization=debug \
   --dart-entrypoint-args=--log-duration=15m
 ```
 
@@ -126,10 +126,10 @@ receives the pre-start arguments:
 
 ```sh
 adb shell am start -S \
-  -n <application-id>/pw.rabit.astralng.MainActivity \
-  --es astral.log-preset diagnostic \
-  --esa astral.log-modules astral.connection=trace,astral.easytier.connection=debug \
-  --es astral.log-duration 15m
+  -n <application-id>/pw.rabit.enmesh.MainActivity \
+  --es enmesh.log-preset diagnostic \
+  --esa enmesh.log-modules enmesh.connection=trace,enmesh.easytier.connection=debug \
+  --es enmesh.log-duration 15m
 ```
 
 Release builds ignore these Activity extras; use the in-app expiring diagnostic

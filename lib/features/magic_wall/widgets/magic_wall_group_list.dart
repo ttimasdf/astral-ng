@@ -1,5 +1,5 @@
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/features/magic_wall/models/magic_wall_group_bundle.dart';
 import 'package:flutter/material.dart';
 
 /// Group / rules list UI for Magic Wall.

@@ -1,14 +1,14 @@
 import 'dart:io';
-import 'package:astral/core/constants/home_widget_keys.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/error/error_coordinator.dart';
-import 'package:astral/core/diagnostics/error/error_hook_registration.dart';
-import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/services/home_widget_theme_sync.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/src/rust/frb_generated.dart';
+import 'package:enmesh/core/constants/home_widget_keys.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/error/error_coordinator.dart';
+import 'package:enmesh/core/diagnostics/error/error_hook_registration.dart';
+import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/services/home_widget_theme_sync.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/src/rust/frb_generated.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +30,7 @@ Future<void> homeWidgetBackgroundCallback(Uri? uri) async {
     final services = ServiceManager();
 
     if (uri != null &&
-        uri.scheme == 'astral' &&
+        uri.scheme == 'enmesh' &&
         uri.host == 'toggle_connection') {
       final persistedState = await HomeWidget.getWidgetData<String>(
         HomeWidgetKeys.connectionState,
@@ -76,7 +76,7 @@ Future<void> _ensureWidgetRuntimeReady() async {
 
 class WidgetService {
   static const _quickSettingsChannel = MethodChannel(
-    'pw.rabit.astralng/quick_settings',
+    'pw.rabit.enmesh/quick_settings',
   );
 
   static WidgetService? _instance;
@@ -98,7 +98,7 @@ class WidgetService {
 
     HomeWidget.widgetClicked.listen((Uri? uri) {
       if (uri != null &&
-          uri.scheme == 'astral' &&
+          uri.scheme == 'enmesh' &&
           uri.host == 'toggle_connection') {
         final services = ServiceManager();
         final state = services.connectionState.connectionState.value;

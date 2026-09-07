@@ -2,7 +2,7 @@ import { getCache } from '@vercel/functions';
 
 const API_VERSION = '2022-11-28';
 const SCHEMA_VERSION = 1;
-const DEFAULT_REPOSITORY = 'ttimasdf/astral-ng';
+const DEFAULT_REPOSITORY = 'ttimasdf/enmesh';
 const DEFAULT_WORKFLOW = 'build.yml';
 const DEFAULT_BRANCH = 'main';
 const STABLE_INDEX_TTL_SECONDS = 300;
@@ -98,7 +98,8 @@ type CachedGitHubValue<T> = {
 };
 
 type CachedImmutableChangelog = {
-  content: string | null;
+  en: string | null;
+  zh: string | null;
 };
 
 type GitHubListResponse<T> = {
@@ -165,7 +166,7 @@ function githubHeaders(etag?: string | null): Headers {
   const headers = new Headers({
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': API_VERSION,
-    'User-Agent': 'astral-ng-update-api',
+    'User-Agent': 'enmesh-update-api',
   });
   const token = process.env.GITHUB_TOKEN?.trim();
   if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -347,23 +348,43 @@ function rcReleaseVersion(tag: string): string | null {
 }
 
 function extractHighlightBlock(markdown: string): Highlights | null {
-  const match = /> \*\*Highlight:\*\* ([^\r\n]+)\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+)$/m.exec(
-    markdown,
-  );
+  const match =
+    /> \*\*Highlight:\*\* ([^\r\n]+)(?:\r?\n>\r?\n> \*\*版本亮点：\*\* ([^\r\n]+))?$/m.exec(
+      markdown,
+    );
   return match ? { en: match[1], zh: match[2] } : null;
 }
 
-function extractChangelogHighlights(markdown: string, version: string): Highlights | null {
+function extractChineseHighlightBlock(markdown: string): string | null {
+  const match = /> \*\*版本亮点：\*\* ([^\r\n]+)$/m.exec(markdown);
+  return match ? match[1] : null;
+}
+
+function changelogSection(markdown: string, version: string): string | null {
   const release = `v${escapeRegExp(version)}`;
   const heading = new RegExp(`^## (?:${release}|\\[${release}\\])(?:\\s|$)`, 'm');
   const headingMatch = heading.exec(markdown);
   if (!headingMatch) return null;
   const section = markdown.slice(headingMatch.index);
   const nextHeading = /^##\s/m.exec(section.slice(headingMatch[0].length));
-  const content = nextHeading
+  return nextHeading
     ? section.slice(0, headingMatch[0].length + nextHeading.index)
     : section;
-  return extractHighlightBlock(content);
+}
+
+function extractChangelogHighlights(
+  markdown: string,
+  version: string,
+  chineseMarkdown?: string | null,
+): Highlights | null {
+  const section = changelogSection(markdown, version);
+  const highlights = section ? extractHighlightBlock(section) : null;
+  if (!highlights || highlights.zh !== undefined) return highlights;
+  const chineseSection = chineseMarkdown
+    ? changelogSection(chineseMarkdown, version)
+    : null;
+  const zh = chineseSection ? extractChineseHighlightBlock(chineseSection) : null;
+  return zh ? { en: highlights.en, zh } : highlights;
 }
 
 function escapeRegExp(value: string): string {
@@ -375,7 +396,7 @@ function commitSubject(message: string | null | undefined): string {
 }
 
 const CANARY_ARTIFACT_PATTERN =
-  /^astral-canary-.+-(\d+\.\d+\.\d+-(?:alpha|beta)\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
+  /^enmesh-canary-.+-(\d+\.\d+\.\d+-(?:alpha|beta)\.\d+\+[0-9a-f]{7})\.(?:apk|exe|zip|deb|rpm|tar\.gz)$/i;
 
 function artifactVersion(name: string): string | null {
   const match = CANARY_ARTIFACT_PATTERN.exec(name);
@@ -383,12 +404,12 @@ function artifactVersion(name: string): string | null {
 }
 
 const REQUIRED_CANARY_ARTIFACTS = [
-  /^astral-canary-android-debug-.+\.apk$/,
-  /^astral-canary-windows-x64-.+\.zip$/,
-  /^astral-canary-windows-x64-setup-.+\.exe$/,
-  /^astral-canary-linux-x64-.+\.deb$/,
-  /^astral-canary-linux-x64-.+\.rpm$/,
-  /^astral-canary-linux-x64-.+\.tar\.gz$/,
+  /^enmesh-canary-android-debug-.+\.apk$/,
+  /^enmesh-canary-windows-x64-.+\.zip$/,
+  /^enmesh-canary-windows-x64-setup-.+\.exe$/,
+  /^enmesh-canary-linux-x64-.+\.deb$/,
+  /^enmesh-canary-linux-x64-.+\.rpm$/,
+  /^enmesh-canary-linux-x64-.+\.tar\.gz$/,
 ];
 
 function requiredArtifacts(artifacts: GitHubArtifact[]): GitHubArtifact[] {
@@ -417,33 +438,54 @@ function usableArtifact(artifact: GitHubArtifact, now: number): boolean {
   return Date.parse(artifact.expires_at) > now;
 }
 
-async function immutableReleaseChangelog(
+async function fetchChangelogFile(
   repo: string,
-  tag: string,
+  ref: string,
+  file: string,
+  cacheKey: string,
 ): Promise<string | null> {
-  const cache = runtimeCache();
-  const immutableKey = `immutable:v1:${repository()}:stable:changelog:${tag}`;
-  const cached = (await cache.get(immutableKey)) as CachedImmutableChangelog | null;
-  if (cached) return cached.content;
-
-  let content: string | null = null;
   try {
     const response = await githubRequest<{ content?: string; encoding?: string }>(
-      `/repos/${repo}/contents/CHANGELOG.md?ref=${encodeURIComponent(tag)}`,
-      `github:stable:changelog:v1:${tag}`,
+      `/repos/${repo}/contents/${file}?ref=${encodeURIComponent(ref)}`,
+      cacheKey,
       STABLE_INDEX_TTL_SECONDS,
     );
     if (response.content) {
-      content = decodeBase64(response.content, response.encoding);
+      return decodeBase64(response.content, response.encoding);
     }
   } catch (error) {
     if (!(error instanceof GitHubError) || error.status !== 404) throw error;
   }
+  return null;
+}
 
-  // Release tags are immutable. Cache both a tagged file and a missing legacy
-  // file so the fallback path never adds recurring GitHub traffic.
-  await cache.set(immutableKey, { content }, { ttl: 31_536_000 });
-  return content;
+async function immutableReleaseChangelog(
+  repo: string,
+  tag: string,
+): Promise<CachedImmutableChangelog> {
+  const cache = runtimeCache();
+  const immutableKey = `immutable:v2:${repository()}:stable:changelog:${tag}`;
+  const cached = (await cache.get(immutableKey)) as CachedImmutableChangelog | null;
+  if (cached) return cached;
+
+  const en = await fetchChangelogFile(
+    repo,
+    tag,
+    'CHANGELOG.md',
+    `github:stable:changelog:v1:${tag}`,
+  );
+  const zh = await fetchChangelogFile(
+    repo,
+    tag,
+    'CHANGELOG.zh-CN.md',
+    `github:stable:changelog-zh:v1:${tag}`,
+  );
+
+  // Release tags are immutable. Cache both present and missing legacy files
+  // so the fallback path never adds recurring GitHub traffic.
+  const value = { en, zh };
+  await cache.set(immutableKey, value, { ttl: 31_536_000 });
+  return value;
 }
 
 async function githubReleases(repo: string): Promise<GitHubRelease[]> {
@@ -473,6 +515,12 @@ async function stableVersions(): Promise<VersionSummary[]> {
   } catch (error) {
     if (!(error instanceof GitHubError) || error.status !== 404) throw error;
   }
+  const chineseChangelog = await fetchChangelogFile(
+    repo,
+    branch(),
+    'CHANGELOG.zh-CN.md',
+    'github:stable:changelog-zh:v1',
+  );
 
   const values: VersionSummary[] = [];
   // Prefer the immutable tagged changelog for the latest release. Older
@@ -497,8 +545,9 @@ async function stableVersions(): Promise<VersionSummary[]> {
         ? await immutableReleaseChangelog(repo, release.tag_name)
         : null;
     const highlights = extractChangelogHighlights(
-      taggedChangelog ?? changelog,
+      taggedChangelog?.en ?? changelog,
       version,
+      taggedChangelog?.zh ?? chineseChangelog,
     );
     values.push({
       channel: 'stable',
@@ -535,12 +584,29 @@ async function rcVersions(): Promise<VersionSummary[]> {
     ) {
       continue;
     }
+    const block = extractHighlightBlock(release.body ?? '');
+    let highlights = block;
+    if (block && block.zh === undefined && values.length === 0) {
+      // New-format release bodies carry only the English highlight. Pull the
+      // Chinese line from the immutable tagged Chinese changelog for the
+      // newest candidate; older candidates keep their legacy bilingual body.
+      const taggedChangelog = await immutableReleaseChangelog(
+        repo,
+        release.tag_name,
+      );
+      const zh = taggedChangelog.zh
+        ? extractChineseHighlightBlock(
+            changelogSection(taggedChangelog.zh, version) ?? '',
+          )
+        : null;
+      if (zh) highlights = { en: block.en, zh };
+    }
     values.push({
       channel: 'beta',
       stage: 'rc',
       version,
       title: `Release candidate v${version}`,
-      highlights: extractHighlightBlock(release.body ?? ''),
+      highlights,
       publishedAt: release.published_at,
       expiresAt: null,
       pageUrl: release.html_url,
@@ -899,6 +965,8 @@ export async function handleUpdateRequest(
 
 export {
   extractChangelogHighlights,
+  extractChineseHighlightBlock,
+  changelogSection,
   artifactVersion,
   commitSubject,
   completeArtifactVersion,

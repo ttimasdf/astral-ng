@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:astral/core/services/connection_connect_guard.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
-import 'package:astral/core/ui/main_tab.dart';
-import 'package:astral/features/home/widgets/connect_npcap_guard.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/core/services/connection_connect_guard.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/ui/main_tab.dart';
+import 'package:enmesh/features/home/widgets/connect_npcap_guard.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';

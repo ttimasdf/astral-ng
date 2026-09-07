@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:astral/core/diagnostics/diagnostic_formatter.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/support_bundle.dart';
-import 'package:astral/core/ui/app_snack_bars.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_formatter.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/support_bundle.dart';
+import 'package:enmesh/core/ui/app_snack_bars.dart';
 
 class LogsPage extends StatefulWidget {
   const LogsPage({super.key, this.initialErrorId});
@@ -448,7 +448,7 @@ final class _FilterBar extends StatelessWidget {
                       (name) => DropdownMenuItem(
                         value: name,
                         child: Text(
-                          name.replaceFirst('astral.', ''),
+                          name.replaceFirst('enmesh.', ''),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -657,7 +657,7 @@ final class _DiagnosticRecordCard extends StatelessWidget {
       child: ExpansionTile(
         leading: Icon(icon, color: color, size: 20),
         title: Text(
-          '${record.level.token}  ${record.module.replaceFirst('astral.', '')}  '
+          '${record.level.token}  ${record.module.replaceFirst('enmesh.', '')}  '
           '${record.eventCode ?? 'unclassified'}',
           style: TextStyle(
             fontSize: 12,
@@ -815,7 +815,7 @@ final class _LogPolicySheet extends StatelessWidget {
                         );
                         return ListTile(
                           dense: true,
-                          title: Text(module.replaceFirst('astral.', '')),
+                          title: Text(module.replaceFirst('enmesh.', '')),
                           subtitle: Text('有效级别：${effective?.name ?? 'off'}'),
                           trailing: DropdownButton<LogSeverity?>(
                             value: effective,

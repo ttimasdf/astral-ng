@@ -1,9 +1,9 @@
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/features/home/widgets/connect_button.dart';
-import 'package:astral/features/home/widgets/mission_connection_dialog.dart';
-import 'package:astral/shared/utils/network/mesh_peer_identity.dart';
-import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/features/home/widgets/connect_button.dart';
+import 'package:enmesh/features/home/widgets/mission_connection_dialog.dart';
+import 'package:enmesh/shared/utils/network/mesh_peer_identity.dart';
+import 'package:enmesh/shared/widgets/network/mesh_peer_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

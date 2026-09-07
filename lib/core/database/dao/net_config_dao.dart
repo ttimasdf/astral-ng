@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/models/net_config.dart';
+﻿import 'package:enmesh/core/models/net_config.dart';
 import 'package:isar_community/isar.dart';
 
 int normalizeSocks5Port(int port) {

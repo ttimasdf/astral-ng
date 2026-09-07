@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/error/app_failure.dart';
-import 'package:astral/core/diagnostics/error/error_coordinator.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/error/app_failure.dart';
+import 'package:enmesh/core/diagnostics/error/error_coordinator.dart';
 
 final class ErrorHookRegistration {
   ErrorHookRegistration._({

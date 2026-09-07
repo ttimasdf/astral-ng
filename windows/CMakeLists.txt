@@ -1,14 +1,14 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
-project(astral LANGUAGES CXX)
+project(enmesh LANGUAGES CXX)
 
 # Flutter discovers the executable from the first BINARY_NAME declaration.
 # Keep the target filename stable for local development; CI renames canary
-# artifacts after building. Channel-specific resources use ASTRAL_CANARY.
-set(BINARY_NAME "astral")
-set(ASTRAL_CANARY OFF)
+# artifacts after building. Channel-specific resources use ENMESH_CANARY.
+set(BINARY_NAME "enmesh")
+set(ENMESH_CANARY OFF)
 if("$ENV{BUILD_CHANNEL}" STREQUAL "canary")
-  set(ASTRAL_CANARY ON)
+  set(ENMESH_CANARY ON)
 endif()
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
@@ -53,7 +53,7 @@ endfunction()
 
 # MSVC 14.51+ rejects experimental coroutines (/await). Affected C++/WinRT
 # plugins must use C++20 <coroutine> instead of legacy /await.
-function(ASTRAL_ENABLE_CPP20_COROUTINES TARGET_NAME)
+function(ENMESH_ENABLE_CPP20_COROUTINES TARGET_NAME)
   if(NOT TARGET ${TARGET_NAME})
     return()
   endif()
@@ -84,12 +84,12 @@ add_subdirectory("runner")
 include(flutter/generated_plugins.cmake)
 
 # Only plugins that use C++/WinRT coroutines need C++20 without /await.
-set(ASTRAL_CPP20_COROUTINE_TARGETS
+set(ENMESH_CPP20_COROUTINE_TARGETS
   permission_handler_windows_plugin
   flutter_local_notifications_windows
 )
-foreach(_astral_target ${ASTRAL_CPP20_COROUTINE_TARGETS})
-  ASTRAL_ENABLE_CPP20_COROUTINES(${_astral_target})
+foreach(_enmesh_target ${ENMESH_CPP20_COROUTINE_TARGETS})
+  ENMESH_ENABLE_CPP20_COROUTINES(${_enmesh_target})
 endforeach()
 
 # === Installation ===

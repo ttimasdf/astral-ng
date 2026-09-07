@@ -1,10 +1,10 @@
-import 'package:astral/core/database/dao/magic_wall_dao.dart';
-import 'package:astral/core/models/magic_wall_model.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/features/magic_wall/models/magic_wall_group_bundle.dart';
-import 'package:astral/features/magic_wall/services/magic_wall_store.dart';
-import 'package:astral/src/rust/api/magic_wall.dart' as rust_api;
+import 'package:enmesh/core/database/dao/magic_wall_dao.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/features/magic_wall/models/magic_wall_group_bundle.dart';
+import 'package:enmesh/features/magic_wall/services/magic_wall_store.dart';
+import 'package:enmesh/src/rust/api/magic_wall.dart' as rust_api;
 
 /// Rust Magic Wall engine sync: convert models, start/stop, add/remove/update.
 class MagicWallEngine {

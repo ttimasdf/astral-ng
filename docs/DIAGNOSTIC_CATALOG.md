@@ -1,6 +1,6 @@
 # Project-wide diagnostics catalog
 
-This is the cross-language inventory of Astral-controlled diagnostic modules,
+This is the cross-language inventory of EasyTier Enmesh-controlled diagnostic modules,
 event codes, and native console tags. It is intended for troubleshooting,
 filter construction, and code review. Event codes are the stable query keys;
 messages may change with wording or localization.
@@ -14,31 +14,31 @@ diagnostic event.
 ## Common record schema
 
 Persisted records use Elastic Common Schema-compatible JSON Lines. Standard ECS
-fields provide direct `lnav` detection, while the `astral` object carries the
+fields provide direct `lnav` detection, while the `enmesh` object carries the
 versioned application extension:
 
 | Field | Meaning |
 | --- | --- |
 | `@timestamp` | UTC source timestamp used to merge records |
 | `log.level` | `trace`, `debug`, `info`, `warning`, `error`, or `fatal` |
-| `log.logger` | Hierarchical policy/filtering module, normally beginning with `astral.` |
+| `log.logger` | Hierarchical policy/filtering module, normally beginning with `enmesh.` |
 | `log.origin.*` | Compact source file, line, and function provenance when available |
 | `event.code` | Optional stable semantic event identity; never a source location |
-| `event.created` | UTC time Astral ingested the source record |
-| `event.sequence` | Source sequence, falling back to Astral ingest sequence |
+| `event.created` | UTC time EasyTier Enmesh ingested the source record |
+| `event.sequence` | Source sequence, falling back to EasyTier Enmesh ingest sequence |
 | `event.provider` | `dart`, `rust`, or `android` |
 | `message` | Human-readable, non-secret description |
 | `error.*` | Owning error ID, type, message, and one stack when available |
 | `session.id` | Process diagnostic session correlation |
-| `astral.fields` | Bounded, sanitized component-specific scalar context |
-| `astral.operation_id` | Short-lived operation correlation when applicable |
-| `astral.connection_attempt_id` | Connection/VPN/EasyTier attempt correlation when applicable |
-| `astral.easytier_instance_id` | EasyTier instance correlation when applicable |
-| `astral.ingest_sequence` | Total ordering within one process session |
-| `astral.schema_version` | Version of the Astral ECS extension |
+| `enmesh.fields` | Bounded, sanitized component-specific scalar context |
+| `enmesh.operation_id` | Short-lived operation correlation when applicable |
+| `enmesh.connection_attempt_id` | Connection/VPN/EasyTier attempt correlation when applicable |
+| `enmesh.easytier_instance_id` | EasyTier instance correlation when applicable |
+| `enmesh.ingest_sequence` | Total ordering within one process session |
+| `enmesh.schema_version` | Version of the EasyTier Enmesh ECS extension |
 
 Dart records are produced by `ModuleLogger` and normalized by
-`DiagnosticsRuntime`. Rust records are produced by the Astral
+`DiagnosticsRuntime`. Rust records are produced by the EasyTier Enmesh
 `tracing_subscriber` layer. Android VPN records are produced by `NativeLogger`
 and forwarded through the Flutter event channel. The native adapters differ,
 but the record body, levels, module policy, correlation, redaction, and flood
@@ -46,20 +46,20 @@ controls are shared.
 
 `event.code` follows `<domain>.<entity>.<state-or-past-tense-action>`. Ordinary
 upstream logs are not assigned codes derived from message wording, hashes,
-files, or line numbers. Their `astral.classification` is
+files, or line numbers. Their `enmesh.classification` is
 `upstream-unclassified`.
 
 ## Native console tags
 
 | Platform/component | Native tag | Output |
 | --- | --- | --- |
-| Android Kotlin VPN plugin | `Astral` | `NativeLogger` records from `TauriVpnService`, `VpnServicePlugin`, and the native logger itself |
-| Android Rust library | `AstralRust` | Rust `tracing` records and Rust diagnostics emergency output |
+| Android Kotlin VPN plugin | `EasyTier Enmesh` | `NativeLogger` records from `TauriVpnService`, `VpnServicePlugin`, and the native logger itself |
+| Android Rust library | `EnmeshRust` | Rust `tracing` records and Rust diagnostics emergency output |
 | Desktop Rust library | process stderr | The same formatted Rust record body; no ANSI color is added |
-| Dart desktop/mobile | Flutter/Dart console and `dart:developer` | Normalized Astral records, subject to destination policy |
+| Dart desktop/mobile | Flutter/Dart console and `dart:developer` | Normalized EasyTier Enmesh records, subject to destination policy |
 
-Use `adb logcat -v threadtime -s Astral AstralRust flutter` to capture the
-controlled Android streams. `adb` prefixes are platform metadata, not Astral
+Use `adb logcat -v threadtime -s EasyTier Enmesh EnmeshRust flutter` to capture the
+controlled Android streams. `adb` prefixes are platform metadata, not EasyTier Enmesh
 event fields.
 
 ## Module and policy tags
@@ -69,40 +69,40 @@ module controls. A child module inherits its nearest configured parent policy.
 
 | Module | Primary component | Typical concerns |
 | --- | --- | --- |
-| `astral` | root/default | Root policy and uncategorized Rust/Dart records |
-| `astral.bootstrap` | Dart bootstrap | Startup stages, optional initialization, startup failures |
-| `astral.database` | Dart database | Database initialization boundary |
-| `astral.localization` | Dart + `easy_localization` adapter | Localization package debug/info/warning/error output |
-| `astral.connection` | Dart connection manager | Connection attempts, retries, room network config |
-| `astral.vpn` | Dart VPN manager | Flutter VPN lifecycle and Android bridge ingestion |
-| `astral.vpn.android` | Kotlin Android VPN plugin | Native service, TUN, permission, and native logging events |
-| `astral.easytier` | Rust/EasyTier | General EasyTier API and target output |
-| `astral.easytier.instance` | Rust EasyTier instance | Instance lifecycle and configuration |
-| `astral.easytier.peer` | Rust EasyTier peer | Peer add/remove state |
-| `astral.easytier.connection` | Rust EasyTier connection | Connection lifecycle and server/listener state |
-| `astral.easytier.tunnel` | Rust EasyTier tunnel | Tunnel-target records, including UDP target output |
-| `astral.widgets` | Dart widgets/background services | Widget initialization, sync, and background work |
-| `astral.app-links` | Dart app links and URL schemes | Deep-link dispatch, import, registration, and startup schemes |
-| `astral.updates` | Dart update checker | Update service and metadata check failures |
-| `astral.magic-wall` | Dart + Rust Magic Wall | Rule, filter, process, WFP, and status operations |
-| `astral.firewall` | Dart firewall service | Firewall initialization, read, and set failures |
-| `astral.window` | Dart desktop window integration | Window initialization boundary |
-| `astral.logging` | Dart/Rust diagnostics infrastructure | Sinks, bridge, filters, suppression, and export |
+| `enmesh` | root/default | Root policy and uncategorized Rust/Dart records |
+| `enmesh.bootstrap` | Dart bootstrap | Startup stages, optional initialization, startup failures |
+| `enmesh.database` | Dart database | Database initialization boundary |
+| `enmesh.localization` | Dart + `easy_localization` adapter | Localization package debug/info/warning/error output |
+| `enmesh.connection` | Dart connection manager | Connection attempts, retries, room network config |
+| `enmesh.vpn` | Dart VPN manager | Flutter VPN lifecycle and Android bridge ingestion |
+| `enmesh.vpn.android` | Kotlin Android VPN plugin | Native service, TUN, permission, and native logging events |
+| `enmesh.easytier` | Rust/EasyTier | General EasyTier API and target output |
+| `enmesh.easytier.instance` | Rust EasyTier instance | Instance lifecycle and configuration |
+| `enmesh.easytier.peer` | Rust EasyTier peer | Peer add/remove state |
+| `enmesh.easytier.connection` | Rust EasyTier connection | Connection lifecycle and server/listener state |
+| `enmesh.easytier.tunnel` | Rust EasyTier tunnel | Tunnel-target records, including UDP target output |
+| `enmesh.widgets` | Dart widgets/background services | Widget initialization, sync, and background work |
+| `enmesh.app-links` | Dart app links and URL schemes | Deep-link dispatch, import, registration, and startup schemes |
+| `enmesh.updates` | Dart update checker | Update service and metadata check failures |
+| `enmesh.magic-wall` | Dart + Rust Magic Wall | Rule, filter, process, WFP, and status operations |
+| `enmesh.firewall` | Dart firewall service | Firewall initialization, read, and set failures |
+| `enmesh.window` | Dart desktop window integration | Window initialization boundary |
+| `enmesh.logging` | Dart/Rust diagnostics infrastructure | Sinks, bridge, filters, suppression, and export |
 
 For a focused connection investigation, these are usually the most useful
 module overrides:
 
 ```text
-astral.connection=trace
-astral.vpn=debug
-astral.vpn.android=debug
-astral.easytier.connection=trace
-astral.easytier.instance=debug
-astral.easytier.peer=debug
-astral.localization=debug
+enmesh.connection=trace
+enmesh.vpn=debug
+enmesh.vpn.android=debug
+enmesh.easytier.connection=trace
+enmesh.easytier.instance=debug
+enmesh.easytier.peer=debug
+enmesh.localization=debug
 ```
 
-Avoid enabling `astral.easytier` or `astral.easytier.tunnel` at trace globally
+Avoid enabling `enmesh.easytier` or `enmesh.easytier.tunnel` at trace globally
 for a long session. Use topology/state APIs and packet tools for packet-level
 questions.
 
@@ -239,7 +239,7 @@ WFP, filter, and rule state transitions.
 
 ## Kotlin Android VPN event codes
 
-The Kotlin plugin uses module `astral.vpn.android`, native tag `Astral`, and the
+The Kotlin plugin uses module `enmesh.vpn.android`, native tag `EasyTier Enmesh`, and the
 same six levels as Dart. Error records include a native type/message and stack
 when a `Throwable` is available.
 
@@ -327,21 +327,21 @@ per-packet forwarding records.
 
 Rust targets are mapped into the module hierarchy as follows:
 
-| Rust target | Astral module |
+| Rust target | EasyTier Enmesh module |
 | --- | --- |
-| `CORE::INSTANCE::CONNECTION` | `astral.easytier.connection` |
-| `CORE::INSTANCE` | `astral.easytier.instance` |
-| other `CORE...` | `astral.easytier` |
-| `easytier::tunnel::<name>` | `astral.easytier.tunnel.<name>` |
-| other `easytier::...` | `astral.easytier.<...>` |
-| `rust_lib_astral::...` | `astral.rust.<...>` |
+| `CORE::INSTANCE::CONNECTION` | `enmesh.easytier.connection` |
+| `CORE::INSTANCE` | `enmesh.easytier.instance` |
+| other `CORE...` | `enmesh.easytier` |
+| `easytier::tunnel::<name>` | `enmesh.easytier.tunnel.<name>` |
+| other `easytier::...` | `enmesh.easytier.<...>` |
+| `rust_lib_enmesh::...` | `enmesh.rust.<...>` |
 
 When a tracing event has no explicit code, `event.code` is omitted. The compact
 crate-relative path and line are stored under `log.origin.file`, and the Rust
 module path is stored under `log.origin.function`. For example:
 
 ```json
-{"log":{"logger":"astral.easytier.connection","origin":{"file":{"name":"easytier/connector/manual.rs","line":213},"function":"easytier::connector::manual"}},"astral":{"classification":"upstream-unclassified"}}
+{"log":{"logger":"enmesh.easytier.connection","origin":{"file":{"name":"easytier/connector/manual.rs","line":213},"function":"easytier::connector::manual"}},"enmesh":{"classification":"upstream-unclassified"}}
 ```
 
 Absolute build paths and checkout hashes are never retained. Use semantic event

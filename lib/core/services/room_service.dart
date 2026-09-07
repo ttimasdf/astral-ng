@@ -1,6 +1,6 @@
-﻿import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/states/room_state.dart';
-import 'package:astral/core/models/room.dart';
+﻿import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/states/room_state.dart';
+import 'package:enmesh/core/models/room.dart';
 
 /// 房间服务：协调 State 与持久化
 class RoomService {

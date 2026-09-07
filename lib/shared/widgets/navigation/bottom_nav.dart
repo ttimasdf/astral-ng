@@ -1,6 +1,6 @@
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/platform/small_window_adapter.dart';
-import 'package:astral/core/ui/navigation.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/platform/small_window_adapter.dart';
+import 'package:enmesh/core/ui/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

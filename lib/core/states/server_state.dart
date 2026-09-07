@@ -1,4 +1,4 @@
-﻿import 'package:astral/core/models/server_mod.dart';
+﻿import 'package:enmesh/core/models/server_mod.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 服务器状态（纯Signal）

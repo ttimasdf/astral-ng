@@ -12,7 +12,7 @@ void main() {
       'connectionNotificationEnabled',
       'connectionRetryLimit',
       'launchAtLogin',
-      'preferAstralAdapter',
+      'preferEnmeshAdapter',
     }) {
       expect(source, contains(property));
     }

@@ -1,6 +1,6 @@
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/room/room_mode.dart';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/room/room_mode.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 import 'package:flutter/material.dart';
 
 // 添加DragHandle定义

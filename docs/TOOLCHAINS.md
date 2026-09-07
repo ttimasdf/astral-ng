@@ -1,6 +1,6 @@
 # Toolchain versions
 
-Astral-ng treats the package versions selected by `flake.nix` and `flake.lock`
+EasyTier Enmesh treats the package versions selected by `flake.nix` and `flake.lock`
 as the source of truth. Repository-root files mirror those versions for tools
 that do not evaluate Nix.
 
@@ -100,10 +100,10 @@ explicit production override before the Flutter subcommand when needed:
 ```bash
 flutter-android run -d <device>
 flutter-android test
-flutter-android --astral-channel production build apk --release
+flutter-android --enmesh-channel production build apk --release
 ```
 
-Run `flutter-android --astral-help` for wrapper options or a command-specific
+Run `flutter-android --enmesh-help` for wrapper options or a command-specific
 Flutter help invocation such as `flutter-android run --help`. The helper warns
 when less than 30 GiB is free but never removes generated output automatically;
 use `flutter-android clean` when discarding incremental build artifacts is
@@ -111,7 +111,7 @@ intentional.
 
 `eachDefaultSystem` keeps development-shell and synchronization outputs
 available on the standard Linux and macOS systems. Linux-only GUI dependencies
-are added conditionally. The packaged `astral-ng` derivation remains Linux-only
+are added conditionally. The packaged `enmesh` derivation remains Linux-only
 because nixpkgs' `buildFlutterApplication` currently states that it has no macOS
 support; macOS application builds continue to use Flutter and Xcode from the
 Darwin development shell rather than claiming unsupported Nix package metadata.
@@ -144,7 +144,7 @@ Android setup cost.
    intentional channel or package-family change is required.
 2. Run `nix run .#sync-toolchains` and review every generated mirror.
 3. Regenerate dependency lock files only when the SDK upgrade requires it.
-4. Run `nix run .#sync-toolchains -- --check`, `nix build .#astral-ng`,
+4. Run `nix run .#sync-toolchains -- --check`, `nix build .#enmesh`,
    application analysis, and the relevant local platform build.
 5. Open a pull request with the `platform-all` label to validate Linux, Windows,
    and Android before merging.

@@ -1,9 +1,9 @@
-import 'package:astral/core/platform/build_brand.dart';
-import 'package:astral/core/platform/startup_url_scheme.dart';
+import 'package:enmesh/core/platform/build_brand.dart';
+import 'package:enmesh/core/platform/startup_url_scheme.dart';
 import 'package:window_manager/window_manager.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 
 class WindowManagerUtils {
   static Future<void> initializeWindow() async {

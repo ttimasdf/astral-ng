@@ -1,9 +1,9 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/repositories/app_settings_repository.dart';
-import 'package:astral/core/states/mission_control_state.dart';
-import 'package:astral/core/states/network_config_state.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/repositories/app_settings_repository.dart';
+import 'package:enmesh/core/states/mission_control_state.dart';
+import 'package:enmesh/core/states/network_config_state.dart';
 
 /// Resolves global defaults, room recommendations, and device-local overrides.
 class MissionControlService {

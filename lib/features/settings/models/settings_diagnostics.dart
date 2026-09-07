@@ -1,4 +1,4 @@
-import 'package:astral/core/diagnostics/diagnostic_record.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_record.dart';
 
 const _uncaughtEventCodes = {
   'flutter.framework.uncaught',

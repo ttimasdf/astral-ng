@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve, validate, synchronize, and bump Astral-ng application versions."""
+"""Resolve, validate, synchronize, and bump Enmesh application versions."""
 
 from __future__ import annotations
 
@@ -224,12 +224,12 @@ def emit(build: BuildVersion, output_format: str) -> None:
         "PACKAGE_VERSION": build.package_version,
         "ASSET_VERSION": build.asset_version,
         "IS_PRERELEASE": str(build.is_prerelease).lower(),
-        "APP_DISPLAY_NAME": "AstralNG Canary" if is_canary else "AstralNG",
-        "APP_PACKAGE_ID": "pw.rabit.astralng.canary"
+        "APP_DISPLAY_NAME": "Enmesh Canary" if is_canary else "Enmesh",
+        "APP_PACKAGE_ID": "pw.rabit.enmesh.canary"
         if is_canary
-        else "pw.rabit.astralng",
-        "APP_EXECUTABLE": "astral-canary" if is_canary else "astral",
-        "LINUX_PACKAGE_NAME": "astral-canary" if is_canary else "astral",
+        else "pw.rabit.enmesh",
+        "APP_EXECUTABLE": "enmesh-canary" if is_canary else "enmesh",
+        "LINUX_PACKAGE_NAME": "enmesh-canary" if is_canary else "enmesh",
         "WINDOWS_APP_ID": (
             "{E193416A-7545-4559-BB79-95858B8796EB}"
             if is_canary
@@ -316,7 +316,7 @@ def bump(part: str, dry_run: bool) -> None:
     if dry_run:
         return
     VERSION_FILE.write_text(
-        "# Astral-ng release identity. This is the only human-edited application version.\n"
+        "# Enmesh release identity. This is the only human-edited application version.\n"
         f"VERSION={next_source.version}\nBUILD_NUMBER={next_source.build_number}\n",
         encoding="utf-8",
     )

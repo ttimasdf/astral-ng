@@ -14,7 +14,7 @@ final class DiagnosticSanitizer {
       return '<redacted-sensitive-text>';
     }
     result = result.replaceAll(
-      RegExp(r'astral://room\?[^\s]*', caseSensitive: false),
+      RegExp(r'enmesh://room\?[^\s]*', caseSensitive: false),
       '<redacted-room-link>',
     );
     result = result.replaceAllMapped(

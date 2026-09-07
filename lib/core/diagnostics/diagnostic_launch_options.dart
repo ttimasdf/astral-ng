@@ -1,7 +1,7 @@
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/diagnostics/log_policy.dart';
-import 'package:astral/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/diagnostics/log_policy.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
 
 const _defaultDiagnosticLevels = <String, LogSeverity>{
   DiagnosticModules.connection: LogSeverity.trace,

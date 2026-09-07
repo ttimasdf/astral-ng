@@ -1,5 +1,5 @@
-import 'package:astral/core/database/dao/net_config_dao.dart';
-import 'package:astral/core/models/net_config.dart';
+import 'package:enmesh/core/database/dao/net_config_dao.dart';
+import 'package:enmesh/core/models/net_config.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 网络配置状态（纯Signal，29个字段）
@@ -10,7 +10,7 @@ class NetworkConfigState {
   final instanceName = signal('default');
   final ipv4 = signal('');
   final dhcp = signal(true);
-  final preferAstralAdapter = signal(true);
+  final preferEnmeshAdapter = signal(true);
 
   // ========== 网络连接配置 (6个) ==========
   final networkName = signal('');
@@ -69,7 +69,7 @@ class NetworkConfigState {
   void updateMtu(int value) => mtu.value = value;
   void updateLatencyFirst(bool value) => latencyFirst.value = value;
 
-  void applyFrom(NetConfig config, {required bool preferAstralAdapterValue}) {
+  void applyFrom(NetConfig config, {required bool preferEnmeshAdapterValue}) {
     netns.value = config.netns;
     hostname.value = config.hostname;
     instanceName.value = config.instance_name;
@@ -112,6 +112,6 @@ class NetworkConfigState {
     acceptDns.value = config.accept_dns;
     tcpWhitelist.value = config.tcp_whitelist;
     udpWhitelist.value = config.udp_whitelist;
-    preferAstralAdapter.value = preferAstralAdapterValue;
+    preferEnmeshAdapter.value = preferEnmeshAdapterValue;
   }
 }

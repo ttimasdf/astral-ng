@@ -1,5 +1,5 @@
 ﻿import 'package:isar_community/isar.dart';
-import 'package:astral/core/models/theme_settings.dart';
+import 'package:enmesh/core/models/theme_settings.dart';
 
 /// 单例 [ThemeSettings] 的 Isar 访问（id 固定为 1）。
 class ThemeSettingsDao {

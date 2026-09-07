@@ -9,7 +9,7 @@ application control plane.
 - [Platform consoles](platform-console.md): desktop console, Android `logcat`,
   and Flutter DevTools.
 - [Packet capture](network-capture.md): bounded `tcpdump` and Wireshark
-  investigations without adding packet logs to Astral.
+  investigations without adding packet logs to EasyTier Enmesh.
 - [Routing, TUN, and VPN state](routing-vpn.md): Linux, Windows, macOS, and
   Android commands and failure distinctions.
 - [EasyTier state and topology](easytier.md): bounded state snapshots and
@@ -23,7 +23,7 @@ The [project-wide diagnostics catalog](../DIAGNOSTIC_CATALOG.md) lists modules,
 event codes, native tags, and unclassified Rust source provenance across Dart,
 Rust, and Kotlin.
 
-Astral diagnostics describe control-plane decisions and failures. They do not
+EasyTier Enmesh diagnostics describe control-plane decisions and failures. They do not
 record packets, replace a profiler, or dump the host configuration. Use the
 narrowest tool that answers the question, and review every support bundle or
 packet capture before sharing it.

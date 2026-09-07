@@ -95,9 +95,9 @@ runs:
       shell: pwsh
 
     - name: Rename packaged canary executable
-      if: steps.resolve-version.outputs.app_executable != 'astral'
+      if: steps.resolve-version.outputs.app_executable != 'enmesh'
       run: |
-        Rename-Item -Path "build\windows\x64\runner\Release\astral.exe" -NewName "${{ steps.resolve-version.outputs.app_executable }}.exe"
+        Rename-Item -Path "build\windows\x64\runner\Release\enmesh.exe" -NewName "${{ steps.resolve-version.outputs.app_executable }}.exe"
       shell: pwsh
 
     - name: Copy DLLs
@@ -123,7 +123,7 @@ runs:
         #define MyAppName "$env:APP_DISPLAY_NAME"
         #define MyAppVersion "$version"
         #define MyAppPublisher "KnownRabbit"
-        #define MyAppURL "https://github.com/ttimasdf/astral-ng"
+        #define MyAppURL "https://github.com/ttimasdf/enmesh"
         #define MyAppExeName "$($env:APP_EXECUTABLE).exe"
 
         [Setup]

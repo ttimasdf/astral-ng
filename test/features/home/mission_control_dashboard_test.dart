@@ -1,9 +1,9 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/features/home/widgets/connect_button.dart';
-import 'package:astral/features/home/widgets/mission_control_dashboard.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/features/home/widgets/connect_button.dart';
+import 'package:enmesh/features/home/widgets/mission_control_dashboard.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

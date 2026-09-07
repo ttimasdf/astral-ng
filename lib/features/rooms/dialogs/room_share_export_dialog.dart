@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/features/rooms/dialogs/room_share_copy_link.dart';
-import 'package:astral/features/rooms/dialogs/room_share_export_body.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/features/rooms/dialogs/room_share_copy_link.dart';
+import 'package:enmesh/features/rooms/dialogs/room_share_export_body.dart';
 
 /// 房间分享导出对话框与相关 UI
 class RoomShareExportDialogs {

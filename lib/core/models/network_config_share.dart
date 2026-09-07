@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:astral/core/services/service_manager.dart';
+import 'package:enmesh/core/services/service_manager.dart';
 
 /// 网络配置分享模型
 /// 用于房间分享时携带网络配置（仅高级设置）

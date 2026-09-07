@@ -1,15 +1,15 @@
 # EasyTier connection and data-plane troubleshooting
 
-Treat an Astral connection as four separate boundaries:
+Treat an EasyTier Enmesh connection as four separate boundaries:
 
-1. Astral accepted the connection request.
+1. EasyTier Enmesh accepted the connection request.
 2. EasyTier joined the room and learned peers.
 3. The platform created the required TUN or VPN interface.
 4. Packets reached another virtual-network address.
 
-A green **Connected** button proves only that Astral is keeping the session
+A green **Connected** button proves only that EasyTier Enmesh is keeping the session
 active. It does not by itself prove current relay reachability or packet flow.
-This distinction matters during a temporary underlay outage: Astral may keep the
+This distinction matters during a temporary underlay outage: EasyTier Enmesh may keep the
 session and TUN alive while EasyTier retries, then recover without a manual
 reconnect.
 
@@ -39,13 +39,13 @@ For a debuggable canary build, retrieve and inspect the records with:
 
 ```sh
 python3 scripts/diagnostic_jsonl.py pull-android \
-  --package pw.rabit.astralng.canary \
-  --output /tmp/astral-diagnostics.jsonl
+  --package pw.rabit.enmesh.canary \
+  --output /tmp/enmesh-diagnostics.jsonl
 
 jq -r '
   select(.event.code != null) |
   [."@timestamp", .log.level, .event.code, .message] | @tsv
-' /tmp/astral-diagnostics.jsonl
+' /tmp/enmesh-diagnostics.jsonl
 ```
 
 Use the shared `connection_attempt_id` to isolate one attempt. See the
@@ -55,7 +55,7 @@ limitations, and support exports.
 ## Reproduce with a local no-TUN peer
 
 The Nix development shell includes the EasyTier CLI at the version used by
-Astral. A local `--no-tun` peer provides a controlled endpoint without changing
+EasyTier Enmesh. A local `--no-tun` peer provides a controlled endpoint without changing
 the host route table. Use a disposable test room because EasyTier room
 credentials are visible in the process command line.
 
@@ -68,7 +68,7 @@ TEST_ROOM_NAME='replace-with-disposable-room-name'
 TEST_ROOM_SECRET='replace-with-disposable-room-secret'
 
 easytier-core \
-  --config-dir /tmp/astral-easytier-test \
+  --config-dir /tmp/enmesh-easytier-test \
   --network-name "$TEST_ROOM_NAME" \
   --network-secret "$TEST_ROOM_SECRET" \
   --ipv4 10.203.77.1 \
@@ -77,10 +77,10 @@ easytier-core \
   --external-node tcp://js.629957.xyz:11012 \
   --listeners tcp://0.0.0.0:0 \
   --rpc-portal 127.0.0.1:15888 \
-  --hostname astral-e2e-local
+  --hostname enmesh-e2e-local
 ```
 
-Configure Astral with the same disposable room and one enabled embedded relay.
+Configure EasyTier Enmesh with the same disposable room and one enabled embedded relay.
 On a second terminal, inspect the bounded peer snapshot:
 
 ```sh
@@ -88,7 +88,7 @@ nix develop --command \
   easytier-cli --rpc-portal 127.0.0.1:15888 peer list
 ```
 
-The local peer should be `10.203.77.1/24`. After Astral connects, the phone or
+The local peer should be `10.203.77.1/24`. After EasyTier Enmesh connects, the phone or
 other client should appear with its assigned address. Relay or P2P selection may
 change while the session is active; peer presence, loss, and byte counters are
 more useful than assuming one tunnel type.
@@ -142,7 +142,7 @@ after the bounded test.
 
 The expected retry behavior is:
 
-- `tun0` may remain present because the requested Astral session is still
+- `tun0` may remain present because the requested EasyTier Enmesh session is still
   active;
 - the UI may continue to show **Connected** while the underlay is unavailable;
 - `easytier.connection.failed` records appear as relay attempts fail;
@@ -151,7 +151,7 @@ The expected retry behavior is:
   should recover without recreating the TUN.
 
 If peer and packet reachability do not recover after the physical network is
-validated, disconnect and reconnect Astral, then compare the new
+validated, disconnect and reconnect EasyTier Enmesh, then compare the new
 `connection_attempt_id` with the failed attempt.
 
 ## Verify disconnect cleanup
@@ -171,7 +171,7 @@ After a short grace period, all three checks should be empty or absent:
 ```sh
 adb shell ip link show tun0
 adb shell dumpsys connectivity | rg 'VPN CONNECTED|InterfaceName: tun0'
-adb shell dumpsys activity services pw.rabit.astralng.canary | \
+adb shell dumpsys activity services pw.rabit.enmesh.canary | \
   rg TauriVpnService
 ```
 
@@ -190,15 +190,15 @@ incomplete.
 | UI says Connected during total underlay loss | `easytier.connection.failed`, peer presence, and a direct packet test |
 | Disconnect leaves a VPN agent or service | TUN teardown and `vpn.service.destroy` lifecycle records |
 
-Use Astral's topology and running-info views for bounded state snapshots before
+Use EasyTier Enmesh's topology and running-info views for bounded state snapshots before
 enabling narrower traces. The Rust integration maps upstream targets into
-`astral.easytier.*` modules and retains explicit event codes such as
+`enmesh.easytier.*` modules and retains explicit event codes such as
 `easytier.connection.failed`, `easytier.tun.ready`, and
 `easytier.instance.configure`. See the
 [project-wide diagnostics catalog](../DIAGNOSTIC_CATALOG.md) for filter examples
 and the complete inventory.
 
 Never attach complete EasyTier configuration, room passwords, message keys, or
-room links to an issue. Astral redacts known credentials in diagnostics, but
+room links to an issue. EasyTier Enmesh redacts known credentials in diagnostics, but
 shell history, process listings, source configuration, route dumps, and packet
 captures still require review before sharing.

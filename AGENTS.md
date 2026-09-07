@@ -31,7 +31,7 @@ When instructed to implement a new feature, use the following workflow:
    below when the change is user-facing.
 7. Run final local validation from the Nix development shell with Flutter tools
    such as `flutter analyze lib` and `flutter test`, then run
-   `nix build .#astral-ng`. Resolve failures locally, repeat the demonstration
+   `nix build .#enmesh`. Resolve failures locally, repeat the demonstration
    if behavior changed, and commit the wrap-up.
 8. Read `docs/CI.md`, push the feature branch, and create a pull request. The
    pull request title must begin with `[<slug>]` so the slug is retained in the
@@ -45,12 +45,12 @@ When instructed to implement a new feature, use the following workflow:
 
 ## Commit and Tag Signing
 
-Create commits in linked worktrees without signing (`git commit --no-gpg-sign`).
-Create commits on `main` with signing enabled (`git commit --gpg-sign`). Create
-all RC and stable release tags as cryptographically signed tags (`git tag
---sign`) using `ttimasdf`'s signing identity, following the same signing policy
-as `main`. Verify the tag signature before pushing it; never publish an unsigned
-or lightweight release tag.
+Sign every commit (`git commit --gpg-sign`) — in linked worktrees and on `main`
+alike. Never bypass or disable commit signing: do not use `--no-gpg-sign`, and
+do not override `commit.gpgsign` to skip signing. Create all RC and stable
+release tags as cryptographically signed tags (`git tag --sign`) using the
+configured repository signing identity. Verify the tag signature before
+pushing it; never publish an unsigned or lightweight release tag.
 
 ## Local Android Builds
 
@@ -59,13 +59,13 @@ Run Android Flutter commands from the Nix development shell with
 nixpkgs' Linux desktop compiler paths from contaminating NDK compilation and
 configures bindgen for every Android ABI used by Cargokit. Keep normal Flutter
 subcommands and arguments. The helper defaults to the canary identity; place
-Astral-specific overrides before the Flutter subcommand:
+EasyTier Enmesh-specific overrides before the Flutter subcommand:
 
 ```bash
 flutter-android run -d <device>
 flutter-android test
 flutter-android build apk --debug
-flutter-android --astral-channel production build apk --release
+flutter-android --enmesh-channel production build apk --release
 ```
 
 Use plain `flutter` for Linux desktop development. The Android helper stops
@@ -73,13 +73,13 @@ compatible Gradle daemons before commands that can build the app because Gradle
 daemons retain their startup environment.
 
 Canary Android builds are disposable testing artifacts, not production upgrade
-artifacts. Install them as the canary package (`pw.rabit.astralng.canary`) and
+artifacts. Install them as the canary package (`pw.rabit.enmesh.canary`) and
 keep production installs separate. If Android rejects a canary APK because of a
 version, downgrade, or signature mismatch, uninstall the canary package from
 the target device and install the APK again:
 
 ```sh
-adb uninstall pw.rabit.astralng.canary
+adb uninstall pw.rabit.enmesh.canary
 adb install <canary-apk>
 ```
 
@@ -125,34 +125,39 @@ packaging, and toolchains last. Format breaking briefs with the prominent
 `⚠ BREAKING —` marker and retain an exact migration action.
 
 `Unreleased` contains entries only and must not have a highlight block. Every
-versioned release section must retain the exact machine-readable bilingual
-highlight block defined by the guideline, including its quoted blank separator.
-Routine feature, fix, and maintenance work adds factual entries under
-`Unreleased`; the highlight is added only when creating the first release
-section for a new base version.
+versioned release section in `CHANGELOG.md` must retain the exact
+machine-readable English highlight block and the Chinese-changelog link line
+defined by the guideline; the Chinese highlight lives in
+`CHANGELOG.zh-CN.md`. Routine feature, fix, and maintenance work adds factual
+entries under `Unreleased`; highlight wording is considered only during a
+version bump — when the first release section for a new base version is
+created, or when a later RC or stable promotion renames that section.
 
 Write a new release highlight only for the first release candidate or stable
 release of a new base version, and only after the user explicitly requests that
 release. Treat new highlight wording as release content requiring separate
 review:
 
-1. Inspect the accumulated `Unreleased` entries and draft an exact bilingual
-   highlight block that follows `docs/CHANGELOG_GUIDELINES.md`.
-2. Create the new versioned release section and apply the proposed block there
-   as an uncommitted draft, then show the user the target version and both
+1. Inspect the accumulated `Unreleased` entries and draft the exact English and
+   Chinese highlight lines following `docs/CHANGELOG_GUIDELINES.md`.
+2. Create the new versioned release section, apply the proposed English line
+   there, and draft the matching Chinese section in `CHANGELOG.zh-CN.md`, all
+   as an uncommitted change; show the user the target version and both
    highlight lines.
 3. Ask the user to confirm or revise that exact draft. A general feature,
    release, or bump request is not confirmation of agent-authored highlight
    wording.
 4. Only after explicit confirmation, run the version bump command, finalize the
-   release section, commit the release preparation, and proceed with any
-   separately authorized tag or publication workflow.
+   release section, translate the finalized section into `CHANGELOG.zh-CN.md`,
+   commit the release preparation, and proceed with any separately authorized
+   tag or publication workflow.
 
 Keep one evolving changelog section for a base version from its first RC through
 its stable release. For a later RC or stable promotion, rename that section's
 heading and date in place, retain its approved highlight unless the user asks to
-revise it, merge new `Unreleased` entries into the existing categories, and
-reset `Unreleased` to an empty heading with no highlight. Do not create parallel
+revise it, merge new `Unreleased` entries into the existing categories,
+retranslate the finalized section into `CHANGELOG.zh-CN.md`, and reset
+`Unreleased` to an empty heading with no highlight. Do not create parallel
 changelog sections for each RC. Git
 tags and GitHub Releases remain immutable historical records; never move or
 replace an earlier RC tag.

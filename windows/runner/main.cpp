@@ -8,12 +8,12 @@
 #include "flutter_window.h"
 #include "utils.h"
 
-#ifdef ASTRAL_CANARY
-constexpr wchar_t kAppDisplayName[] = L"AstralNG Canary";
-constexpr wchar_t kSingleInstanceMutex[] = L"AstralCanaryAppSingleInstanceMutex";
+#ifdef ENMESH_CANARY
+constexpr wchar_t kAppDisplayName[] = L"Enmesh Canary";
+constexpr wchar_t kSingleInstanceMutex[] = L"EnmeshCanaryAppSingleInstanceMutex";
 #else
-constexpr wchar_t kAppDisplayName[] = L"AstralNG";
-constexpr wchar_t kSingleInstanceMutex[] = L"AstralAppSingleInstanceMutex";
+constexpr wchar_t kAppDisplayName[] = L"Enmesh";
+constexpr wchar_t kSingleInstanceMutex[] = L"EnmeshAppSingleInstanceMutex";
 #endif
 
 struct WindowSearchParams {
@@ -94,7 +94,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   
   
-  if (command_line && wcsstr(command_line, L"astral://")) {
+  if (command_line && wcsstr(command_line, L"enmesh://")) {
     if (SendAppLinkToInstance(kAppDisplayName, command_line)) {
       return EXIT_SUCCESS;
     }

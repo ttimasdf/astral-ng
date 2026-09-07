@@ -29,11 +29,11 @@ def record(timestamp: str, sequence: int, code: str | None = None) -> dict:
         "ecs.version": "8.11.0",
         "message": "Diagnostic event",
         "log.level": "info",
-        "log": {"logger": "astral.easytier"},
+        "log": {"logger": "enmesh.easytier"},
         "event": event,
-        "service": {"name": "astral-ng"},
+        "service": {"name": "enmesh"},
         "session": {"id": "SESSION"},
-        "astral": {
+        "enmesh": {
             "schema_version": 3,
             "ingest_sequence": sequence,
             "classification": "upstream-unclassified",
@@ -73,11 +73,11 @@ class DiagnosticJsonlTest(unittest.TestCase):
             directory = pathlib.Path(temporary)
             newer = record("2026-01-01T00:00:02.000Z", 2)
             older = record("2026-01-01T00:00:01.000Z", 1)
-            (directory / "astral.jsonl").write_text(
+            (directory / "enmesh.jsonl").write_text(
                 json.dumps(newer) + "\n",
                 encoding="utf-8",
             )
-            (directory / "astral.jsonl.1").write_text(
+            (directory / "enmesh.jsonl.1").write_text(
                 json.dumps(older) + "\n",
                 encoding="utf-8",
             )
@@ -88,7 +88,7 @@ class DiagnosticJsonlTest(unittest.TestCase):
             records.sort(key=diagnostic_jsonl.record_sort_key)
 
             self.assertEqual(
-                [item["astral"]["ingest_sequence"] for item in records],
+                [item["enmesh"]["ingest_sequence"] for item in records],
                 [1, 2],
             )
 

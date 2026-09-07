@@ -1,15 +1,15 @@
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/states/display_state.dart';
-import 'package:astral/src/rust/api/simple.dart';
-import 'package:astral/shared/utils/network/node_utils.dart';
-import 'package:astral/features/rooms/widgets/all_user_card.dart';
-import 'package:astral/features/rooms/widgets/mini_user_card.dart';
-import 'package:astral/features/rooms/widgets/mesh_constellation.dart';
-import 'package:astral/features/rooms/widgets/room_network_stats.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/states/display_state.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
+import 'package:enmesh/shared/utils/network/node_utils.dart';
+import 'package:enmesh/features/rooms/widgets/all_user_card.dart';
+import 'package:enmesh/features/rooms/widgets/mini_user_card.dart';
+import 'package:enmesh/features/rooms/widgets/mesh_constellation.dart';
+import 'package:enmesh/features/rooms/widgets/room_network_stats.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:astral/generated/locale_keys.g.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

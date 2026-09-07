@@ -1,15 +1,15 @@
-import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/core/models/room.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/core/room/room_mode.dart';
-import 'package:astral/features/home/widgets/connect_button.dart';
-import 'package:astral/features/home/widgets/mission_connection_dialog.dart';
-import 'package:astral/features/home/widgets/mission_mesh_preview.dart';
-import 'package:astral/features/home/widgets/mission_quick_controls.dart';
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/shared/utils/network/node_utils.dart';
-import 'package:astral/shared/widgets/network/mesh_peer_badge.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/core/models/room.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/core/room/room_mode.dart';
+import 'package:enmesh/features/home/widgets/connect_button.dart';
+import 'package:enmesh/features/home/widgets/mission_connection_dialog.dart';
+import 'package:enmesh/features/home/widgets/mission_mesh_preview.dart';
+import 'package:enmesh/features/home/widgets/mission_quick_controls.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/shared/utils/network/node_utils.dart';
+import 'package:enmesh/shared/widgets/network/mesh_peer_badge.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 

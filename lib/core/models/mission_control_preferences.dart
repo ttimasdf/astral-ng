@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:astral/core/models/network_config_share.dart';
-import 'package:astral/core/models/room.dart';
+import 'package:enmesh/core/models/network_config_share.dart';
+import 'package:enmesh/core/models/room.dart';
 
 /// Where an effective Mission Control preference came from.
 enum MissionPreferenceSource { global, room, device }

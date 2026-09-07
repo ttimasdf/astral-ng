@@ -1,8 +1,8 @@
-﻿import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
-import 'package:astral/core/diagnostics/diagnostics_runtime.dart';
-import 'package:astral/core/states/server_state.dart';
-import 'package:astral/core/models/server_mod.dart';
+﻿import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/diagnostics_runtime.dart';
+import 'package:enmesh/core/states/server_state.dart';
+import 'package:enmesh/core/models/server_mod.dart';
 
 /// 服务器服务：协调 State 与持久化
 class ServerService {

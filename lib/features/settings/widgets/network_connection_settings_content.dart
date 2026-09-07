@@ -1,12 +1,12 @@
-import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/states/connection_state.dart';
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/features/settings/pages/network/listen_list_page.dart';
-import 'package:astral/features/settings/pages/network/port_whitelist_page.dart';
-import 'package:astral/features/settings/pages/network/vpn_segment_page.dart';
-import 'package:astral/features/settings/models/settings_availability.dart';
-import 'package:astral/features/settings/widgets/network_settings_sections.dart';
-import 'package:astral/features/settings/widgets/settings_components.dart';
+import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/connection_state.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/features/settings/pages/network/listen_list_page.dart';
+import 'package:enmesh/features/settings/pages/network/port_whitelist_page.dart';
+import 'package:enmesh/features/settings/pages/network/vpn_segment_page.dart';
+import 'package:enmesh/features/settings/models/settings_availability.dart';
+import 'package:enmesh/features/settings/widgets/network_settings_sections.dart';
+import 'package:enmesh/features/settings/widgets/settings_components.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -104,7 +104,7 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
       final socks5ListenAllInterfaces = network.socks5ListenAllInterfaces.watch(
         context,
       );
-      final preferAstralAdapter = network.preferAstralAdapter.watch(context);
+      final preferEnmeshAdapter = network.preferEnmeshAdapter.watch(context);
       final compression = network.dataCompressAlgo.watch(context);
       final disableUdp = network.disableUdpHolePunching.watch(context);
       final disableTcp = network.disableTcpHolePunching.watch(context);
@@ -301,10 +301,10 @@ class NetworkConnectionSettingsContent extends StatelessWidget {
               if (SettingsAvailability.windowsOnly.isVisible)
                 SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18),
-                  title: Text(LocaleKeys.prefer_astral_adapter.tr()),
-                  subtitle: Text(LocaleKeys.prefer_astral_adapter_desc.tr()),
-                  value: preferAstralAdapter,
-                  onChanged: services.networkConfig.setPreferAstralAdapter,
+                  title: Text(LocaleKeys.prefer_enmesh_adapter.tr()),
+                  subtitle: Text(LocaleKeys.prefer_enmesh_adapter_desc.tr()),
+                  value: preferEnmeshAdapter,
+                  onChanged: services.networkConfig.setPreferEnmeshAdapter,
                 ),
               if (SettingsAvailability.windowsOnly.isVisible)
                 SettingsLinkTile(

@@ -1,6 +1,6 @@
-﻿import 'package:astral/core/services/service_manager.dart';
-import 'package:astral/core/models/server_mod.dart';
-import 'package:astral/shared/utils/network/blocked_servers.dart';
+﻿import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/models/server_mod.dart';
+import 'package:enmesh/shared/utils/network/blocked_servers.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 

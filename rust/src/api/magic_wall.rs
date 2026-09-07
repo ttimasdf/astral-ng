@@ -203,7 +203,7 @@ mod wfp_impl {
                 }
 
                 tracing::debug!(
-                    target: "astral.magic-wall",
+                    target: "enmesh.magic-wall",
                     event_code = "magic-wall.wfp.session.open",
                     "WFP dynamic session opened"
                 );
@@ -235,7 +235,7 @@ mod wfp_impl {
                         Err(e) => {
                             // 回滚已添加的过滤器
                             tracing::warn!(
-                                target: "astral.magic-wall",
+                                target: "enmesh.magic-wall",
                                 event_code = "magic-wall.filters.rollback",
                                 filter_count = ids.len(),
                                 "Rolling back Magic Wall filters"
@@ -253,7 +253,7 @@ mod wfp_impl {
                             Err(e) => {
                                 // 回滚已添加的过滤器
                                 tracing::warn!(
-                                    target: "astral.magic-wall",
+                                    target: "enmesh.magic-wall",
                                     event_code = "magic-wall.filters.rollback",
                                     filter_count = ids.len(),
                                     "Rolling back Magic Wall filters"
@@ -278,7 +278,7 @@ mod wfp_impl {
                     bail!("删除过滤器失败，错误代码: {:#x}", status);
                 }
                 tracing::debug!(
-                    target: "astral.magic-wall",
+                    target: "enmesh.magic-wall",
                     event_code = "magic-wall.filter.remove.complete",
                     "WFP filter removed"
                 );
@@ -305,7 +305,7 @@ mod wfp_impl {
                 Ok(id) => ids.push(id),
                 Err(err) => {
                     tracing::warn!(
-                        target: "astral.magic-wall",
+                        target: "enmesh.magic-wall",
                         event_code = "magic-wall.filter.ipv4.failed",
                         error = %err,
                         "Failed to add IPv4 WFP filter"
@@ -324,7 +324,7 @@ mod wfp_impl {
                 Ok(id) => ids.push(id),
                 Err(err) => {
                     tracing::warn!(
-                        target: "astral.magic-wall",
+                        target: "enmesh.magic-wall",
                         event_code = "magic-wall.filter.ipv6.failed",
                         error = %err,
                         "Failed to add IPv6 WFP filter"
@@ -371,7 +371,7 @@ mod wfp_impl {
                 if !self.engine_handle.is_invalid() {
                     FwpmEngineClose0(self.engine_handle);
                     tracing::info!(
-                        target: "astral.magic-wall",
+                        target: "enmesh.magic-wall",
                         event_code = "magic-wall.wfp.session.close",
                         "WFP dynamic session closed"
                     );
@@ -754,7 +754,7 @@ pub fn start_magic_wall() -> std::result::Result<(), String> {
 
     let firewall = WfpFirewall::new().map_err(|e| e.to_string())?;
     tracing::info!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.engine.start",
         platform = "wfp",
         "Magic Wall engine started"
@@ -768,7 +768,7 @@ pub fn start_magic_wall() -> std::result::Result<(), String> {
     for rule in rules.values().filter(|r| r.enabled) {
         if let Err(err) = apply_rule(rule) {
             tracing::warn!(
-                target: "astral.magic-wall",
+                target: "enmesh.magic-wall",
                 event_code = "magic-wall.rule.restore.failed",
                 rule_id = %rule.id,
                 error = %err,
@@ -800,7 +800,7 @@ pub fn stop_magic_wall() -> std::result::Result<(), String> {
     RULE_STORE.lock().map_err(|e| e.to_string())?.clear();
 
     tracing::info!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.engine.stop",
         active_rule_count = active_count,
         "Magic Wall engine stopped"
@@ -816,7 +816,7 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
         let rules = RULE_STORE.lock().map_err(|e| e.to_string())?;
         if rules.contains_key(&rule.id) {
             tracing::debug!(
-                target: "astral.magic-wall",
+                target: "enmesh.magic-wall",
                 event_code = "magic-wall.rule.add.existing",
                 rule_id = %rule.id,
                 "Existing Magic Wall rule will be updated"
@@ -831,7 +831,7 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
         apply_rule(&rule)?;
     } else {
         tracing::debug!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.add.disabled",
             rule_id = %rule.id,
             "Disabled Magic Wall rule stored without applying"
@@ -850,7 +850,7 @@ pub fn add_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), Strin
 #[cfg(target_os = "windows")]
 fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
     tracing::debug!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.rule.apply.start",
         rule_id = %rule.id,
         action = %rule.action,
@@ -868,7 +868,7 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
     if let Some(app_path) = &rule.app_path {
         if crate::api::nt::get_nt_path(app_path).is_none() {
             tracing::warn!(
-                target: "astral.magic-wall",
+                target: "enmesh.magic-wall",
                 event_code = "magic-wall.rule.path.convert.failed",
                 rule_id = %rule.id,
                 "Failed to convert a Magic Wall application path"
@@ -882,7 +882,7 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
             .and_then(|f_rule| firewall.add_rule(&f_rule))
             .map_err(|error| {
                 tracing::error!(
-                    target: "astral.magic-wall",
+                    target: "enmesh.magic-wall",
                     event_code = "magic-wall.rule.apply.failed",
                     rule_id = %rule.id,
                     error = %error,
@@ -898,7 +898,7 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
             .insert(rule.id.clone(), ids);
 
         tracing::info!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.apply.complete",
             rule_id = %rule.id,
             filter_count,
@@ -906,7 +906,7 @@ fn apply_rule(rule: &MagicWallRule) -> std::result::Result<(), String> {
         );
     } else {
         tracing::debug!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.apply.deferred",
             rule_id = %rule.id,
             "Magic Wall rule application deferred until engine start"
@@ -922,7 +922,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
     let mut rules = RULE_STORE.lock().map_err(|e| e.to_string())?;
     if rules.remove(&rule_id).is_some() {
         tracing::debug!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.remove.start",
             rule_id = %rule_id,
             "Removing Magic Wall rule"
@@ -940,7 +940,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
                 for id in ids {
                     if let Err(err) = firewall.remove_filter(id) {
                         tracing::warn!(
-                            target: "astral.magic-wall",
+                            target: "enmesh.magic-wall",
                             event_code = "magic-wall.filter.remove.failed",
                             rule_id = %rule_id,
                             error = %err,
@@ -949,7 +949,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
                     }
                 }
                 tracing::debug!(
-                    target: "astral.magic-wall",
+                    target: "enmesh.magic-wall",
                     event_code = "magic-wall.filters.remove.complete",
                     rule_id = %rule_id,
                     filter_count,
@@ -957,7 +957,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
                 );
             } else {
                 tracing::warn!(
-                    target: "astral.magic-wall",
+                    target: "enmesh.magic-wall",
                     event_code = "magic-wall.filters.tracker.missing",
                     rule_id = %rule_id,
                     "No tracked WFP filters found for Magic Wall rule"
@@ -966,7 +966,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
         }
 
         tracing::info!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.remove.complete",
             rule_id = %rule_id,
             "Magic Wall rule removed"
@@ -974,7 +974,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
         Ok(())
     } else {
         tracing::warn!(
-            target: "astral.magic-wall",
+            target: "enmesh.magic-wall",
             event_code = "magic-wall.rule.remove.missing",
             rule_id = %rule_id,
             "Magic Wall rule was not found"
@@ -988,7 +988,7 @@ pub fn remove_magic_wall_rule(rule_id: String) -> std::result::Result<(), String
 pub fn update_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), String> {
     let rule_id = rule.id.clone();
     tracing::debug!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.rule.update.start",
         rule_id = %rule_id,
         "Updating Magic Wall rule"
@@ -998,7 +998,7 @@ pub fn update_magic_wall_rule(rule: MagicWallRule) -> std::result::Result<(), St
     add_magic_wall_rule(rule)?;
 
     tracing::info!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.rule.update.complete",
         rule_id = %rule_id,
         "Magic Wall rule updated"
@@ -1016,7 +1016,7 @@ pub fn get_magic_wall_status() -> std::result::Result<MagicWallStatus, String> {
     let total_rules = rules.len();
 
     tracing::debug!(
-        target: "astral.magic-wall",
+        target: "enmesh.magic-wall",
         event_code = "magic-wall.status.read",
         running,
         active_rule_count = active_rules,

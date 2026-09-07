@@ -1,6 +1,6 @@
-import 'package:astral/generated/locale_keys.g.dart';
-import 'package:astral/shared/utils/network/node_utils.dart';
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/generated/locale_keys.g.dart';
+import 'package:enmesh/shared/utils/network/node_utils.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 

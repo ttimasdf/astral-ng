@@ -1,5 +1,5 @@
-﻿import 'package:astral/core/database/app_data.dart';
-import 'package:astral/core/models/theme_settings.dart';
+﻿import 'package:enmesh/core/database/app_data.dart';
+import 'package:enmesh/core/models/theme_settings.dart';
 
 /// 主题设置持久化（单例 [ThemeSettings]）
 class ThemeRepository {

@@ -1,4 +1,4 @@
-import 'package:astral/src/rust/api/simple.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 
 /// Stable emoji identities shared by Home and the Rooms constellation.
 class MeshPeerIdentity {

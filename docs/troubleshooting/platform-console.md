@@ -28,10 +28,10 @@ nix develop
 flutter-android run -d <device-id>
 ```
 
-Capture only Astral's normal native tags when possible:
+Capture only EasyTier Enmesh's normal native tags when possible:
 
 ```sh
-adb logcat -v threadtime -s Astral AstralRust flutter
+adb logcat -v threadtime -s EasyTier Enmesh EnmeshRust flutter
 ```
 
 For service-restart investigations, first clear stale output, reproduce once,
@@ -39,15 +39,15 @@ and then save the bounded result:
 
 ```sh
 adb logcat -c
-adb logcat -v threadtime -s Astral AstralRust flutter > astral-logcat.txt
+adb logcat -v threadtime -s EasyTier Enmesh EnmeshRust flutter > enmesh-logcat.txt
 ```
 
-Astral-controlled console bodies use compact bracketed fields:
+EasyTier Enmesh-controlled console bodies use compact bracketed fields:
 `LEVEL [module] [optional.event.code] message | key=value`. The event-code
 bracket is omitted for unclassified upstream traces; columns are not padded.
 
-Android adds its own timestamps, process IDs, priorities, and tags. `Astral`
-is the Kotlin VPN adapter tag, `AstralRust` is the Rust native tag, and Flutter
+Android adds its own timestamps, process IDs, priorities, and tags. `EasyTier Enmesh`
+is the Kotlin VPN adapter tag, `EnmeshRust` is the Rust native tag, and Flutter
 Dart output can be visible through the `flutter` tag or DevTools depending on
 the runtime. No individual console is guaranteed to contain every origin. Use
 the canonical JSONL retrieval workflow for agent analysis; use `logcat` for

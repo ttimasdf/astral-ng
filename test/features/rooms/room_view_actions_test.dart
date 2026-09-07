@@ -1,5 +1,5 @@
-import 'package:astral/features/rooms/pages/room_page.dart';
-import 'package:astral/features/rooms/widgets/room_action_stack.dart';
+import 'package:enmesh/features/rooms/pages/room_page.dart';
+import 'package:enmesh/features/rooms/widgets/room_action_stack.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

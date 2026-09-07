@@ -1,5 +1,5 @@
-import 'package:astral/core/diagnostics/log_severity.dart';
-import 'package:astral/core/diagnostics/diagnostic_modules.dart';
+import 'package:enmesh/core/diagnostics/log_severity.dart';
+import 'package:enmesh/core/diagnostics/diagnostic_modules.dart';
 
 const Object _inheritThreshold = Object();
 

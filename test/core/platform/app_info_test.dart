@@ -1,4 +1,4 @@
-import 'package:astral/core/platform/app_info.dart';
+import 'package:enmesh/core/platform/app_info.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

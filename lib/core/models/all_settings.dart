@@ -24,7 +24,7 @@ class AllSettings {
   /// 关闭窗口时保留后台进程并隐藏到托盘
   bool closeToTray = true;
 
-  /// 登录系统时启动 AstralNG
+  /// 登录系统时启动 Enmesh
   bool launchAtLogin = false;
 
   /// 启动后隐藏到系统托盘
@@ -33,8 +33,8 @@ class AllSettings {
   /// 启动后自动连接
   bool connectAfterLaunch = false;
 
-  /// 优先使用 AstralNG Windows 适配器
-  bool preferAstralAdapter = true;
+  /// 优先使用 Enmesh Windows 适配器
+  bool preferEnmeshAdapter = true;
 
   /// 旧版 Beta 更新开关；保留用于迁移到独立的更新通道偏好。
   bool receiveBetaUpdates = false;

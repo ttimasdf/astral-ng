@@ -5,7 +5,7 @@ fail() {
   exit 2
 }
 
-: "${ASTRAL_FLUTTER_BIN:?the Astral-ng flutter wrapper requires the Nix development shell}"
+: "${ENMESH_FLUTTER_BIN:?the Enmesh flutter wrapper requires the Nix development shell}"
 
 channel="${BUILD_CHANNEL:-canary}"
 update_api_base_url="${UPDATE_API_BASE_URL:-}"
@@ -79,4 +79,4 @@ case "$flutter_command" in
     ;;
 esac
 
-exec "$ASTRAL_FLUTTER_BIN" "${flutter_args[@]}"
+exec "$ENMESH_FLUTTER_BIN" "${flutter_args[@]}"

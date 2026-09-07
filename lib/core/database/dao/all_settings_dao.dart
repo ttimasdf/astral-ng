@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:astral/core/models/all_settings.dart';
-import 'package:astral/core/models/room.dart';
+import 'package:enmesh/core/models/all_settings.dart';
+import 'package:enmesh/core/models/room.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:isar_community/isar.dart';
 

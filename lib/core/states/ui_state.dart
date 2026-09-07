@@ -1,4 +1,4 @@
-import 'package:astral/core/ui/main_tab.dart';
+import 'package:enmesh/core/ui/main_tab.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// UI状态（纯Signal，临时状态，不需要持久化）

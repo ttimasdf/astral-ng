@@ -1,4 +1,4 @@
-package pw.rabit.astralng
+package pw.rabit.enmesh
 
 import android.annotation.TargetApi
 import android.app.PendingIntent
@@ -13,7 +13,7 @@ import android.widget.Toast
 import es.antonborri.home_widget.HomeWidgetPlugin
 
 @TargetApi(Build.VERSION_CODES.N)
-class AstralQuickSettingsTileService : TileService() {
+class EnmeshQuickSettingsTileService : TileService() {
     private val widgetData: SharedPreferences by lazy {
         HomeWidgetPlugin.getData(this)
     }
@@ -117,7 +117,7 @@ class AstralQuickSettingsTileService : TileService() {
 
         val launchIntent = Intent(this, MainActivity::class.java).apply {
             this.action = Intent.ACTION_VIEW
-            data = Uri.parse("astral://toggle_connection?action=$toggleAction")
+            data = Uri.parse("enmesh://toggle_connection?action=$toggleAction")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
 

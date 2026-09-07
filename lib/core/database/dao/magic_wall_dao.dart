@@ -1,5 +1,5 @@
 import 'package:isar_community/isar.dart';
-import 'package:astral/core/models/magic_wall_model.dart';
+import 'package:enmesh/core/models/magic_wall_model.dart';
 
 class MagicWallDao {
   final Isar _isar;

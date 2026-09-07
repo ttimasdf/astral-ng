@@ -1,5 +1,5 @@
-﻿import 'package:astral/core/models/mission_control_preferences.dart';
-import 'package:astral/src/rust/api/simple.dart';
+﻿import 'package:enmesh/core/models/mission_control_preferences.dart';
+import 'package:enmesh/src/rust/api/simple.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 /// 连接状态

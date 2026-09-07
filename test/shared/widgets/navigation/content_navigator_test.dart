@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:astral/shared/widgets/navigation/content_navigator.dart';
+import 'package:enmesh/shared/widgets/navigation/content_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

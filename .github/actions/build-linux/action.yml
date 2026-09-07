@@ -78,10 +78,10 @@ runs:
 
         BUNDLE="$GITHUB_WORKSPACE/build/linux/x64/release/bundle"
         pushd "$BUNDLE"
-        if [ "$APP_EXECUTABLE" != astral ]; then
-          mv -- astral "$APP_EXECUTABLE"
+        if [ "$APP_EXECUTABLE" != enmesh ]; then
+          mv -- enmesh "$APP_EXECUTABLE"
         fi
-        patchelf "$APP_EXECUTABLE" --add-needed libisar.so --add-needed librust_lib_astral.so
+        patchelf "$APP_EXECUTABLE" --add-needed libisar.so --add-needed librust_lib_enmesh.so
         tar -czf "$GITHUB_WORKSPACE/release/$APP_EXECUTABLE-linux-x64-$ASSET_VERSION.tar.gz" ./*
         popd
 

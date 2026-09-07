@@ -1,4 +1,4 @@
-import 'package:astral/core/models/update_version.dart';
+import 'package:enmesh/core/models/update_version.dart';
 
 class HistoryVersion {
   final String title;

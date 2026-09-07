@@ -1,6 +1,6 @@
-# Astral-ng update server
+# EasyTier Enmesh update server
 
-Repository-specific Vercel Functions that normalize Astral-ng stable and beta
+Repository-specific Vercel Functions that normalize EasyTier Enmesh stable and beta
 metadata from GitHub. They never proxy release artifacts.
 
 ## Develop
