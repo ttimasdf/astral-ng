@@ -2,7 +2,7 @@ name: enmesh
 description: 'EasyTier Enmesh'
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 3.0.0+10293
+version: 3.0.0+10294
 
 
 environment:

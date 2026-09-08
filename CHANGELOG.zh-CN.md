@@ -4,7 +4,7 @@
 `CHANGELOG.md` 是唯一权威来源。仅在版本提升（version bump）时翻译对应版本的
 章节；两次版本提升之间不维护此文件。
 
-## [v3.0.0-rc.3] - 2026-08-31
+## [v3.0.0] - 2026-09-08
 
 > **版本亮点：** Enmesh 3.0：名称焕新，掌控更从容——重塑的任务控制台、路径感知拓扑界面、更清晰可信的诊断日志。
 
@@ -105,6 +105,8 @@
   启动失败与请求断开会清理 VPN 接口与服务。([#15])
 - **金丝雀启动画面。** Android 金丝雀构建在解析桌面小组件提供方时不再停留在白色
   启动画面。([#14])
+- **磁贴长按。** 长按 Android 快速设置磁贴现在直接打开 Enmesh，而不是系统的
+  应用信息界面。([#21])
 - **上游修复。**
   - **Android VPN 路由。** 修复已连接节点通告或更改代理子网时的路由刷新。
     ([upstream-#231])
@@ -163,6 +165,7 @@
 [#14]: https://github.com/ttimasdf/enmesh/pull/14
 [#15]: https://github.com/ttimasdf/enmesh/pull/15
 [#17]: https://github.com/ttimasdf/enmesh/pull/17
+[#21]: https://github.com/ttimasdf/enmesh/pull/21
 [nix-flutter-3.44]: https://github.com/ttimasdf/enmesh/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226

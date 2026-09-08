@@ -7,16 +7,11 @@ provenance.
 
 ## Unreleased
 
-### Fixed
-
-- **Tile long-press.** Long-pressing the Android Quick Settings tile now
-  opens Enmesh directly instead of the system App Info screen.
-
-## [v3.0.0-rc.3] - 2026-08-31
+## [v3.0.0] - 2026-09-08
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
 
-[中文更新日志](CHANGELOG.zh-CN.md#v300-rc3---2026-08-31)
+[中文更新日志](CHANGELOG.zh-CN.md#v300---2026-09-08)
 
 ### Added
 
@@ -142,6 +137,8 @@ provenance.
   clean up the VPN interface and service. ([#15])
 - **Canary launch screen.** Android canary builds no longer remain on the white
   launch screen while resolving home-widget providers. ([#14])
+- **Tile long-press.** Long-pressing the Android Quick Settings tile now
+  opens Enmesh directly instead of the system App Info screen. ([#21])
 - **Upstream fixes.**
   - **Android VPN routes.** Fixed route refresh when a connected peer advertises
     or changes a proxy subnet. ([upstream-#231])
@@ -279,6 +276,7 @@ changes. ([upstream-v2.7.3])
 [#14]: https://github.com/ttimasdf/enmesh/pull/14
 [#15]: https://github.com/ttimasdf/enmesh/pull/15
 [#17]: https://github.com/ttimasdf/enmesh/pull/17
+[#21]: https://github.com/ttimasdf/enmesh/pull/21
 [nix-flutter-3.44]: https://github.com/ttimasdf/enmesh/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
@@ -298,5 +296,5 @@ changes. ([upstream-v2.7.3])
 [v2.7.8-merge]: https://github.com/ttimasdf/enmesh/commit/27a4d3e7f7585dea3423c0b2ea64b5b37ada63bf
 [v2.8.0]: https://github.com/ttimasdf/enmesh/releases/tag/v2.8.0
 [v2.8.1]: https://github.com/ttimasdf/enmesh/releases/tag/v2.8.1
-[v3.0.0-rc.3]: https://github.com/ttimasdf/enmesh/releases/tag/v3.0.0-rc.3
+[v3.0.0]: https://github.com/ttimasdf/enmesh/releases/tag/v3.0.0
 [v2.8.1-forward-port]: https://github.com/ttimasdf/enmesh/commit/73ff014c5d71e16df6226bfd46c9c806141af3f9
