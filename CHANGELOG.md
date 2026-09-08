@@ -7,6 +7,11 @@ provenance.
 
 ## Unreleased
 
+### Fixed
+
+- **Tile long-press.** Long-pressing the Android Quick Settings tile now
+  opens Enmesh directly instead of the system App Info screen.
+
 ## [v3.0.0-rc.3] - 2026-08-31
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.
