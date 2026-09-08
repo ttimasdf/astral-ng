@@ -33,15 +33,33 @@ When instructed to implement a new feature, use the following workflow:
    such as `flutter analyze lib` and `flutter test`, then run
    `nix build .#enmesh`. Resolve failures locally, repeat the demonstration
    if behavior changed, and commit the wrap-up.
-8. Read `docs/CI.md`, push the feature branch, and create a pull request. The
-   pull request title must begin with `[<slug>]` so the slug is retained in the
-   squash commit message (for example,
-   `[tray-status-icons] Add tray status indicators`). Enable `platform-all`, watch
-   the required checks to completion, and then present the passing pull request
-   for review.
+8. Read `docs/CI.md`, push the feature branch, and create a pull request whose
+   title follows the commit and pull request title rules below (for example,
+   `feat(settings): reorganize connection preferences`). Enable `platform-all`,
+   watch the required checks to completion, and then present the passing pull
+   request for review.
 9. Merge a pull request only after the user explicitly approves the merge. Once
    authorized, use `/merge-pr [PR-number-or-URL]`; the prompt contains the merge
    and cleanup workflow.
+
+## Commit and Pull Request Titles
+
+Write commit subjects and pull request titles as Conventional Commits messages
+(`type(scope): summary`) using the standard types (`feat`, `fix`, `docs`,
+`build`, `ci`, `chore`, `perf`, `refactor`, `revert`, `test`). The scope must
+come from this fixed list; omit the scope entirely for cross-cutting changes
+rather than inventing one:
+
+- Feature areas: `home`, `rooms`, `settings`, `servers`, `magic-wall`,
+  `nat-test`, `tools`
+- Platform and process: `core` (`lib/core/`), `rust` (`rust/`), `update-api`,
+  `release`, `ci`, `deps`, `docs`
+
+For example, `feat(settings): reorganize connection preferences` or
+`fix: reset connection state on profile switch`. The feature slug remains a
+branch and worktree identifier (`feature/<slug>`, `.worktrees/<slug>`) and is
+not part of titles; GitHub appends the pull request number to squash commit
+titles, which is sufficient traceability.
 
 ## Commit and Tag Signing
 
