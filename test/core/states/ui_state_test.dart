@@ -28,6 +28,7 @@ void main() {
     (tester) async {
       double? mediaQueryWidthInCallback;
       double? viewWidthInCallback;
+      final uiState = UIState();
 
       // Mirrors the MainScreen metrics pattern: an observer reading both width
       // sources from didChangeMetrics, exactly where the stale-width
@@ -39,6 +40,7 @@ void main() {
             onMetrics: (mediaQueryWidth, viewWidth) {
               mediaQueryWidthInCallback = mediaQueryWidth;
               viewWidthInCallback = viewWidth;
+              uiState.updateScreenSplitWidth(viewWidth);
             },
           ),
         ),
@@ -52,15 +54,25 @@ void main() {
       expect(
         mediaQueryWidthInCallback,
         closeTo(800, 0.01),
-        reason: 'MediaQuery.of inside didChangeMetrics still reports the '
+        reason:
+            'MediaQuery.of inside didChangeMetrics still reports the '
             'previous orientation; it must not feed the isDesktop signal',
       );
       expect(
         viewWidthInCallback,
         closeTo(3200 / 3.5, 0.01),
-        reason: 'windowWidthOf must report the fresh landscape width so the '
+        reason:
+            'windowWidthOf must report the fresh landscape width so the '
             'layout signal flips immediately',
       );
+      expect(uiState.isDesktop.value, isTrue);
+
+      // Rotate back to portrait and verify the same callback path switches the
+      // layout state back instead of leaving the desktop layout cached.
+      tester.view.physicalSize = const Size(1440, 3200);
+      await tester.pump();
+      expect(uiState.isDesktop.value, isFalse);
+      expect(viewWidthInCallback, closeTo(1440 / 3.5, 0.01));
 
       await tester.pump();
       addTearDown(tester.view.reset);
