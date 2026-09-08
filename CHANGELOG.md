@@ -7,6 +7,13 @@ provenance.
 
 ## Unreleased
 
+### Developer notes
+
+- **Update API build gating.** Replaced the inline Vercel ignored-build-step
+  command with `update-server/scripts/vercel-build-check.sh`, which survives
+  missing previous commits by failing open or diffing against `main` and
+  cancels production deployments from non-`main` branches.
+
 ## [v3.0.0] - 2026-09-08
 
 > **Highlight:** Enmesh 3.0: a new name, calmer control — rebuilt Mission Control, a route-aware topology view, and clearer, more trustworthy diagnostic logs.

@@ -26,5 +26,7 @@ vercel --cwd update-server --prod
 
 Configure the read-only `GITHUB_TOKEN` plus the optional
 `GITHUB_REPOSITORY`, `GITHUB_WORKFLOW`, and `GITHUB_DEFAULT_BRANCH` variables.
-The full deployment and app configuration guide is in the repository's
+Git-integration builds are gated by `scripts/vercel-build-check.sh`; see the
+repository's `docs/CI.md` for the dashboard field and behavior. The full
+deployment and app configuration guide is in the repository's
 `docs/UPDATE_API.md`.

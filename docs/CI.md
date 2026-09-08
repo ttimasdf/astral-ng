@@ -55,14 +55,30 @@ project dashboard. Under **Settings → Build and Deployment**:
 - **Ignored Build Step:** select *Custom* and enter the following command:
 
   ```bash
-  if [ -z "$VERCEL_GIT_PREVIOUS_SHA" ]; then exit 1; fi; git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" "$VERCEL_GIT_COMMIT_SHA" -- .
+  bash scripts/vercel-build-check.sh
   ```
 
-  Vercel runs the command from the Root Directory, so `.` already means
-  `update-server/`. The command compares the last successful deployment with
-  the commit that triggered the current deployment, covering every commit in
-  a multi-commit push. A clean diff (exit 0) skips the build; changes (exit 1)
-  continue it. The empty-SHA guard forces the first deployment to build.
+  Vercel runs the command from the Root Directory, and the script derives
+  `update-server/` from its own location. Exit code 0 skips the build; any
+  other exit code continues it. The script decides as follows:
+
+  - `VERCEL_ENV` is `production` and the pushed branch is not the default
+    branch (`main`): error and cancel the deployment.
+  - `VERCEL_GIT_PREVIOUS_SHA` is empty (first deployment): warn and build.
+  - `VERCEL_GIT_PREVIOUS_SHA` is unusable on a production deployment (invalid
+    or missing from the shallow clone): warn and build, because the changed
+    paths cannot be determined.
+  - `VERCEL_GIT_PREVIOUS_SHA` is unusable on any other deployment: warn, fall
+    back to diffing against `main` (fetching it with `--depth=1` when the
+    shallow clone lacks it), and build if `main` cannot be resolved.
+  - Otherwise: diff `update-server/` between the previous and pushed commits,
+    covering every commit in a multi-commit push. A clean diff (exit 0) skips
+    the build; changes (exit 1) continue it. A diff error also continues the
+    build, so the deployment never fails closed.
+
+  The script replaces an earlier inline command that crashed with
+  `fatal: bad object` when the shallow clone did not contain
+  `VERCEL_GIT_PREVIOUS_SHA`, as happened on the v3.0.0 release push.
 - **Deployment Retention:** canceled deployments `1 day`, errored deployments
   `1 week`, pre-production deployments `2 weeks`, production deployments
   `30 days`.
