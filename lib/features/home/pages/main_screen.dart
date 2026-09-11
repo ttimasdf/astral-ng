@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:enmesh/core/services/update_service.dart';
 import 'package:enmesh/shared/widgets/common/update_check_ui.dart';
 import 'package:enmesh/core/services/service_manager.dart';
+import 'package:enmesh/core/states/ui_state.dart';
 import 'package:enmesh/core/states/window_state.dart';
 import 'package:enmesh/core/platform/small_window_adapter.dart';
 import 'package:enmesh/features/home/pages/home_page.dart';
@@ -49,8 +50,10 @@ class _MainScreenState extends State<MainScreen>
       windowManager.addListener(this);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      ServiceManager().uiState.updateScreenSplitWidth(screenWidth);
+      if (!mounted) return;
+      ServiceManager().uiState.updateScreenSplitWidth(
+        UIState.windowWidthOf(context),
+      );
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -108,10 +111,14 @@ class _MainScreenState extends State<MainScreen>
     super.didChangeMetrics();
     if (!mounted) return;
 
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-
-    ServiceManager().uiState.updateScreenSplitWidth(screenWidth);
+    // Do not read MediaQuery.of(context) here: metrics callbacks fire before
+    // the widget tree rebuilds, so it still reports the previous orientation.
+    // Caching that stale width used to stick portrait phones in the desktop
+    // sidebar layout after a portrait -> landscape -> portrait round trip
+    // (issue #22). View metrics are already fresh when this callback runs.
+    ServiceManager().uiState.updateScreenSplitWidth(
+      UIState.windowWidthOf(context),
+    );
 
     if (mounted) {
       setState(() {});

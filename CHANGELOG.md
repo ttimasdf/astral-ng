@@ -7,6 +7,12 @@ provenance.
 
 ## Unreleased
 
+### Fixed
+
+- **Android rotation layout.** Fixed phones staying in the desktop sidebar
+  layout after rotating to landscape and back to portrait; portrait now
+  reliably shows the bottom tab bar again. ([#23])
+
 ### Developer notes
 
 - **Update API build gating.** Replaced the inline Vercel ignored-build-step
@@ -284,6 +290,7 @@ changes. ([upstream-v2.7.3])
 [#15]: https://github.com/ttimasdf/enmesh/pull/15
 [#17]: https://github.com/ttimasdf/enmesh/pull/17
 [#21]: https://github.com/ttimasdf/enmesh/pull/21
+[#23]: https://github.com/ttimasdf/enmesh/pull/23
 [nix-flutter-3.44]: https://github.com/ttimasdf/enmesh/commit/b5969b66ff7e2db6e8517413ccf01b9b2a6720a2
 [upstream-#74]: https://github.com/ldoubil/astral/issues/74
 [upstream-#226]: https://github.com/ldoubil/astral/issues/226
